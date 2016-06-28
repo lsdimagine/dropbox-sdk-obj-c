@@ -1,0 +1,220 @@
+namespace sharing
+
+import common
+import files
+
+struct ExpectedSharedFolderMetadata extends SharedFolderMetadataBase
+    "Properties the shared folder will have upon creation."
+
+    path_lower String
+        "The lower-cased full path of this shared folder."
+    permissions List(FolderPermission)?
+        "Actions the current user may perform on the folder and its contents.
+        The set of permissions corresponds to the FolderActions in the request."
+    members_cursor String?
+        "Cursor to retrieve inherited members of this shared folder,
+        if any exist. Pass into :route:`list_folder_members/continue`
+        to list members. This field is present only if
+        :field:`ValidateFolderPathArg.list_members_arg`
+        was specified."
+
+    example default
+        path_lower = "/dir"
+        access_type = owner
+        is_team_folder = false
+        policy = default
+        permissions = []
+        members_cursor = "ZtkX9_EHj3x7PMkVuFIhwKYXEpwpLwyxp9vMKomUhllil9q7eWiAu"
+
+union ValidateFolderPathError extends ShareFolderErrorBase
+    no_permission ExpectedSharedFolderMetadata?
+        "The current user does not have permission to perform this action. If they don't have
+        permission because it would create a nested shared folder, this contains metadata about
+        the shared folder that would be created at this path if the user had the permissions to
+        share it."
+
+route validate_folder_path(ValidateFolderPathArg, ExpectedSharedFolderMetadata, ValidateFolderPathError)
+    "Determine whether a shared folder can be created at a given path.
+    If so, returns metadata for the yet-to-be-created shared folder.
+    If not, the error explains why not.
+
+    Apps must have full Dropbox access to use this endpoint.
+
+    Warning: This endpoint is in beta and is subject to minor but possibly
+    backwards-incompatible changes."
+
+struct ValidateFolderPathArg
+    path files.Path
+        "The path to the folder to share."
+    actions List(FolderAction)?
+        "Folder actions to query."
+    list_members_arg ListFolderMembersCursorArg?
+        "If this field is provided, the return value will include a cursor
+        for listing inherited folder members."
+
+    example default
+        path = "/example/workspace"
+        actions = []
+        list_members_arg = default
+
+# --
+
+struct MemberCounts
+    "Shared folder user counts."
+
+    total_unique_users UInt32
+        "Total number of unique users."
+    users_outside_team UInt32?
+        "Number of unique users outside the team. This field is only present if the folder
+        is owned by a team to which the calling user belongs."
+
+    example default
+        total_unique_users = 3
+        users_outside_team = 1
+
+route get_folder_member_counts(GetFolderMemberCountsArgs, MemberCounts, SharedFolderAccessError)
+    "Returns shared folder membership counts for the folder ID.
+
+    Apps must have full Dropbox access to use this endpoint."
+
+struct GetFolderMemberCountsArgs
+    shared_folder_id common.SharedFolderId
+        "The ID for the shared folder."
+
+    example default
+        shared_folder_id = "84528192421"
+
+# --
+
+route downgrade_team_folder(DowngradeTeamFolderArg, async.LaunchResultBase, DowngradeTeamFolderError)
+    "Downgrades a team folder to a regular shared folder. All non-admins lose access to the folder.
+    Any shared folders inside the team folder are unshared.
+
+    You'll need to call :route:`check_job_status` to determine if the action has
+    completed successfully.
+
+    Apps must have full Dropbox access to use this endpoint.
+
+    Warning: This endpoint is in beta and is subject to minor but possibly
+    backwards-incompatible changes."
+
+struct DowngradeTeamFolderArg
+    shared_folder_id common.SharedFolderId
+        "The ID for the team folder."
+
+    example default
+        shared_folder_id = "84528192421"
+
+union DowngradeTeamFolderError
+    access_error SharedFolderAccessError
+    no_permission
+        "The current user does not have permission to perform this action."
+    other*
+
+union DowngradeTeamFolderJobStatus extends async.PollResultBase
+    complete SharedFolderMetadata
+        "The downgrade job has finished. The value is the metadata for the resulting shared folder."
+    failed DowngradeTeamFolderError
+        "Error occurred while performing an asynchronous job from :route:`downgrade_team_folder`."
+
+    example default
+        complete = default
+
+route check_downgrade_team_folder_job_status(async.PollArg, DowngradeTeamFolderJobStatus, async.PollError)
+    "Returns the status of an asynchronous job for downgrading a team folder.
+
+    Apps must have full Dropbox access to use this endpoint.
+
+    Warning: This endpoint is in beta and is subject to minor but possibly
+    backwards-incompatible changes."
+
+# --
+
+route get_folder_metadata_2(InternalGetMetadataArgs, InternalSharedFolderMetadata, SharedFolderAccessError)
+    "Returns internal shared folder metadata by its folder ID."
+
+struct InternalGetMetadataArgs
+    shared_folder_id common.SharedFolderId
+        "The ID for the shared folder."
+    actions List(InternalFolderAction)?
+        "Folder actions to query."
+
+    example default
+        shared_folder_id = "84528192421"
+        actions = []
+
+union InternalFolderAction extends FolderAction
+    "Internal-only actions that may be taken on a shared folder."
+
+    upgrade_to_team_folder
+        "Upgrade the shared folder to a team folder."
+
+struct InternalFolderPermission
+    "Whether the user is allowed to take the action on the shared folder."
+
+    action InternalFolderAction
+        "The action that the user may wish to take on the folder."
+    allow Boolean
+        "True if the user is allowed to take the action."
+    reason PermissionDeniedReason?
+        "The reason why the user is denied the permission. Not present if the action
+        is allowed, or if no reason is available."
+
+    example default
+        action = edit_contents
+        allow = false
+        reason = user_not_same_team_as_owner
+
+struct InternalSharedFolderMetadata extends SharedFolderMetadataBase
+    "The metadata which includes internal information about the shared folder."
+
+    path_lower String?
+        "The lower-cased full path of this shared folder. Absent for unmounted folders."
+    name String
+        "The name of the this shared folder."
+    shared_folder_id common.SharedFolderId
+        "The ID of the shared folder."
+    permissions List(InternalFolderPermission)?
+        "Actions the current user may perform on the folder and its contents.
+        The set of permissions corresponds to the InternalFolderActions in the request."
+
+    example default
+        path_lower = "/dir"
+        name = "dir"
+        shared_folder_id = "84528192421"
+        permissions = []
+        access_type = owner
+        is_team_folder = false
+        policy = default
+
+# --
+
+route internal_test_only/get_folder_shared_content_link(GetFolderSharedContentLinkArg, List(String), AddFolderMemberError)
+    "Get the shared content link for the given folder and member information.
+
+    Note 1: This is used ONLY for mobile integration test.
+    Note 2: Because this is for internal test, we did not put more engineering efforts into this endpt to ensure its robustness,
+        meaning that we only guarantee that for legal inputs, the generated URL will be equivalent (see Note III) to what is sent through the invitation email;
+        for illegal inputs, the behavior of this endpt might be different from the add_folder_member endpt.
+    Note 3: Due to the randomness introduced inside our encryption function,
+        the r=? parameter in the url generated from this endpt will not be exactly the same
+        as in the link in the email. However, we make sure that the decoded recipient information
+        will be exactly the same between the two URLs.
+    Note 4: The output URLs might not be in the same order as the input members. So if this order matters, you might want to pass in one member every time time.
+    "
+
+    attrs
+        owner = "sharing"
+
+struct GetFolderSharedContentLinkArg
+    shared_folder_id common.SharedFolderId
+        "The ID for the shared folder."
+    members List(AddMember)
+        "The target members that will end up in the 'r=' query param of the output urls."
+    gen_email_link Boolean
+        "Whether we generate a email tracking link (/l/*) or just the scl link /scl/fo/*"
+
+    example default
+        shared_folder_id = "84528192421"
+        members = [default]
+        gen_email_link = false

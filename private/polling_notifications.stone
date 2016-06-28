@@ -1,0 +1,49 @@
+namespace polling_notifications
+    "This namespace contains endpoints to poll for user and team
+    updates on a per application basis."
+
+struct PollingNotificationsArg
+    cursor String?
+
+    example default
+        cursor = "1457725646159326755"
+
+struct IdInfo
+    id String
+    revision_id String
+
+    example default
+        id = "234992346"
+        revision_id = "4372545480778991997"
+
+struct PollingNotificationsResult
+    ids List(IdInfo)
+    cursor String
+
+    example default
+        ids = [default]
+        cursor = "1457725646159326755"
+
+union PollingNotificationsError
+
+    invalid_application
+        "Application does not have permission to access this API."
+    invalid_cursor
+        "Invalid cursor."
+    other*
+
+route get_team_notifications (PollingNotificationsArg, PollingNotificationsResult, PollingNotificationsError)
+    "Retrieve all updated teams. Clients should use the cursor param on subsequent
+    calls to acknowledge receipt of previous team_ids. If no cursor param is present
+    this will return all team_ids since the last known cursor."
+
+    attrs
+        auth = "app"
+
+route get_user_notifications (PollingNotificationsArg, PollingNotificationsResult, PollingNotificationsError)
+    "Retrieve all updated users. Clients should use the cursor param on subsequent
+    calls to acknowledge receipt of previous user_ids. If no cursor param is present
+    this will return all user_ids since the last known cursor."
+
+    attrs
+        auth = "app"

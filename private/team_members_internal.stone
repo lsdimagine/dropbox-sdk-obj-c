@@ -1,0 +1,44 @@
+namespace team_members_internal
+
+import team
+
+route members_add(team.MembersAddArg,  List(team.MemberAddResult), Void)
+    "Async task signature. Adds members to a team."
+
+    attrs
+        owner="adminx"
+
+
+# send_reminder_email_to_self
+
+struct ReminderEmailArgs
+    team_id String
+        "Team id of the DfB team which we think the user was invited to.
+
+        Currently it is just a string with digits of the real team_id. It is a string
+        because we want to be future proof and be compatiable with the encoded team_id
+        format of API_V2
+        "
+
+union ReminderEmailError
+    invalid_team
+        "The provided dfb team_id is invalid."
+    no_pending_invite
+        "There was no pending invite for the current user to the dfb team specified."
+    unknown_error
+        "Some unknown internal error happened."
+    other*
+
+route send_reminder_email_to_self(ReminderEmailArgs, Void, ReminderEmailError)
+    "Send the signed in user a team join reminder email immediately, if he was invited to the specified DfB team.
+
+    Example usage:
+        When user hits a piece of content that they can only access after they joined the team,
+        the UI could show `Check your email for a reminder to join xxx team`, and we use this endpoint
+        the send the reminder email.
+
+    Note: this endpoint updates the last sent time of reminder email, but does not respect rate limiting.
+    "
+
+    attrs
+        owner="adminx"

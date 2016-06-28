@@ -1,0 +1,28 @@
+namespace email_link
+    "Endpoints related to links in email."
+
+struct EmailLinkArg
+    "Args for getting information about a link in an email."
+    url String
+        "The link users gets in dropbox emails."
+
+struct EmailLinkResult
+    "Results for getting information about a link in an email."
+    url String
+        "An absolute link that the user should be redirected to."
+
+union EmailLinkError
+    "Errors when fetching info on an email link failed."
+    invalid_email_link
+        "When we can't find a corresponding redirect url from the url in the request."
+    invalid_event_type
+        "When the email link corresponds to a wrong event.
+        We have two types of email links, one for tracking email open, one for tracking
+        email click. We only accept click tracking email links. Note that the two event
+        types share the same link format, but are positioned in different places in the
+        email."
+
+route get (EmailLinkArg, EmailLinkResult, EmailLinkError)
+    "Get the url that a user should be redirected to when they visit this link.
+     The email link can be of the form /l/<email_key>, or /l/<prefix>/<email_key> (e.g. /l/scl/<email_key>).
+     It can be either absolute or relative."

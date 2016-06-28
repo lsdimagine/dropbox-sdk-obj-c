@@ -1,0 +1,79 @@
+namespace paper
+    "This namespace contains endpoints and data types for managing documents and folders in Dropbox Paper."
+
+struct PaperDocument
+    doc_id String
+        "Paper document id."
+
+    example default
+        doc_id = "uaSvRuxvnkFa12PTkBv5q"
+
+union SharingTeamPolicyType
+    "The sharing policy type of the Paper document."
+
+    people_with_link_can_edit
+        "Anyone who has a link to this document can edit this Paper document."
+    people_with_link_can_view_and_comment
+        "Anyone who has a link to this document can view and comment on this Paper document."
+    invite_only
+        "Only users that have been explicitly invited can access this Paper document."
+
+union SharingPublicPolicyType extends SharingTeamPolicyType
+    disabled
+        "Value used to indicate that document sharing is enabled only within team."
+
+struct SharingPolicy
+    "Sharing policy of Paper document."
+
+    public_sharing_policy SharingPublicPolicyType?
+        "This value applies to the non-team members."
+    team_sharing_policy SharingTeamPolicyType?
+        "This value applies to the team members only. The value is null for all personal accounts."
+
+    example default
+        public_sharing_policy = people_with_link_can_edit
+        team_sharing_policy = people_with_link_can_edit
+
+struct PaperDocumentSharingPolicy extends PaperDocument
+    sharing_policy SharingPolicy
+        "The default sharing policy to be set for the Paper document."
+
+    example default
+        doc_id = "uaSvRuxvnkFa12PTkBv5q"
+        sharing_policy = default
+
+union PaperApiBaseError
+    paper_disabled
+        "Paper is Disabled."
+    insufficient_permissions
+        "Your account does not have permissions to perform this action."
+    other*
+        "An unspecified error."
+
+union PaperApiNonCursorError extends PaperApiBaseError
+    document_not_found
+        "The required document was not found."
+    invalid_arguments
+        "Invalid arguments supplied."
+
+union PaperApiCursorError extends PaperApiBaseError
+    expired_cursor
+        "The provided cursor is expired."
+    invalid_cursor
+        "The provided cursor is invalid."
+    bad_cursor_arguments
+        "The provided cursor contains invalid arguments."
+    wrong_user_in_cursor
+        "The provided cursor contains invalid user."
+
+route docs/sharing_policy/get (PaperDocument, SharingPolicy, PaperApiNonCursorError)
+    "Gets the default sharing policy for the given Paper document."
+    attrs
+        owner="paper-eng"
+
+route docs/sharing_policy/set (PaperDocumentSharingPolicy, Void, PaperApiNonCursorError)
+    "Sets the default sharing policy for the given Paper document. The default sharing policy can be changed only by teams.
+
+    Note: 'public_sharing_policy' cannot be set to the value 'disabled' because this setting can be changed only by team admins."
+    attrs
+        owner="paper-eng"

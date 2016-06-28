@@ -1,0 +1,25 @@
+namespace users
+
+union GetSharingPrefsError
+    "Errors that happen when getting sharing preferences"
+    other*
+
+union SetSharingPrefsError
+    "Errors that happen when setting sharing preferences"
+    other*
+
+struct SharingPrefs
+    "Information about a user's sharing preferences.
+    Optional fields will always be returned - they are optional for setting only."
+
+    add_message_as_comment_checked Boolean?
+        "If the \"Add as message\" checkbox should be checked by default."
+    add_message_as_comment_help_shown Boolean?
+        "If the help for the \"Add as message\" checkbox should be shown."
+
+
+route get_sharing_prefs(Void, SharingPrefs, GetSharingPrefsError)
+    "Get the sharing preferences for the current user"
+
+route set_sharing_prefs(SharingPrefs, Void, SetSharingPrefsError)
+    "Set sharing preferences for the curent user"

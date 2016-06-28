@@ -1,0 +1,66 @@
+namespace team_event_data_types
+
+import common
+import users
+
+union DocFolderType
+    document PaperDocument
+    folder PaperFolder
+
+    example default
+        document = default
+
+struct PaperDocument
+    "Information about the Paper doc"
+
+    doc_title String
+    doc_id String
+
+    example default
+        doc_title = "My New Paper Doc"
+        doc_id = "abc456"
+
+struct PaperFolder
+    "Information about the Paper folder"
+
+    folder_name String
+    folder_id String
+
+    example default
+        folder_name = "My Documents"
+        folder_id = "abc456"
+
+struct PaperSubfolder extends PaperFolder
+    "Information about the Paper subfolder"
+
+    subfolder_name String
+    subfolder_id String
+
+    example default
+        folder_name = "My Documents"
+        folder_id = "abc456"
+        subfolder_name = "For Review"
+        subfolder_id = "def789"
+
+struct PaperRecipient
+    "Information about the Paper doc and recipient"
+
+    doc_type DocFolderType
+    recipient_user_id users.AccountId?
+    recipient_email common.EmailAddress
+
+    example default
+        doc_type = default
+        recipient_user_id = "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
+        recipient_email = "jsmith@example.com"
+
+struct PaperComment extends PaperDocument
+    "Information about the Paper doc and comment text."
+
+    comment_text String
+
+    example default
+        comment_text = "We should change this line."
+        doc_title = "My New Paper Doc"
+        doc_id = "abc456"
+

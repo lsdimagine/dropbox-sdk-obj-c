@@ -1,0 +1,54 @@
+namespace team
+
+
+struct TeamMemberPoliciesInternal
+    "Policies governing teams that are not externally shared"
+
+    paper PaperPolicies
+        "Policies concerning the Paper product"
+
+    example default
+        paper = default
+
+struct PaperPolicies
+    "Policies governing Paper access for a given team"
+
+    paper_doc_link_policy PaperDocLinkPolicy
+        "Who can view Paper doc links"
+    paper_enabled_policy PaperEnabledPolicy
+        "Whether Paper is enabled for this team or not."
+    paper_doc_share_policy PaperDocSharePolicy
+        "Who can Paper docs be shared with"
+
+    example default
+        paper_doc_link_policy = team
+        paper_enabled_policy = enabled
+        paper_doc_share_policy = team_and_explicitly_shared
+
+union PaperDocLinkPolicy
+    team
+        "Link policy is open to the team only."
+    public
+        "Link policy is open to the public."
+    other*
+        ""
+
+union PaperEnabledPolicy
+    disabled
+        "Paper is disabled"
+    enabled
+        "Paper is enabled"
+    unspecified
+        "Unspecified policy"
+    other*
+        ""
+
+union PaperDocSharePolicy
+    only_team
+        "Share policy is open to the team only."
+    team_and_explicitly_shared
+        "Share policy is open to the team and external users explicitly shared with."
+    anyone_with_link
+        "Share policy is open to anyone with a link to the doc."
+    other*
+        ""

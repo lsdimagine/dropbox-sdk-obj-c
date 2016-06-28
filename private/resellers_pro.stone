@@ -1,0 +1,149 @@
+namespace resellers
+import common
+
+union UserProvisioningStatus
+    active
+        "Indicates that the current status of the provisioned service is active."
+    inactive
+        "Indicates that the service is inactive."
+
+### Args
+struct UserGetArg
+    uid UInt64
+        "The unique identifier for Dropbox user."
+
+struct UserProvisioningArg extends UserGetArg
+    sku UInt64
+        "A sku id to provision."
+
+struct ResellerListArg
+    date common.DropboxTimestamp
+        "A UTC date time that indicates the latest point in time to be included
+        in the response from this endpoint. Any changes that happened after the
+        indicated point in time will not be reflected in the response. Supply
+        the same date in subsequent queries to obtain a consistent response
+        when paginating."
+    page UInt64?
+        "An integer specifying which page of the response to display. Optional.
+        Defaults to 0 if not supplied."
+
+struct ResellerListSkusArg
+    provision_date_start common.DropboxTimestamp?
+        "Timestamp for the start of the range of provisioning dates to look for (inclusive)."
+    provision_date_end common.DropboxTimestamp?
+        "Timestamp for the end of the range of provisioning dates to look for (exclusive).
+        Needs to be present if provision_date_start is set."
+    deprovision_date_start common.DropboxTimestamp?
+        "Timestamp for the start of the range of deprovisioning dates to look for (inclusive)."
+    deprovision_date_end common.DropboxTimestamp?
+        "Timestamp for the end of the range of deprovisioning dates to look for (exclusive).
+        Needs to be present if deprovision_date_start is set."
+
+    page UInt64?
+        "When listing more than 100 results - you need to use pagination.
+        The default page is #0, so pass in values > 0 to get further records."
+
+### Responses
+struct PROSkuProvisionInfo
+    instance_id String
+        "A unique identifier for this provisioning. When the same SKU was provisioned
+        multiple times it can be used to distinguish between them."
+    sku UInt64
+        "A sku id of the service"
+    status UserProvisioningStatus
+        "The current status of the service."
+    provision_date common.DropboxTimestamp
+        "The date current (or last if inactive) service was provisioned."
+    deprovision_date common.DropboxTimestamp?
+        "If present - the date service was deprovisioned.
+        When service is active - not returned."
+
+struct UserSkuInfo extends PROSkuProvisionInfo
+    uid UInt64
+        "The unique identifier of the dropbox user the sku was assigned to."
+
+struct UserProvisioningInfo
+    uid UInt64
+        "The unique identifier for Dropbox user."
+    skus List(PROSkuProvisionInfo)
+        "The list of SKUs and their provisioning info for this user"
+
+struct ListProvisioningInfo
+    users List(UserProvisioningInfo)
+        "The list of provisioning states."
+    date common.DropboxTimestamp
+        "Date passed in by the client."
+    page UInt64
+        "Page parameter passed in by the client."
+    has_more Boolean
+        "If true - indicates there are more values available.
+        In this case the caller should issue a new call page incremented by one."
+
+struct ListSkuInfo extends ResellerListSkusArg
+    skus List(UserSkuInfo)
+    has_more Boolean
+
+### Errors
+union UserResellerError
+    no_user
+        "Returned if the user doesn't exist or the user is not managed by the partner."
+    unknown*
+
+union UserProvisioningError extends UserResellerError
+    already_provisioned
+        "Returned when the user is already receiving service by this partner."
+    cannot_provision
+        "Returned in any of the cases when the service cannot be provisioned for the user."
+    invalid_sku
+        "Returned when the sku id provided is invalid."
+
+union UserDeprovisioningError extends UserResellerError
+    already_deprovisioned
+        "Returned when the user's service is already deprovisioned."
+    invalid_sku
+        "Returned when the sku id provided is invalid."
+
+union ListProvisioningError
+    invalid_date
+        "Returned if the date provided is invalid. For example is in the future."
+
+union ListSkuError
+    date_range_missing
+        "Returned if none of the filter date ranges provided."
+    invalid_provision_date_range
+        "Returned when the provided provision_date_start/provision_date_end are not a valid range.
+        For example provision_date_start is present, but provision_date_end is not.
+        Or provision_date_end is earlier than provision_date_start."
+    invalid_deprovision_date_range
+        "Returned when the provided deprovision_date_start/deprovision_date_end are not a valid range.
+        For example deprovision_date_start is present, but deprovision_date_end is not.
+        Or deprovision_date_end is earlier than deprovision_date_start."
+
+### routes
+route pro/provision (UserProvisioningArg, UserProvisioningInfo, UserProvisioningError)
+    "Provisions the partner ProSKU provided in the UserProvisioningArg."
+    attrs
+        auth="app"
+
+route pro/deprovision (UserProvisioningArg, UserProvisioningInfo, UserDeprovisioningError)
+    "Deprovisions the partner ProSKU provided in the UserProvisioningArg.
+     On success the returned :field:`PROSkuProvisionInfo.deprovision_date` will be set"
+    attrs
+        auth="app"
+
+route pro/get (UserGetArg, UserProvisioningInfo, UserResellerError)
+    "Retrieves the information about the provisioning status of the user."
+    attrs
+        auth="app"
+
+route pro/list (ResellerListArg, ListProvisioningInfo, ListProvisioningError)
+    "Retrieves a list of info objects describing the provisioning status of the users."
+    attrs
+        auth="app"
+
+route pro/list_skus (ResellerListSkusArg, ListSkuInfo, ListSkuError)
+    "An api to list skus provisioned by the partner and filtered by the provisioning or
+     deprovisioning date.
+     "
+    attrs
+        auth="app"

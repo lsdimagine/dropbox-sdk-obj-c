@@ -1,0 +1,111 @@
+namespace team
+
+union DevicesLimit
+    limited UInt64
+        "A specific number of devices."
+    unlimited
+        "No limit."
+
+    example default
+        limited = 1
+
+union RolloutMethod
+    unlink_all
+        "Unlink all."
+    unlink_most_inactive
+        "Unlink devices with the most inactivity."
+    add_member_to_exceptions
+        "Add member to Exceptions."
+
+struct SettingsDeviceManagement
+    is_enabled Boolean?
+        "Is Device Management feature enabled."
+    desktop_devices_limit DevicesLimit?
+        "Desktop devices limit."
+    mobile_devices_limit DevicesLimit?
+        "Mobile devices limit."
+    can_user_remove_device Boolean?
+        "Can user remove a device."
+    rollout_method RolloutMethod?
+        "Rollout method."
+
+    example default
+        is_enabled = true
+        desktop_devices_limit = default
+        mobile_devices_limit = default
+        can_user_remove_device = false
+        rollout_method = unlink_all
+
+struct ConfigureSettingsDeviceManagementResult extends SettingsDeviceManagement
+    num_of_excluded_users UInt64?
+        "Num of excluded users."
+
+    example default
+        num_of_excluded_users = 1
+
+alias ConfigureSettingsDeviceManagementArg = SettingsDeviceManagement
+
+union DeviceManagementError
+    "Error returned by device management routes."
+
+    invalid_input
+        "Set settings invalid input."
+    other*
+        "An unspecified error."
+
+route device_management/configure_settings(ConfigureSettingsDeviceManagementArg, ConfigureSettingsDeviceManagementResult, DeviceManagementError)
+    "Configure device management admin's settings.
+
+    Permission : Team member management"
+
+    attrs
+        auth="team"
+        owner="adminx"
+
+struct ExcludedUser
+    display_name String
+        "User display name."
+    email String
+        "User email."
+    photo_circle_url String?
+        "User circle photo."
+
+    example default
+        display_name = "Harry Potter"
+        email = "harry@potter.com"
+        photo_circle_url = "harry.jpg"
+
+struct GetExcludedUsersResult
+    users List(ExcludedUser)
+        "List of excluded users."
+
+    example default
+        users=[default]
+
+route device_management/get_excluded_users(Void, GetExcludedUsersResult, DeviceManagementError)
+    "Get list of excluded users.
+
+    Permission : Team member management"
+
+    attrs
+        auth="team"
+        owner="adminx"
+
+struct UpdateExcludedUsersArg
+    users_to_add List(String)
+        "List of users email to add to the excluded list."
+    users_to_remove List(String)
+        "List of users email to remove to the excluded list."
+
+    example default
+        users_to_add = ["harry@potter.com"]
+        users_to_remove = []
+
+route device_management/update_excluded_users(UpdateExcludedUsersArg, GetExcludedUsersResult, DeviceManagementError)
+    "update excluded users by adding or removing users.
+
+    Permission : Team member management"
+
+    attrs
+        auth="team"
+        owner="adminx"

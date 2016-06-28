@@ -1,0 +1,122 @@
+namespace team
+
+import team_administration
+
+#
+# Set team's commenting policy
+#
+
+struct CommentingPolicy
+    commenting_enabled Boolean
+        "Whether to allow people outside the team to view and make comments on files owned by members on the team."
+
+    example commenting_enabled
+        commenting_enabled = true
+
+alias CommentingPolicyArg = CommentingPolicy
+
+route sharing/set_commenting_policy(CommentingPolicyArg, Void, AdministrationError)
+    "Enable/disable comments on files owned by members of the team.
+
+    Permission : Team member management"
+
+    attrs
+        auth="team"
+        owner="adminx"
+
+#
+# Set team's file request policy
+#
+
+struct FileRequestPolicy
+    file_request_enabled Boolean
+        "Whether to allow people on the team to create file request links."
+
+    example file_request_enabled
+        file_request_enabled = true
+
+alias FileRequestPolicyArg = FileRequestPolicy
+
+route sharing/set_file_request_policy(FileRequestPolicyArg, Void, AdministrationError)
+    "Enable/disable file requests creation by members of the team.
+
+    Permission : Team member management"
+
+    attrs
+        auth="team"
+        owner="adminx"
+
+#
+# Set team's shared link policy
+#
+
+struct SharedLinkPolicy
+    sharing_outside_enabled Boolean
+        "Whether to allow people on my Dropbox team to share links with people outside my team."
+    default_visibility team_administration.Visibility?
+        "By default, who can view the shared links.
+        This should not be passed when :field:`sharing_outside_enabled` = false."
+
+    example default
+        sharing_outside_enabled = true
+        default_visibility = public
+
+alias SharedLinkPolicyArg = SharedLinkPolicy
+
+union SharedLinkError extends team_administration.AdministrationError
+    invalid_policy
+        "The given policy is invalid."
+
+route sharing/set_shared_link_policy(SharedLinkPolicyArg, Void, SharedLinkError)
+    "Settings the shared link policy.
+
+    Permission : Team member management"
+
+    attrs
+        auth="team"
+        owner="adminx"
+
+#
+# Set team's shared folder sharing policy
+#
+
+struct SharedFolderSharingPolicy
+    sharing_outside_enabled Boolean
+        "Whether to allow people on the team to share files and folders outside the team."
+
+    example default
+        sharing_outside_enabled = true
+
+alias SharedFolderSharingPolicyArg = SharedFolderSharingPolicy
+
+route sharing/set_shared_folder_sharing_policy(SharedFolderSharingPolicyArg, Void, AdministrationError)
+    "Settings the shared folder sharing policy.
+
+    Permission : Team member management"
+
+    attrs
+        auth="team"
+        owner="adminx"
+
+#
+# Set team's shared folder joining policy
+#
+
+struct SharedFolderJoiningPolicy
+    joining_outside_enabled Boolean
+        "Whether to allow people on the team to join shared folders outside the team."
+
+    example default
+        joining_outside_enabled = true
+
+alias SharedFolderJoiningPolicyArg = SharedFolderJoiningPolicy
+
+route sharing/set_shared_folder_joining_policy(SharedFolderJoiningPolicyArg, Void, AdministrationError)
+    "Settings the shared folder joining policy.
+
+    Permission : Team member management"
+
+    attrs
+        auth="team"
+        owner="adminx"
+

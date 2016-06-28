@@ -1,0 +1,54 @@
+namespace team
+
+import team_event_data_types
+import common
+import users
+
+# EventType names should be the same as TeamEvent.EventType key
+alias EventTypeName = String(pattern="[A-Z_]+")
+
+union TeamEventDataSelector
+    paper_document team_event_data_types.PaperDocument
+    paper_folder team_event_data_types.PaperFolder
+    paper_subfolder team_event_data_types.PaperSubfolder
+    paper_recipient team_event_data_types.PaperRecipient
+    paper_comment team_event_data_types.PaperComment
+
+    example document
+        paper_document = default
+
+struct TeamEventArg
+    event_type_name EventTypeName
+    uuid String?
+        "Unique identifier of the event if needed."
+    actor_user_id users.AccountId
+        "ID of the user taking the action"
+    actor_display_name common.DisplayName
+        "Name of the actor user."
+    event_data TeamEventDataSelector
+
+    example default
+        event_type_name = "PAPER_DOC_CREATED"
+        uuid = "aBC123def"
+        actor_user_id = "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
+        actor_display_name = "John Smith"
+        event_data = document
+
+struct TeamEventResult
+    complete Boolean
+
+    example default
+        complete = true
+
+union TeamEventError
+    unknown_event_type
+        "No EventType found. The provided event_type_name does not exist."
+    invalid_actor_user_id
+        "The user_id provided is not valid."
+
+    other*
+
+route log/log_event (TeamEventArg, TeamEventResult, TeamEventError)
+    attrs
+        auth="team"
+        owner="company-dropbox-team"

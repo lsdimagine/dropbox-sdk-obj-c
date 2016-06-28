@@ -1,0 +1,109 @@
+namespace sharing
+
+import users
+
+# Note that this should never be made public, as this is mainly for
+# consumption by our desktop client, first-party mobile apps, and our website.
+
+route dismiss_invite_notification(DismissInviteNotificationArg, Void, DismissInviteNotificationError)
+    "Route to dismiss shared content invitation notification."
+
+struct DismissInviteNotificationArg
+    content_id String
+        "ID representing a file or shared folder."
+
+    example default
+        content_id = "ns_id:12345"
+
+    example file
+        content_id = "file_obj_id:12345"
+
+union DismissInviteNotificationError
+    notification_error
+        "Unable to dismiss notification."
+    other*
+
+# --
+
+route claim_membership(ClaimMembershipArgs, Void, ClaimMembershipError)
+    "Transfer a shared file/folder membership without an email-verified user to the
+    acting user, who must be email verified. However, memberships for placeholder
+    accounts are not transferable. Do not use this route for activating a
+    placeholder account."
+
+struct ClaimMembershipArgs
+    # NOTE: we require a content URL instead of an email because we don't
+    # want users to be able to guess email addresses and gain access.
+    #
+    # This URL must contain the encrypted recipient information normally sent
+    # in invitation emails in a URL parameter, so having this is proof thatr
+    # the user has received the email, if even just indirectly.
+    content_url String
+        "The URL identifying which membership to claim. This is the
+         '/scl' URL to which the user is redirected from the link sent in the
+         email invitation."
+
+    example default
+        content_url = "https://www.dropbox.com/scl/fi/abced?r=hijklmnop"
+
+    example folder
+        content_url = "https://www.dropbox.com/scl/fo/abced/xyz?r=hijklmnop"
+
+union ClaimMembershipError
+    email_unverified
+        "The current account's e-mail address is unverified."
+    content_url_error
+        "The content URL is invalid."
+    membership_not_claimable
+        "This membership cannot be claimed by others"
+    membership_already_claimed
+        "This membership was already claimed."
+    team_join_required
+        "You must join the content URL owner's team before you can claim this."
+    # DfB admin policy revision to disallow joining as editor, but allow
+    # joining as viewer
+    team_policy_no_editor
+        "Your team policy prevents joining as an editor on this content."
+    need_account_switch users.AccountId
+        "You should switch to this account to request access."
+    other*
+
+# --
+
+route request_access(RequestAccessArg, Void, RequestAccessError)
+    "Route to request access to a file or folder you are not a member of."
+
+struct RequestAccessArg
+    # We require you to supply a content URL so that a user can't just guess
+    # file_obj_id or ns_id values and randomly request access. They should have
+    # some sort of URL to indicate that they received access via an email or
+    # notification, at least indirectly.
+    content_url String
+        "The invitation or link preview URL of the file or folder for which
+         you want to request access."
+
+    example default
+        content_url = "https://www.dropbox.com/scl/fi/abcdefg"
+
+    example folder
+        content_url = "https://www.dropbox.com/scl/fo/abcdefg/hijkl"
+
+union RequestAccessError
+    content_url_error
+        "Content URL is invalid or inaccessible."
+    email_unverified
+        "The current account's e-mail address is unverified."
+    no_content_owner
+        "There is no owner of this content."
+    already_member
+        "You are already a member of this content."
+    team_only
+        "This content can only be accessed by team members."
+    team_join_required
+        "You must join the content URL owner's team before you can request access."
+    account_switch_required users.AccountId
+        "You should switch to this account to request access."
+    other*
+
+    example default
+        content_url_error = null

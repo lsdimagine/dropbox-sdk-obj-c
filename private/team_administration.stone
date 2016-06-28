@@ -1,0 +1,11 @@
+namespace team_administration
+
+union AdministrationError
+    access_error String
+
+union Visibility
+    public
+        "Anyone with the link can view the link."
+    team_only
+        "Only people on the team can view the link."
+

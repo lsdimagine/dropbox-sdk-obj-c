@@ -1,0 +1,256 @@
+namespace sharing
+
+#
+# Alpha version of LinkPermissions with visibility information and controls
+#
+
+union VisibilityPolicyDisallowedReason
+    delete_and_recreate
+        "The user needs to delete and recreate the link to change the visibility policy."
+    restricted_by_shared_folder
+        "The parent shared folder restricts sharing of links outside the shared folder. To change
+        the visibility policy, remove the restriction from the parent shared folder."
+    restricted_by_team
+        "The team policy prevents links being shared outside the team."
+    user_not_on_team
+        "The user needs to be on a team to set this policy"
+    user_account_type
+        "The user is a basic user or is on a limited team."
+    other*
+        "This visibility policy is not allowed for this user because of an unknown reason."
+
+union AlphaResolvedVisibility extends ResolvedVisibility
+    only_you
+        "Only the current user can view this link."
+
+struct VisibilityPolicy
+    policy RequestedVisibility
+        "This is the value to submit when saving the visibility setting."
+    resolved_policy AlphaResolvedVisibility
+        "This is what the effective policy would be, if you selected this option. The resolved
+        policy is obtained after considering external effects such as shared folder settings and
+        team policy. This value is guaranteed to be provided."
+    allowed Boolean
+        "Whether the user is permitted to set the visibility to this policy."
+    disallowed_reason VisibilityPolicyDisallowedReason?
+        "If :field:`allowed` is :val:`false`, this will provide the reason that the user is not
+        permitted to set the visibility to this policy."
+
+    example public
+        policy = public
+        resolved_policy = public
+        allowed = true
+
+    example public_team
+        policy = public
+        resolved_policy = team_only
+        allowed = false
+        disallowed_reason = restricted_by_team
+
+    example public_shared_folder
+        policy = public
+        resolved_policy = shared_folder_only
+        allowed = false
+        disallowed_reason = restricted_by_shared_folder
+
+    example password
+        policy = password
+        resolved_policy = password
+        allowed = true
+
+    example password_team
+        policy = password
+        resolved_policy = team_and_password
+        allowed = true
+
+    example password_shared_folder
+        policy = password
+        resolved_policy = shared_folder_only
+        allowed = false
+        disallowed_reason = restricted_by_shared_folder
+
+    example team_only
+        policy = team_only
+        resolved_policy = team_only
+        allowed = true
+
+    example team_shared_folder
+        policy = team_only
+        resolved_policy = shared_folder_only
+        allowed = false
+        disallowed_reason = restricted_by_shared_folder
+
+struct AlphaLinkPermissions
+    "Alpha version of :type:`LinkPermissions` with extra information about link policies and
+    permissions"
+    resolved_visibility AlphaResolvedVisibility?
+        "The current visibility of the link after considering the shared links policies of the
+        the team (in case the link's owner is part of a team) and the shared folder (in case the
+        linked file is part of a shared folder). This field is shown only if the caller has access
+        to this info (the link's owner always has access to this data)."
+
+    requested_visibility RequestedVisibility?
+        "The shared link's requested visibility. This can be overridden by the team and shared
+        folder policies. The final visibility, after considering these policies, can be found in
+        :field:`resolved_visibility`. This is shown only if the caller is the link's
+        owner."
+
+    can_revoke Boolean
+        "Whether the caller can revoke the shared link"
+    revoke_failure_reason SharedLinkAccessFailureReason?
+        "The failure reason for revoking the link. This field will only be present if the
+        :field:`can_revoke` is :val:`false`."
+    visibility_policies List(VisibilityPolicy)
+        "A list of policies that the user might be able to set for the visibility"
+    can_set_expiry Boolean
+        "Whether the user can set the expiry settings of the link. This refers to the ability to
+        create a new expiry and modify an existing expiry."
+    can_remove_expiry Boolean
+        "Whether the user can remove the expiry of the link."
+    allow_download Boolean
+        "Whether the link can be downloaded or not"
+    restricting_shared_folder_path String?
+        "If the link's visibility is shared folder only because it is being restricted by a parent
+         shared folder, then the full path of the restricting shared folder will be provided."
+
+    example default
+        resolved_visibility = public
+        can_revoke = false
+        allow_download = true
+        revoke_failure_reason = owner_only
+        visibility_policies = [public, password]
+        can_set_expiry = false
+        can_remove_expiry = false
+
+    example team_and_password
+        resolved_visibility = team_and_password
+        can_revoke = true
+        allow_download = true
+        visibility_policies = [public_team, team_only, password_team]
+        can_set_expiry = true
+        can_remove_expiry = true
+
+    example shared_folder_restricted
+        resolved_visibility = shared_folder_only
+        can_revoke = true
+        allow_download = true
+        visibility_policies = [public_shared_folder, team_shared_folder, password_shared_folder]
+        can_set_expiry = true
+        can_remove_expiry = true
+
+struct AlphaSharedLinkMetadata
+    "Alpha version of :type:`SharedLinkMetadata` that uses :type:`AlphaLinkPermissions` instead of
+    :type:`LinkPermissions`"
+
+    union*
+        file AlphaFileLinkMetadata
+        folder AlphaFolderLinkMetadata
+
+    url String
+        "URL of the shared link."
+    id Id?
+        "A unique identifier for the linked file."
+    name String
+        "The linked file name (including extension).
+        This never contains a slash."
+    expires common.DropboxTimestamp?
+        "Expiration time, if set. By default the link won't expire."
+    path_lower String?
+        "The lowercased full path in the user's Dropbox. This always starts with a slash.
+        This field will only be present only if the linked file is in the authenticated user's
+         dropbox."
+    link_permissions AlphaLinkPermissions
+        "The link's access permissions."
+    team_member_info TeamMemberInfo?
+        "The team membership information of the link's owner.  This field will only be present
+         if the link's owner is a team member."
+    content_owner_team_info TeamInfo?
+        "The team information of the content's owner. This field will only be present if
+        the content's owner is a team member and the content's owner team is different from the
+        link's owner team."
+
+    example default
+        file = default
+
+    example folder_link_metadata
+        folder = default
+
+struct AlphaFileLinkMetadata extends AlphaSharedLinkMetadata
+    "The metadata of a file shared link "
+
+    client_modified common.DropboxTimestamp
+        "The modification time set by the desktop client
+        when the file was added to Dropbox. Since this time is not verified
+        (the Dropbox server stores whatever the desktop client sends up), this
+        should only be used for display purposes (such as sorting) and not,
+        for example, to determine if a file has changed or not."
+    server_modified common.DropboxTimestamp
+        "The last time the file was modified on Dropbox."
+    rev Rev
+        "A unique identifier for the current revision of a file. This field is
+        the same rev as elsewhere in the API and can be used to detect changes
+        and avoid conflicts."
+    size UInt64
+        "The file size in bytes."
+
+    example default
+        url = "https://www.dropbox.com/s/2sn712vy1ovegw8/Prime_Numbers.txt?dl=0"
+        id = "id:a4ayc_80_OEAAAAAAAAAXw"
+        name = "Prime_Numbers.txt"
+        path_lower = "/homework/math/prime_numbers.txt"
+        link_permissions = default
+        team_member_info = default
+        client_modified = "2015-05-12T15:50:38Z"
+        server_modified = "2015-05-12T15:50:38Z"
+        rev = "a1c10ce0dd78"
+        size = 7212
+
+struct AlphaFolderLinkMetadata extends AlphaSharedLinkMetadata
+    "The metadata of a folder shared link "
+
+    example default
+        url = "https://www.dropbox.com/sh/s6fvw6ol7rmqo1x/AAAgWRSbjmYDvPpDB30Sykjfa?dl=0"
+        id = "id:a4ayc_80_OEAAAAAAAAAXw"
+        name = "Math"
+        path_lower = "/homework/math"
+        team_member_info = default
+        link_permissions = default
+
+struct AlphaListSharedLinksResult
+    "Alpha version of :type:`ListSharedLinksResult` that uses :type:`AlphaSharedLinkMetadata`
+    instead of :type:`SharedLinkMetadata`."
+    links List(AlphaSharedLinkMetadata)
+        "Shared links applicable to the path argument."
+    has_more Boolean
+        "Is true if there are additional shared links that have not been returned
+        yet. Pass the cursor into :route:`list_shared_links` to retrieve them."
+    cursor String?
+        "Pass the cursor into :route:`list_shared_links` to obtain the additional links. Cursor is
+        returned only if no path is given or the path is empty."
+
+    example default
+        links = [default]
+        cursor = "ZtkX9_EHj3x7PMkVuFIhwKYXEpwpLwyxp9vMKomUhllil9q7eWiAu"
+        has_more = true
+
+route alpha/list_shared_links(ListSharedLinksArg, AlphaListSharedLinksResult, ListSharedLinksError)
+    "List shared links of this user. This is an alpha endpoint and subject to change! It extends
+    :route:`list_shared_links` with additional link permissions information from the private API."
+
+    attrs
+        alpha_group="sharing"
+
+route alpha/create_shared_link_with_settings(CreateSharedLinkWithSettingsArg, AlphaSharedLinkMetadata, CreateSharedLinkWithSettingsError)
+    "Create a shared link with custom settings.
+    If no settings are given then the default visibility is :field:`RequestedVisibility.public`
+    (The resolved visibility, though, may depend on other aspects such as team and shared folder
+    settings). "
+
+route alpha/modify_shared_link_settings(ModifySharedLinkSettingsArgs, AlphaSharedLinkMetadata, ModifySharedLinkSettingsError)
+    "Modify the shared link's settings.
+
+    If the requested visibility conflict with the shared links policy of the team or the
+    shared folder (in case the linked file is part of a shared folder) then the
+    :field:`LinkPermissions.resolved_visibility` of the returned :type:`SharedLinkMetadata` will
+    reflect the actual visibility of the shared link and the
+    :field:`LinkPermissions.requested_visibility` will reflect the requested visibility."

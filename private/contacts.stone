@@ -1,0 +1,165 @@
+namespace contacts
+
+import async
+
+union ContactsError
+    rate_limit_exception
+        "Too many calls to this endpoint."
+    invalid_schema_version
+        "Client provided an invalid contact schema version."
+
+# --
+
+struct GetContactsArg
+    "Arguments for checking contact freshness and fetching contacts
+    from the server."
+    digest String?
+        "This argument is passed down from the server when the client
+        downloads contacts via :route:`get` and represents the current
+        state of contacts. It should be passed up on future calls to
+        :route:`get` so that the server only sends contacts when the
+        client doesn't have up to date contacts.
+        If digest doesn't match the server's digest, or if the digest
+        parameter is omitted, the server will send down its current
+        version of cached contacts."
+    limit UInt32?
+        "A cap on the total number of contacts to return."
+    start_merge Boolean = false
+        "If this parameter is true, the server will start an async merge (refresh) of contacts.
+        Merges shouldn't be started too frequently, or the async task worker may get
+        overloaded. If an async merge is started, the client won't see the updated
+        contacts in the same call."
+    version UInt32
+        "The version of the contacts schema that the client expects."
+
+    example check_for_updates
+        digest = "e1faffb3e614e6c2fba74296962386b7"
+        version = 7
+
+    example get_limited_contacts
+        version = 7
+        limit = 100
+
+    example get_all_contacts
+        version = 7
+
+    example check_for_updates_and_refresh
+        digest = "e1faffb3e614e6c2fba74296962386b7"
+        version = 7
+        start_merge = true
+
+struct GetContactsResult
+    "Result struct which contains information about whether the client has
+    the most up to date contacts. If the client has stale contacts, this struct
+    will contain the updated contacts."
+    server_digest String?
+        "The digest of the server's contacts. It should be passed to the server
+        on future calls of :route:`get`. This parameter will not be present
+        if the server doesn't have any cached contacts."
+    compressed_server_contacts String?
+        "The server's compressed cached contacts. This field won't exist
+        if no contacts need to be downloaded."
+
+    example up_to_date
+        server_digest = "e1faffb3e614e6c2fba74296962386b7"
+
+    example client_stale_contacts
+        server_digest = "2bb225f0ba9a58930757a868ed57d9a3"
+        compressed_server_contacts = "eJyrVk/OzytJTC4pVreKjq0FAC01BZg="
+
+union GetContactsError extends ContactsError
+    other*
+
+route get(GetContactsArg, GetContactsResult, GetContactsError)
+
+    attrs
+        cluster = "meta-peeps"
+
+# --
+
+alias ServerLocalContactsUpToDate = Boolean
+
+struct ContactsArg
+    compressed_local_contacts String
+        "A compressed list of the client's local contacts. This parameter
+        should be used when the client has determined that the server's
+        copy of local contacts is out of date."
+    version UInt32
+        "The version of the contacts schema that the compressed_local_contacts
+        are using."
+
+    example default
+        compressed_local_contacts = "eJyrVk/OzytJTC4pVreKjq0FAC01BZg="
+        version = 7
+
+struct AddContactsArg
+    "Arguments for checking whether the server has the client's
+    local contacts and updating the server's contacts if so."
+    local_digest String
+        "A client digest of its local contacts to help the server determine
+        whether it has already cached them."
+    contacts ContactsArg?
+        "The client's local contacts. This argument only needs to be present
+        when the client has determined that the server needs an update of its
+        local contacts."
+
+    example check_server_freshness
+        local_digest = "e1faffb3e614e6c2fba74296962386b7"
+
+    example upload_contacts
+        local_digest = "e29d26eb75be738ca336bf8b491d5557"
+        contacts = default
+
+union AddContactsLaunchResult extends async.LaunchResultBase
+    complete ServerLocalContactsUpToDate
+        "Represents whether the server's currently stored local contacts
+        from the client are up to date. If this is false, then the client should
+        call :route:`add` again, posting its current local contacts. If the client
+        uploaded contacts, then this field will not be present in the response.
+        A note about the naming: 'complete' doesn't accurately convey the meaning
+        of this field. The name 'complete' is conventional for results inheriting
+        from async.LaunchResultBase and represents the return value of the route
+        when it returns synchronously. In this case, the cases where :route:`add`
+        return synchronously are those where the server tells the client whether
+        it needs new local contacts."
+
+    example up_to_date_server_local_contacts
+        complete = true
+
+    example stale_server_local_contacts
+        complete = false
+
+    example merge_task_started
+        async_job_id = "123"
+
+union AddContactsError extends ContactsError
+    decompression_error
+        "Client's compressed local contacts could not be decompressed."
+    malformed_contact
+        "Client provided a malformed contact."
+    exceeded_email_identification_limit
+        "User has exceeded the maximum number of local emails that Dropbox
+        will process."
+    merging_error
+        "An error occurred during the merging process."
+    other*
+
+union AddContactsJobStatus extends async.PollResultBase
+    complete
+        "The job has finished. The client should download the updated
+        data via :route:`get`."
+    failed String
+        "An error occurred while performing the job."
+
+route add(AddContactsArg, AddContactsLaunchResult, AddContactsError)
+
+    attrs
+        cluster = "meta-peeps"
+
+route check_add(async.PollArg, AddContactsJobStatus, async.PollError)
+    "This endpoint should be used to check whether a merge task launched from
+    :route:`add` has completed. Once this returns 'complete', the client should
+    hit :route:`get` to get the updated contacts."
+
+    attrs
+        cluster = "meta-peeps"

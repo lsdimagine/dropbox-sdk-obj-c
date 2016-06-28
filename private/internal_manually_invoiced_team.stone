@@ -1,0 +1,294 @@
+namespace internal_manually_invoiced_team
+    "Internal (as in, not sold by a reseller, but somebody on Dropbox Sales), manually invoiced (through i.e. Salesforce and not Moneytree) team management."
+
+import common
+
+##### Types #####
+
+# String containing >1 digit, optionally followed by a period and two digits
+alias PriceAmount = String(pattern="\\d+(\\.\\d{2})?", min_length=1)
+
+# 3 capitalized letters
+alias Currency = String(pattern="[A-Z]{3}")
+
+# 2 capitalized letters
+alias CountryCode = String(pattern="[A-Z]{2}")
+
+alias Percentage = UInt64(min_value=0, max_value=100)
+
+struct Price
+    "Equivalent to dropbox/money/cash.py#Cash. Contains an Amount and a Currency.."
+
+    currency Currency
+        "A string of 3 capitalized letters."
+    amount PriceAmount
+        "Total price paid for the team, as a string."
+
+    example seventy_thousand_yen
+        currency = "JPY"
+        amount = "700000"
+
+    example seven_hundred_usd
+        currency = "USD"
+        amount = "700.00"
+
+    example trial_costs_nothing
+        currency = "USD"
+        amount = "0.00"
+
+struct Interval
+    start common.DropboxTimestamp
+    end common.DropboxTimestamp
+
+    example default
+        "Sample interval"
+        start = "2016-01-20T00:00:00Z"
+        end = "2016-02-20T00:00:00Z"
+
+union ExternalInvoiceSource
+    "Source for a given ExternalID. If you need a new Source, ask somebody on cash-team@ to change the code."
+
+    salesforce_opportunity_id
+        "There is an Opportunity for every time we receive payment. This means every Upsell, Renewal, and Team Start
+        will have its own Opportunity. Since payments can happen many time for a given team, multiple
+        Opportunities can be associated with a Team."
+
+struct ExternalInvoiceId
+    "Defines some external ID representing a payment. For instance, every upsell should have a different ExternalInvoiceId.
+    NOTE: the length of source plus the length of identifier should not exceed 47. We validate this on our side."
+    source ExternalInvoiceSource
+        "The source of this ExternalId."
+    identifier String(min_length=1)
+        "Within the above source, the identifier that maps to this provision request."
+
+    example salesforce_example
+        "Salesforce example"
+        source = salesforce_opportunity_id
+        identifier = "ed8c84SomeIdFromSalesforce23c98"
+
+struct LicenseModification
+    "Defines the old and new number of licenses."
+    old_license_count UInt64(min_value=1)
+    new_license_count UInt64(min_value=1)
+
+    example upsell_five_to_eight
+        old_license_count = 5
+        new_license_count = 8
+
+    example downsell_ten_to_six
+        old_license_count = 10
+        new_license_count = 6
+
+struct IntervalEndModification
+    "Defines modification of a team's interval end, especially for trials."
+    old_interval_end common.DropboxTimestamp
+    new_interval_end common.DropboxTimestamp
+
+    example default
+        old_interval_end = "2016-01-20T00:00:00Z"
+        new_interval_end = "2016-02-20T00:00:00Z"
+
+# Check metaserver.model.payments.moneytree.tax for tax exclusion types (TaxExclusionType) and
+# their usage (TaxProfile.exclusion_type/id)
+struct TaxExclusion
+    tax_exclusion_type UInt64
+    tax_exclusion_id String
+
+##### Input/output Models #####
+
+struct ProvisionTeamArgs
+    "Common properties needed to provision a team, be that a brand new team or a Fastrak->DFB Provision"
+    contact_email common.EmailAddress
+        "Main point of contact for this team."
+    plan_id UInt64
+        "See metaserver/model/teams/plans/base.py to see all accepted team PlanIDs."
+    billing_schedule_id UInt64
+        "See metaserver/model/plans.py to see all accepted BillingScheduleIDs."
+    price Price
+        "Defines the price. For new trials, amount should be 0."
+    billing_country CountryCode
+        "The 2-letter country code of the country."
+    billing_zip String?
+        "If applicable - the zip code of the billing address.
+         It will be used for tax eligibility/calculation."
+    tax_exclusion TaxExclusion?
+    external_invoice_id ExternalInvoiceId
+        "The Salesforce Opportunity ID associated with this new-team request."
+
+
+struct ProvisionNewTeamArgs extends ProvisionTeamArgs
+    "Common properties needed to create a new team, both for Trial and Paid teams."
+    team_name String(min_length=1)
+        "The name of the new team."
+    admin_emails List(common.EmailAddress, min_items=1)
+        "List of emails for the first users to be provisioned."
+    num_licenses UInt64(min_value=1)
+        "The number of licenses to allocate to this team."
+
+
+struct ChangeTeamPlanArgs extends ProvisionTeamArgs
+    "Arguments to upgrade an existing team to a new plan, i.e. Fastrak to Biz, or Biz to Enterprise"
+
+    team_id UInt64
+        "The ID of the team being modified."
+    license_modification LicenseModification
+        "The old and new count of licenses. Can be an upsell or downsell."
+
+    example default
+        "An example request to upgrade a Fastrak team to DFB"
+        contact_email = "wimax@emaildomain.com"
+        plan_id = 101 # StandardTeamPlan
+        billing_schedule_id = 2 # Yearly
+        billing_country = "US"
+        price = seven_hundred_usd
+        external_invoice_id = salesforce_example
+        team_id = 12345
+        license_modification = upsell_five_to_eight
+
+
+struct TeamStatusResponse
+    team_id UInt64
+    interval Interval
+    plan_id UInt64
+    billing_schedule_id UInt64
+    num_licenses UInt64(min_value=1)
+    num_provisioned_users UInt64(min_value=1)
+
+    example default
+        "Sample response"
+        team_id = 12345
+        interval = default
+        plan_id = 101
+        billing_schedule_id = 2
+        num_licenses = 5
+        num_provisioned_users = 2
+
+
+# TODO wimax Apr 2016: Rename this as it's used all throughout, not just provisioning.
+union ProvisionNewTeamError
+    validation_error
+        "Your arguments were somehow invalid. We've attached a message about how, exactly, it failed."
+    unexpected_error
+        "Something unexpected occurred, but it likely wasn't your fault."
+
+
+struct ProvisionNewTrialTeamArgs extends ProvisionNewTeamArgs
+    "Arguments to construct a new trial team."
+
+    trial_length UInt64(min_value=1)
+        "Length of the trial, in days."
+
+    example default
+        "An example request to provision a new iwtrialid team"
+        team_name = "My Cool Trial Team"
+        contact_email = "wimax@emaildomain.com"
+        plan_id = 101 # StandardTeamPlan
+        billing_schedule_id = 2 # Yearly
+        num_licenses = 5
+        billing_country = "US"
+        admin_emails = ["user@emaildomain.com", "user2@emaildomain.com"]
+        trial_length = 45
+        price = trial_costs_nothing
+        external_invoice_id = salesforce_example
+
+
+struct ProvisionNewPaidTeamArgs extends ProvisionNewTeamArgs
+    "Arguments to construct a new paid team."
+
+    example default
+        "An example request to provision a new paid team"
+        team_name = "My Cool Paid Team"
+        contact_email = "wimax@emaildomain.com"
+        plan_id = 101 # StandardTeamPlan
+        billing_schedule_id = 2 # Yearly
+        num_licenses = 5
+        billing_country = "US"
+        admin_emails = ["user@emaildomain.com", "user2@emaildomain.com"]
+        price = seven_hundred_usd
+        external_invoice_id = salesforce_example
+
+struct TrialConvertOrRenewArgs
+    team_id UInt64
+        "The ID of the team being modified."
+    external_invoice_id ExternalInvoiceId
+        "The external payment ID associated with this team modification."
+    price Price
+        "Price of this trial conversion or renewal."
+    license_modification LicenseModification?
+        "The old and new count of licenses. Can be an upsell or downsell, or omit if there's no license modification."
+
+    example trial_convert_to_yearly
+        "An example trial conversion to a yearly team"
+        team_id = 12345
+        external_invoice_id = salesforce_example
+        price = seventy_thousand_yen
+
+    example renew_with_license_downsell
+        "An example renewal with the optional license modification"
+        team_id = 98765
+        external_invoice_id = salesforce_example
+        price = seven_hundred_usd
+        license_modification = downsell_ten_to_six
+
+struct UpsellArgs
+    team_id UInt64
+        "The ID of the team being modified."
+    external_invoice_id ExternalInvoiceId
+        "The external payment ID associated with this team modification."
+    license_upsell LicenseModification
+        "The old and new count of licenses. New count should be higher than old count."
+    price Price
+        "Price of this trial conversion or renewal. So if you're going from a 5 person team to a 6 person team, this should be the delta - roughly $150 USD."
+
+    example upsell_five_to_eight
+        team_id = 12345
+        external_invoice_id = salesforce_example
+        license_upsell = upsell_five_to_eight
+        price = seven_hundred_usd
+
+struct ExtendTrialArgs
+    team_id UInt64
+        "The ID of the team being modified."
+    interval_end_modification IntervalEndModification
+        "The old and new end of the trial interval. New date should be later than the old date."
+
+    example default
+        team_id = 12345
+        interval_end_modification = default
+
+##### Routes #####
+
+route provision_new_trial_team (ProvisionNewTrialTeamArgs, TeamStatusResponse, ProvisionNewTeamError)
+    "Provision a new trial team through SalesForce."
+    attrs
+        auth = "app"
+
+route provision_new_paid_team (ProvisionNewPaidTeamArgs, TeamStatusResponse, ProvisionNewTeamError)
+    "Provision a new paid team through SalesForce."
+    attrs
+        auth = "app"
+
+route trial_convert_team(TrialConvertOrRenewArgs, TeamStatusResponse, ProvisionNewTeamError)
+    "Convert a Trial to Paid."
+    attrs
+        auth="app"
+
+route renew_team(TrialConvertOrRenewArgs, TeamStatusResponse, ProvisionNewTeamError)
+    "Rebill an existing paid team."
+    attrs
+        auth="app"
+
+route upsell_team(UpsellArgs, TeamStatusResponse, ProvisionNewTeamError)
+    "Add licenses to an existing team."
+    attrs
+        auth="app"
+
+route change_team_plan(ChangeTeamPlanArgs, TeamStatusResponse, ProvisionNewTeamError)
+    "Upgrade an existing team to a new plan, i.e. Fastrak to Biz, or Biz to Enterprise"
+    attrs
+        auth="app"
+
+route extend_trial(ExtendTrialArgs, TeamStatusResponse, ProvisionNewTeamError)
+    "Extend a Team trial."
+    attrs
+        auth="app"

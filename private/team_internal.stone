@@ -1,0 +1,105 @@
+namespace team
+
+#
+# Route get_info_internal
+#
+
+struct TeamGetInfoResultInternal extends TeamGetInfoResult
+
+    polling_revision_id String
+        "Revision id for use with the polling notification system. See
+        polling_notifications/team_notifications"
+    internal_policies TeamMemberPoliciesInternal
+        "Internal only policies"
+    team_admin_uids List(UInt64)
+        "List of team admin user ids"
+    team_type TeamType
+
+
+    example default
+        name="Dropbox Inc."
+        team_id="dbtid:1234abcd"
+        num_licensed_users=5
+        num_provisioned_users=2
+        policies=default
+        internal_policies=default
+        team_type=limited
+        team_admin_uids=[143241234234]
+        polling_revision_id="48948945006516"
+
+union TeamType
+    limited
+        "Limited team"
+    business
+        "Dropbox Business team"
+    enterprise
+        "Dropbox Enterprise team"
+    other*
+        ""
+
+route get_info_internal(Void, TeamGetInfoResultInternal, Void)
+    "Retrieves information about a team."
+
+    attrs
+        auth="team"
+        owner="adminx"
+
+#
+# Route members/suggest_to_dfb_admin
+#
+
+struct SuggestMembers
+
+    member_emails List(String)
+        "Suggested member emails"
+    user_id UInt64
+        "The user id who is suggesting members"
+
+    example default
+        member_emails = ["example@example.com"]
+        user_id = 240523450
+
+route members/suggest_to_dfb_admin(SuggestMembers, Void, Void)
+    "Suggest members via email addresses to the DfB admin."
+
+    attrs
+        auth="team"
+        owner="adminx"
+
+#
+# Route get_suggested_members_for_user
+#
+
+struct SuggestedMembersForUserArgs
+    user_id UInt64
+        "user id to get the list of suggested members for"
+
+    example default
+        user_id=1241244
+
+struct SuggestedMemberInfo
+    user_id UInt64
+        "id of the suggested member"
+    email String
+        "email of the suggested member"
+    name String
+        "display name of the suggested member"
+
+    example default
+        user_id=5123423
+        email="user_email@example.com"
+        name="Example User"
+
+struct SuggestedMembersForUserResult
+    suggested_members List(SuggestedMemberInfo)
+        "List of suggested members for the given user"
+
+    example default
+        suggested_members=[default]
+
+route members/get_suggested_members_for_user(SuggestedMembersForUserArgs, SuggestedMembersForUserResult, Void)
+    "Get a list of suggested members for a given user"
+
+    attrs
+        auth="team"
+        owner="adminx"

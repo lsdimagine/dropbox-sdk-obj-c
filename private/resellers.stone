@@ -1,0 +1,299 @@
+# Resellers is being used in production by customers. Be careful to not make
+# backwards incompatible changes.
+
+namespace resellers
+
+import common
+import users
+
+alias ResellerChain = List(String(min_length=10))
+alias Link = String
+
+# NOTE - this is subject to change and not currently used.
+union TeamSuspensionState
+    active
+        "The team is active and can be used within full quota."
+    suspended
+        "The team's subscription is suspended. Users can still login and access their files,
+        but they will have reduced quota and possibily some other restrictions."
+    deleted
+        "This team has been deleted."
+
+struct TeamWithState extends users.Team
+    "Information about a team along with its current state."
+
+    num_licensed_users UInt32
+        "Total number of licenses the team has authorized"
+    num_provisioned_users UInt32
+        "Number of accounts that have been invited or are already active members of the team."
+    sku UInt32?
+        "Deprecated. Please use :field:`sku_id` instead."
+    sku_id String?
+        "The ID of the SKU the team was provisioned with."
+    end_date common.Date?
+        "The end date for the current billing period."
+    active Boolean?
+        "Whether the team is currently active."
+    auto_renew Boolean?
+        "Whether the team will automatically renew to the next period."
+    reseller_ids ResellerChain?
+        "A chain of resellers owners of this team."
+    can_manage Boolean?
+        "Whether the reseller can manage the team through admin console."
+    country_code String(min_length=2,max_length=2, pattern="[A-Za-z]{2}")?
+        "A ISO639-1 code that specifies the country the team is in."
+
+    example default
+        id="dbtid:AAFdgehTzw7WlXhZJsbGCLePe8RvQGYDr-I"
+        name="Acme, Inc."
+        num_licensed_users=5
+        num_provisioned_users=2
+        end_date="2016-1-1"
+        auto_renew=true
+
+struct TeamWithStateList
+    teams List(TeamWithState)
+
+union ResellerIdValidationError
+    invalid_reseller_ids
+        "Raised if the reseller ids passed in can't be validated.
+         Either because they don't exist or the chain is not valid
+         (they don't have relationship between them)"
+
+### Request & Errors
+struct TeamListArg
+    reseller_ids ResellerChain
+
+struct CreateTeamArg
+    name String(min_length=2, max_length=20, pattern="^\\S+.*\\S+$")
+        "The name of the team."
+    num_licensed_users UInt32
+        "The number of licenses of the team."
+    sku UInt32?
+        "Deprecated. Please use :field:`sku_id` instead."
+    sku_id String?
+        "SKU of team to use."
+    invite_admin common.EmailAddress
+        "Email address of the initial admin of this team."
+    default_language_code String(min_length=2)?
+        "A ISO639-1 code that specifies the default language of the team."
+    country_code String(min_length=2,max_length=2, pattern="[A-Za-z]{2}")?
+        "A ISO639-1 code that specifies the country the team is in."
+    reseller_ids ResellerChain?
+        "A list of reseller_ids provided by the caller.
+        Optional for backward compatibility with SoftBank"
+    promo_code String?
+        "A promo code we can generate and supply to the resellers."
+
+    example default
+        name="My New Team"
+        num_licensed_users=10
+        sku=1
+        invite_admin="jenny@example.com"
+        default_language_code="ja"
+
+union CreateTeamError extends ResellerIdValidationError
+    # Used to enforce per-partner limits.
+    num_licensed_users_not_allowed
+        "The specified :field:`CreateTeamArg.num_licensed_users` is not allowed."
+
+    no_sku
+        "The specified :field:`CreateTeamArg.sku` or :field:`CreateTeamArg.sku_id` does not exist."
+
+    no_sku_specified
+        "At least one of :field:`CreateTeamArg.sku` or :field:`CreateTeamArg.sku_id` must be specified."
+
+    sku_over_specified
+        "Only one of :field:`CreateTeamArg.sku` or :field:`CreateTeamArg.sku_id` may be specified."
+
+    no_default_language_code
+        "The specified :field:`CreateTeamArg.default_language_code` does not exist."
+
+    invalid_country_code
+        "The specified :field:`CreateTeamArg.country_code` is not valid"
+
+    # The following errors are specific to the "invite member" action, and could
+    # be moved in a different union at some point.
+    team_license_limit
+        "Team is already full. The Dropbox Business organization has no available licenses."
+    user_already_on_team
+        "User is already on this team. The provided email address is associated with a user
+        who is already a member of or invited to the team."
+    user_on_another_team
+        "User is already on another team. The provided email address is associated with a user
+        that is already a member or invited to another team."
+    # TODO(mihnea) - add docstrings for following error messages, or remove them
+    # (do we really need to give the api-callers such specific details in case of failure?)
+    user_already_paired
+    user_migration_failed
+
+    cannot_invite_admin String
+        "Any other reason for which user cannot be invited to the team. See embedded string for
+        more details."
+
+    invalid_reseller_id
+        "The reseller_id list provided is not a valid registered Dropbox Reseller Partner."
+
+    country_embargoed
+        "Dropbox is not allowed to sell their products in the country provided in country_code"
+
+    unknown*
+
+struct GetTeamArg
+    # TODO(mihnea) - we might have to change this to team_id & update TeamWithState.
+    id String
+        "A team's unique ID."
+    reseller_ids ResellerChain?
+        "A list of reseller_ids provided by the caller.
+        Optional for backward compatibility with SoftBank"
+
+union GetTeamError extends ResellerIdValidationError
+    no_team
+        "The specified :field:`GetTeamArg.id` does not exist."
+
+    no_access
+        "The reseller identified by the reseller_ids can't access this team."
+    unknown*
+
+union ModifyTeamError extends GetTeamError
+    team_cancelled
+        "Returned when the team is not active (cancelled) and the operation is not allowed on inactive teams."
+
+struct GetTeamTokenArg extends GetTeamWithResellerChainArg
+    invalidate_old_tokens Boolean?
+        "If true all old tokens will be invalidated.
+         Can be used when the team is being transferred from one reseller to another"
+
+struct GetTeamWithResellerChainArg
+    id String
+        "A team's unique ID."
+    reseller_ids ResellerChain
+        "A list of reseller_ids provided by the caller."
+
+struct TeamAuthToken
+    token String
+
+struct ModifyLicensesArg extends GetTeamArg
+    # This could be removed, but is useful to ensure callers don't make any errors.
+    current_num_licensed_users UInt32
+        "The current number of licenses for this team."
+    new_num_licensed_users UInt32
+        "The new number of licenses of the team."
+
+union ModifyLicensesError extends ModifyTeamError
+    incorrect_current_num_licensed_users
+        "The specified :field:`ModifyLicensesArg.current_num_licensed_users` is not correct
+         (has a different value than the actual num_licensed_users for this team)."
+
+    # Used to enforce both per-partner limits and trying to remove too many licenses.
+    # If we want, we could further split this into multiple, more granular errors.
+    new_num_licensed_users_not_allowed
+        "The specified :field:`ModifyLicensesArg.new_num_licensed_users` is not allowed."
+
+struct ModifyAutoRenewArg extends GetTeamArg
+    new_auto_renew Boolean
+        "The state to switch the auto_renew to"
+
+union ModifyAutoRenewError extends ModifyTeamError
+    already_set
+        "Returned if the specified :field:`ModifyAutoRenewArg.new_auto_renew` is the same as the
+         current value for the team.
+         We treat it as an error because the intent of the renew/modify is to change it."
+
+union CancelTeamError extends GetTeamError
+    already_cancelled
+        "Returned if the team is already cancelled."
+
+    cannot_cancel
+        "Returned if the team cannot be cancelled at the moment.
+         For example it is out of the period in the interval when that is possible."
+
+union ReinstateTeamError extends GetTeamError
+    active_team
+        "Returned if the team is currently active. It cannot be reinstated in that case."
+
+struct MigrateTeamArg extends GetTeamArg
+
+    to_reseller_ids ResellerChain
+        "The new chain of resellers to be managing it"
+
+union MigrateTeamError extends GetTeamError
+    unknown_reseller
+        "Returned if the :field:`MigrateTeamArg.to_reseller_ids` contains unknown resellers"
+
+### Routes ###
+
+route team/create (CreateTeamArg, TeamWithState, CreateTeamError)
+    "Creates a new team and invite an initial admin to it."
+
+    attrs
+        auth="app"
+
+route team/get (GetTeamArg, TeamWithState, GetTeamError)
+    "Retrieves information about a team."
+
+    attrs
+        auth="app"
+
+route team/list (Void, TeamWithStateList, Void)
+    "Retrieves information about all managed teams."
+
+    attrs
+        auth="app"
+
+route team/list2 (TeamListArg, TeamWithStateList, Void)
+    "Retrieves information about the teams managed by the reseller in TeamListArg"
+    attrs
+        auth="app"
+
+route team/licenses/modify (ModifyLicensesArg, TeamWithState, ModifyLicensesError)
+    "Modifies the number of licenses for a team (add or remove)."
+
+    attrs
+        auth="app"
+
+route team/auto_renew/modify (ModifyAutoRenewArg, TeamWithState, ModifyAutoRenewError)
+    "Modifies the auto_renew flag of the team"
+
+    attrs
+        auth="app"
+
+route team/token (GetTeamTokenArg, TeamAuthToken, GetTeamError)
+    "Returns the token that can be used to make calls to the Dropbox Business API on behalf of the team."
+    attrs
+        auth="app"
+
+route team/cancel (GetTeamArg, TeamWithState, CancelTeamError)
+    "Cancels the current billing agreement for the team.
+     Suspends the team, but preserves the tam structure so it can be reinstated using team/reinstate"
+    attrs
+        auth="app"
+
+route team/reinstate (GetTeamArg, TeamWithState, ReinstateTeamError)
+    "Reinstates a team in the cancelled state.
+     Starts a new billing agreement that begins with the current date.
+    "
+    attrs
+        auth="app"
+
+route team/migrate (MigrateTeamArg, TeamWithState, MigrateTeamError)
+    "Migrates the team from being managed by MigrateTeamArg.from_reseller_ids
+    to being managed by MigrateTeamArg.to_reseller_ids"
+
+    attrs
+        auth="app"
+
+route team/delete (GetTeamArg, Void, GetTeamError)
+    "Deletes the team and removes all members."
+
+    attrs
+        auth="app"
+
+route team/admin_link (GetTeamWithResellerChainArg, Link, GetTeamError)
+    "Generates one-time link which gains access to the team specified by
+    :field:`GetTeamWithResellerChainArg.id`. To use this endpoint, the reseller in the
+    :field:GetTeamWithResellerChainArg.reseller_ids must has managing access to the specified team.
+    (see :field:`TeamWithState.can_manage`)"
+
+    attrs
+        auth="app"

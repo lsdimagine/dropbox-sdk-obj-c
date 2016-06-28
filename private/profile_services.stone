@@ -1,0 +1,162 @@
+namespace profile_services
+
+import common
+
+union ProfileServicePermissionType
+    "Types of permissions for profile services."
+    contacts
+        "Permission for accessing profile service contacts."
+    profile
+        "Permission for accessing profile service user profile information."
+    photo
+        "Permission for accessing profile service user picture."
+    email
+        "Permission for accessing profile service email account service."
+    documents
+        "Permission for accessing profile services stored documents."
+    calendar
+        "Permission for accessing profile service calendar service."
+    other*
+
+union ServiceType
+    "Supported services."
+    google
+        "Google"
+    yahoo
+        "Yahoo"
+    facebook
+        "Facebook"
+    other*
+
+
+# --
+
+
+struct GetAccessTokenArg
+    "Arguments for fetching access token"
+    service ServiceType
+        "The specific service of the Access Token being requested."
+    permissions List(ProfileServicePermissionType)
+        "List of permissions needed for the."
+
+    example default
+        service = google
+        permissions = [email, calendar]
+
+
+struct GetAccessTokenResult
+    "Result struct containing an Access Token"
+    access_token String
+        "The access token for the specified user and service."
+    granted_permissions List(ProfileServicePermissionType)
+        "Permissions that have been granted by the user for the specified service."
+    missing_permissions List(ProfileServicePermissionType)
+        "Availible permissions for the service that have not yet been granted."
+    expire_ts UInt64
+        "Timestamp when token expires, in seconds."
+
+    example default
+        access_token = "AzJJbGlzdF90eXBdofe9c3RPbGlzdGFyZ3NfYnlfZ2lkMRhcbric7Rdog9cmV2aXNpb24H3Qf6o1fkHxQ"
+        granted_permissions = [contacts, profile]
+        missing_permissions = [documents, calendar]
+        expire_ts = 4927628453453452
+
+union ServiceError
+    "Access token does not exist or does not have correct permissions."
+    missing_permissions List(ProfileServicePermissionType)
+        "Existing token is missing permissions."
+    missing_token
+        "User has not linked the specified profile service account."
+    unrecognized_service
+        "Specified service is not recognized."
+    permissions_not_supported
+        "Specified service does not support the specified permissions."
+    other*
+
+
+struct GetAccessTokenError
+    "Error result for getting access token."
+    service_error ServiceError
+        "One of the specified ServiceError union types."
+
+    example default
+        service_error = missing_token
+
+route get_access_token(GetAccessTokenArg, GetAccessTokenResult, GetAccessTokenError)
+
+
+# --
+
+
+union SupportedPermissionsError
+    unrecognized_service
+        "Specified service is not recognized."
+    other*
+
+struct GetSupportedPermissionsArg
+    "Argument for getting supported permissions for a specified service."
+    service ServiceType
+
+    example default
+        service = google
+
+
+struct GetSupportedPermissionsResult
+    "Return list of supported permission types for the specified service."
+    permissions List(ProfileServicePermissionType)
+
+    example default
+        permissions = []
+
+
+struct GetSupportedPermissionsError
+    "Returns the error"
+    service_error SupportedPermissionsError
+
+    example defualt
+        service_error = unrecognized_service
+
+
+route get_supported_permissions(GetSupportedPermissionsArg, GetSupportedPermissionsResult, GetSupportedPermissionsError)
+
+
+# --
+
+
+struct ServicePermissionsStateArg
+    "Argument for checking if a service is linked with the specified permissions."
+    service ServiceType
+        "The specific service of the Access Token being requested."
+
+    example default
+        service = google
+
+
+struct ServicePermissionsStateResult
+    "Returns granted and missing permissions for the service."
+    granted_permissions List(ProfileServicePermissionType)
+        "Permissions that have been granted by the user for the specified service."
+    missing_permissions List(ProfileServicePermissionType)
+        "Availible permissions for the service that have not yet been granted."
+
+    example default
+        granted_permissions = [contacts, profile]
+        missing_permissions = [documents, calendar]
+
+
+union ServicePermissionsError
+    unrecognized_service
+        "Specified service is not recognized."
+    missing_token
+        "User has not linked the specified profile service account."
+    other*
+
+
+struct ServicePermissionsStateError
+    "Returns one of the ServicePermissionsError types."
+    service_error ServicePermissionsError
+
+    example default
+        service_error = unrecognized_service
+
+route service_permissions_state(ServicePermissionsStateArg, ServicePermissionsStateResult, ServicePermissionsStateError)

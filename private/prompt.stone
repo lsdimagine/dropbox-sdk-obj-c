@@ -1,0 +1,108 @@
+namespace prompt
+    "This namespace contains endpoints for retrieving and interacting with
+    PROMPT campaigns."
+
+
+route get_best_campaigns(GetBestCampaignsArg, CampaignsResult, Void)
+    "Get the best PROMPT campaigns for the given user."
+
+route confirm(CampaignArg, Void, CampaignErr)
+    "Mark a campaign as confirmed."
+
+route dismiss(CampaignArg, Void, CampaignErr)
+    "Mark a campaign as dimsissed."
+
+route log_impression(CampaignArg, Void, CampaignErr)
+    "Log a client side impression of a campaign."
+
+
+alias CampaignId = Int64
+
+union TopNotificationStyle
+    info
+        "Informational notification style."
+    notification
+        "Regular notification style."
+    warning
+        "Warning notification style."
+
+union TopNotificationAction
+    open_recents_tab
+    open_photos_tab
+    open_payments_page
+    open_link_computer_page
+
+union TopNotificationIcon
+    info
+
+struct TopNotification
+    text String
+    subtext String?
+    style TopNotificationStyle
+    action TopNotificationAction?
+    icon TopNotificationIcon?
+    not_dismissable Boolean = false
+
+    example default
+        text = "You are running out of space."
+        subtext = "You are on a basic account."
+        style = notification
+        action = open_recents_tab
+        icon = info
+        not_dismissable = false
+
+
+union CampaignContent
+    top_notification TopNotification
+
+    example default
+        top_notification = default
+
+struct CampaignResult
+    campaign_id CampaignId
+    campaign_name String
+    content CampaignContent
+
+    example default
+        campaign_id = 499
+        campaign_name = "over-quota-top-notification"
+        content = default
+
+union RefAction
+    files_personal
+    files_work
+    recents_personal
+    recents_work
+
+struct GetBestCampaignsArg
+    action RefAction
+
+    example default
+        action = files_personal
+
+struct CampaignsResult
+    campaigns List(CampaignResult)
+    valid_for UInt64
+
+    example default
+        campaigns = [default]
+        valid_for = 0
+
+struct CampaignArg
+    campaign_id CampaignId
+
+    example default
+        campaign_id = 499
+
+union CampaignErr
+    not_found String
+        "A campaign couldn't be found."
+
+    bad_platform String
+        "The found campaign doesn't belong to the mobile platform."
+
+    example default
+        not_found = "There is no campaign with the id '499'."
+
+    example bad_platform
+        bad_platform = "A campaign was found for id '499' but it doesn't belong to the mobile platform."

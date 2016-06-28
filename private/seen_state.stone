@@ -1,0 +1,62 @@
+namespace seen_state
+    "Endpoints to access seen state data"
+
+alias PathOrSjid = String(pattern="((\/|sjid:).*|nspath:[^:]*)", min_length=1)
+
+struct SeenStateUserArg
+    "The arguments to the get_seen_state_users endpoint. Just takes a list of user_ids."
+    user_ids List(String)
+        "List of encoded user_ids."
+
+struct FileInfo
+    "Identifiers to uniquely identify a file. ns_id is required, and either the
+    sjid and ns_path is specified in file_identifier with a prefix."
+    ns_id UInt64
+    file_identifier PathOrSjid
+        "Either the ns_path of the file or the sjid with a prefix to identify which."
+    url String?
+        "If viewing the file on a shared link or shared content link, the url to the file."
+
+struct FileInfoList
+    "List of FileInfo objects that represent a list of files."
+    file_infos List(FileInfo, min_items=1)
+
+struct SeenStateUser
+    "Represents a user that has seen state and the information we need for rendering."
+    user_id String
+    display_name String
+    photo_circle_url String?
+
+struct SeenStateLastSeen
+    "Seen State object consists of a timestamp of when the user last viewed as well as
+    a SeenStateUser object holding user information."
+    when_last_seen UInt64
+    seen_state_user SeenStateUser
+
+struct SeenStateInfo
+    "Holds a list of seen states representing a list of views that unique users have on
+    the object. We also return the total number of toatl views that we have recorded."
+    seen_states List(SeenStateLastSeen)
+    total_views UInt32
+
+struct SeenStateInfoResult
+    "Seen state info appended with file info. We return a list of these in fetching seen
+    state info."
+    file_info FileInfo
+    seen_state_info SeenStateInfo
+
+union SeenStateError
+    no_file
+        "The file does not exist."
+    no_permission
+        "The user doesn't have permission to view this file."
+    not_in_team
+        "The user isn't in a team."
+    inconsistent_params
+        "The shared link passed in doesn't match the file identifier params."
+
+route get_seen_state_info(FileInfoList, List(SeenStateInfoResult), SeenStateError)
+    "Get the seen state info for multiple files."
+
+route get_seen_state_users(SeenStateUserArg, List(SeenStateUser), SeenStateError)
+    "Gets extra seen state info for a set of users."

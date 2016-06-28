@@ -1,0 +1,263 @@
+# The resellers namespace is being used in production by customers.
+# Handle with care.
+
+namespace resellers
+
+import common
+
+### routes
+
+route space/get (SpaceGetArg, SpaceUserResult, SpaceError)
+    "Retrieves information about space that partner provisioned for the
+    specified user."
+
+    attrs
+        auth="app"
+
+route space/list (SpaceListArg, SpaceUserListResult, ListSpaceError)
+    "Retrieves a list of all user ids that have provisioned space as a result
+    of a call to :route:`space/provision` by Partner. This endpoint offers the
+    ability to get a consistent view of provisioning state at any point in the
+    past. Periodic calls to this endpoint can be used to reconcile any
+    differences in provisioning state that may appear between the databases
+    of Partner and Dropbox."
+
+    attrs
+        auth="app"
+
+route space/provision (SpaceProvisionArg, SpaceUserResult, ProvisionSpaceError)
+    "Attempts to provision a partner SKU. This will be effective immediately,
+    but the SKU may become active at a later point, e.g. after completing Get
+    Started, if this was specified as part of the agreement with Partner.
+    Subject to an agreement between Partner and Dropbox, some amount of space
+    may also be granted before the SKU transitions into active state, i.e.
+    before the aforementioned requirements are met."
+
+    attrs
+        auth="app"
+
+route space/disable (SpaceDisableArg, SpaceUserResult, DisableSpaceError)
+    "Will disable a partner SKU. This will take effect immediately. SKUs may
+    have a pre-agreed duration after which they become inactive automatically.
+    This endpoint can be used to disable such SKUs prematurely, or to disable a
+    SKU without a pre-agreed duration."
+
+    attrs
+        auth="app"
+
+
+
+### Requests
+
+struct SpaceGetArg
+    uid UInt64
+        "The user's unique identifier."
+
+    example default
+        uid = 12345
+
+struct SpaceListArg
+    date common.DropboxTimestamp
+        "A UTC date time that indicates the latest point in time to be included
+        in the response from this endpoint. Any changes that happened after the
+        indicated point in time will not be reflected in the response. Supply
+        the same date in subsequent queries to obtain a consistent response
+        when paginating."
+
+    page UInt64?
+        "An integer specifying which page of the response to display. Optional.
+        Defaults to 0 if not supplied."
+
+    example default
+        date = "2011-02-21T00:00:00Z"
+        page = 2
+
+alias CountryCode = String(min_length=2, max_length=2)
+
+struct SpaceProvisionArg
+    uid UInt64
+        "The user's unique identifier."
+
+    partner_uid String
+        "An identifier chosen by the partner to identify the user or transaction
+        for auditing purposes."
+
+    sku_id UInt64
+        "The id of the SKU that should be provisioned."
+
+    country_code CountryCode
+        "The :link:`ISO 3166-1 alpha-2 http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2`
+        country code of the country that Partner will be billed in for this SKU,
+        e.g. 'GB' for the United Kingdom of Great Britain and Northern Ireland."
+
+    example default
+        uid = 12345
+        partner_uid = "abcd1234"
+        sku_id = 12
+        country_code = "GB"
+
+struct SpaceDisableArg
+    uid UInt64
+        "The user's unique identifier."
+
+    instance_id String
+        "The unique identifier for a single instance of a SKU that should be
+        disabled."
+
+    sku_id UInt64
+        "The id of the SKU that should be disabled. This is used as a safeguard
+        that the :field:`instance_id` belongs to a SKU of the intended type."
+
+    example default
+        uid = 12345
+        instance_id = "12345"
+        sku_id = 12
+
+
+
+### Responses
+
+union SkuProvisionState
+    awaiting_requirement
+        "The SKU has been provisioned, but is not yet fully active. This is
+        typically the case if users are required to satisfy another requirement,
+        such as completing Get Started. Depending on the agreement between
+        Partner and Dropbox, some space may be granted in this state. The amount
+        of space granted to the user may increase when the SKU changes into the
+        active state."
+
+    active
+        "The SKU has been provisioned and is active."
+
+struct SkuProvisionInfo
+    "Information about the provisioning state of a single SKU."
+
+    instance_id String
+        "A unique identifier for a single instance of a SKU. When multiple SKUs
+        of the same type are provisioned for one user then this identifier can
+        be used to distinguish them."
+
+    sku_id UInt64
+        "An identifier issued to Partner by Dropbox that captures the
+        provisioning-related aspects, such as amount of space granted, any
+        requirements for granting, and duration of the SKU."
+
+    country_code CountryCode
+        "The :link:`ISO 3166-1 alpha-2 http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2`
+        country code of the country that Partner will be billed in for this SKU,
+        e.g. 'GB' for the United Kingdom of Great Britain and Northern Ireland.
+        The combination of :field:`country_code` and :field:`sku_id` specifies
+        the currency that Partner will be billed in."
+
+    provisioned_date common.DropboxTimestamp
+        "Specifies when the SKU was provisioned."
+
+    activated_date common.DropboxTimestamp?
+        "Specifies when the SKU was activated. Only present if the SKU is in
+        active state."
+
+    end_date common.DropboxTimestamp?
+        "Specifies when the SKU will end. Only present if the SKU automatically
+        terminates after a pre-agreed number of months and some amount of space
+        is being granted to the user in the current state."
+
+    state SkuProvisionState
+        "The provisioning status of this SKU."
+
+    example default
+        instance_id = "12345"
+        sku_id = 12
+        country_code = "GB"
+        provisioned_date = "2010-08-21T23:12:17Z"
+        activated_date = "2010-08-21T23:12:17Z"
+        end_date = null
+        state = awaiting_requirement
+
+struct SpaceUserResult
+    "A response containing information about a single user and active SKUs that
+    Partner provisioned."
+
+    uid UInt64
+        "The user's unique identifier."
+
+    active_skus List(SkuProvisionInfo)
+        "A list of all currently active SKUs provisioned by Partner."
+
+    total_quota UInt64
+        "The user's total quota in their Dropbox, in bytes."
+
+    used_quota UInt64
+        "The aggregate amount of data in their Dropbox, in bytes.
+        Contains files in shared and private folders."
+
+    example default
+        uid = 12345
+        active_skus = [default]
+        total_quota = 23456789
+        used_quota = 12345678
+
+struct SpaceUserListResult
+    "A response containing information about multiple users that the partner
+    provisioined SKUs for."
+
+    users List(SpaceUserResult)
+        "A list of users. The content of each element is identical to the
+        response of :route:`space/get`."
+
+    date common.DropboxTimestamp
+        "The supplied date parameter. Note that the list of users with
+        provisioned space may since have changed. Re-use this date when
+        paginating to obtain a consistent response across multiple calls to
+        this endpoint."
+
+    page UInt64
+        "An integer defining which page of results is displayed. To be used in
+        conjunction with has_more."
+
+    has_more Boolean
+        "A boolean value indicating whether or not there are more results for
+        pagination. If more results are available, a call to :route:`space/list`
+        with the same date and page incremented by one will yield additional
+        results."
+
+    example default
+        users = [default]
+        date = "2011-02-21T00:00:00Z"
+        page = 0
+        has_more = true
+
+
+
+### Errors
+
+union SpaceError
+    unknown_uid
+        "There is no user with the supplied `uid`."
+
+    user_deleted
+        "The account of the user with the supplied `uid` was deleted."
+
+union ListSpaceError
+    future_date
+        "The specified date is in the future."
+
+union SpaceErrorWithSkuId extends SpaceError
+    "Both :route:`space/provision` as well as :route:`space/disable` can return
+    `invalid_sku_id`."
+
+    invalid_sku_id
+        "The supplied `sku_id` is not valid for this partner."
+
+union ProvisionSpaceError extends SpaceErrorWithSkuId
+    invalid_country_code
+        "The supplied `SpaceProvisionArg.country_code` is invalid."
+
+    not_eligible
+        "The user is not eligible for the supplied sku_id."
+
+union DisableSpaceError extends SpaceErrorWithSkuId
+    invalid_user_id
+        "The supplied `SpaceDisableArg.user_id` is invalid."
+
+    invalid_instance_id
+        "The supplied `SpaceDisableArg.instance_id` is invalid."

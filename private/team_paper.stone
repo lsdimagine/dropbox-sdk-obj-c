@@ -1,0 +1,59 @@
+namespace team
+
+#
+# Set team's paper policy
+#
+
+import team_administration
+
+union DropboxTerms
+    agree
+        "Agree to Dropbox terms."
+    other*
+
+struct PaperPolicy
+    paper_enabled Boolean
+        "Whether to Allow people on the team to use Dropbox Paper."
+    dropbox_terms DropboxTerms?
+        "Whether to agree to Dropbox terms. This is required when :field:`paper_enabled` is :val:`true`."
+
+    example default
+        paper_enabled = true
+        dropbox_terms = agree
+
+alias PaperPolicyArg = PaperPolicy
+
+union PaperError extends team_administration.AdministrationError
+    dropbox_terms_error
+        "You must agree to dropbox terms in order to call the API."
+
+route paper/set_paper_policy(PaperPolicyArg, Void, PaperError)
+    "Settings the paper policy.
+
+    Permission : Team member management"
+
+    attrs
+        auth="team"
+        owner="adminx"
+
+#
+# Set team's paper link policy
+#
+
+struct PaperLinkPolicy
+    default_visibility team_administration.Visibility
+        "Who do you want to be able to open links to Paper docs by default."
+
+    example default
+        default_visibility = public
+
+alias PaperLinkPolicyArg = PaperLinkPolicy
+
+route paper/set_paper_link_policy(PaperLinkPolicyArg, Void, AdministrationError)
+    "Settings the default paper link policy.
+
+    Permission : Team member management"
+
+    attrs
+        auth="team"
+        owner="adminx"

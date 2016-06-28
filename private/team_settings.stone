@@ -1,0 +1,170 @@
+namespace team
+
+import team_administration
+import async
+
+alias AdministrationError = team_administration.AdministrationError
+
+#
+# Set team's permanent delete policy
+#
+
+struct PermanentDeletePolicy
+    permanent_delete_enabled Boolean
+
+    example permanent_delete_enabled
+        permanent_delete_enabled = true
+
+alias SetPermanentDeletePolicyArg = PermanentDeletePolicy
+
+route set_permanent_delete_policy(SetPermanentDeletePolicyArg, Void, AdministrationError)
+
+    attrs
+        auth="team"
+        owner="adminx"
+
+#
+# Multiple accounts
+#
+
+
+struct MultipleAccountsPolicy
+    multiple_accounts_enabled Boolean
+
+    example multiple_accounts_enabled
+        multiple_accounts_enabled = true
+
+alias MultipleAccountsPolicyArg = MultipleAccountsPolicy
+
+route set_multiple_accounts_policy(MultipleAccountsPolicyArg, Void, AdministrationError)
+
+    attrs
+        auth="team"
+        owner="adminx"
+
+#
+# Reset all passwords
+#
+
+route reset_all_passwords(Void, async.LaunchEmptyResult, AdministrationError)
+    "Reset all passwords. All team members will need to reset their passwords.
+
+    Permission : Team member management"
+
+    attrs
+        auth="team"
+        owner="adminx"
+
+#
+# Getting the status of a reset all passwords job
+#
+
+union ResetAllPasswordsJobStatus extends async.PollResultBase
+    complete async.LaunchEmptyResult
+        "The asynchronous job has finished."
+
+route reset_all_passwords/job_status/check(async.PollArg, ResetAllPasswordsJobStatus, async.PollError)
+    "Once an async_job_id is returned from :route:`reset_all_passwords` ,
+    use this to poll the status of the asynchronous request.
+
+    Permission : Team member management"
+
+    attrs
+        auth = "team"
+        owner = "adminx"
+
+#
+# Set request membership policy.
+#
+
+union RequestMembership
+    require_approval
+        "Asking to join."
+    auto_accept
+        "Automatic joining."
+    disabled
+        "Joining by invite only."
+
+struct RequestMembershipPolicy
+    request_membership RequestMembership
+
+    example default
+        request_membership = auto_accept
+
+alias RequestMembershipPolicyArg = RequestMembershipPolicy
+
+union RequestMembershipPolicyError extends team_administration.AdministrationError
+    feature_not_available String
+        "This feature is not available for your team."
+
+    example default
+        feature_not_available = "The feature is not available for your team."
+
+route set_request_membership_policy(RequestMembershipPolicyArg, Void, RequestMembershipPolicyError)
+    "Determine how coworkers can join the team.
+    Only coworkers with a verified company email address can find or join your team.
+
+
+    Permission : Team member management"
+
+    attrs
+        auth="team"
+        owner="adminx"
+
+#
+# Set suggest members policy.
+#
+
+struct SuggestMembersPolicy
+    suggest_members_enabled Boolean
+
+    example suggest_members_enabled
+        suggest_members_enabled = true
+
+alias SuggestMembersPolicyArg = SuggestMembersPolicy
+
+route set_suggest_members_policy(SuggestMembersPolicyArg, Void, AdministrationError)
+    "Allow team members to suggest other coworkers to add to the team.
+    Admins can accept or dismiss suggestions.
+
+    Permission : Team member management"
+
+    attrs
+        auth="team"
+        owner="adminx"
+
+
+#
+# Team default initial sync setting for team folders
+#
+
+route set_team_folder_initial_sync_setting(SetTeamFolderInitialSyncSettingArg, Void, AdministrationError)
+
+    attrs
+        auth="team"
+        owner="adminx"
+
+struct SetTeamFolderInitialSyncSettingArg
+    initial_sync_setting DefaultSyncSetting
+        "Whether new team folders should sync by default for members."
+
+    example default
+        initial_sync_setting = sync
+
+#
+# Team default initial sync setting for shared folders
+#
+
+route set_shared_folder_initial_sync_setting(SetSharedFolderInitialSyncSettingArg, Void, AdministrationError)
+
+    attrs
+        auth="team"
+        owner="adminx"
+
+struct SetSharedFolderInitialSyncSettingArg
+    initial_sync_setting DefaultSyncSetting
+        "Whether new shared folders should sync by default for members."
+
+    example default
+        initial_sync_setting = sync
+

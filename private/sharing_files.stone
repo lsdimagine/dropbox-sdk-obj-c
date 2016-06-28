@@ -1,0 +1,45 @@
+namespace sharing
+
+import common
+import files
+import users
+
+route add_file_members(AddFileMemberArgs, List(FileMemberActionResult), AddFileMemberError) deprecated by add_file_member
+    "Identical to add_file_member. This is used in the desktop client 3.18."
+
+    attrs
+        owner = "sharing"
+
+# --
+
+route internal_test_only/get_file_shared_content_link(GetFileSharedContentLinkArg, List(String), AddFileMemberError)
+    "Get the file shared content link for the given file and member information. Note: This is used ONLY for mobile integration test.
+
+    Note 1: This is used ONLY for mobile integration test.
+    Note 2: Because this is for internal test, we did not put more engineering efforts into this endpt to ensure its robustness,
+        meaning that we only guarantee that for legal inputs, the generated URL will be equivalent (see Note III) to what is sent through the invitation email;
+        for illegal inputs, the behavior of this endpt might be different from the add_folder_member endpt.
+    Note 3: Due to the randomness introduced inside our encryption function,
+        the r=? parameter in the url generated from this endpt will not be exactly the same
+        as in the link in the email. However, we make sure that the decoded recipient information
+        will be exactly the same between the two URLs.
+    Note 4: The output URLs might not be in the same order as the input members. So if this order matters, you might want to pass in one member every time.
+    "
+
+    attrs
+        owner = "sharing"
+
+struct GetFileSharedContentLinkArg
+    "Arguments of :route:`internal_test_only/get_file_shared_content_link`"
+
+    file PathOrId
+        "File on which the scl url is generated."
+    members List(MemberSelector)
+        "The target members that will end up in the 'r=' query param of the output urls."
+    gen_email_link Boolean
+        "Whether we generate a email tracking link (/l/*) or just the scl link /scl/fi/*"
+
+    example default
+        file = "id:3kmLmQFnf1AAAAAAAAAAAw"
+        members = [default]
+        gen_email_link = false

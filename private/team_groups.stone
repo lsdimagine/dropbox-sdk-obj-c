@@ -1,0 +1,16 @@
+namespace team
+
+import team_common
+
+#
+# route groups/get_summary
+#
+
+route groups/get_summary(GroupSelector, team_common.GroupSummary, GroupSelectorError)
+    "Return information about a single group.
+
+    Permission : Team information"
+
+    attrs
+        auth="team"
+        owner="adminx"
