@@ -8,7 +8,7 @@ import properties
 
 alias Id = String(min_length=1)
 alias Path = String(pattern="/(.|[\\r\\n])*")
-alias PathOrId = String(pattern="/(.|[\\r\\n])*|id:.*")
+alias PathOrId = String(pattern="/(.|[\\r\\n])*|id:.*|(ns:[0-9]+(/.*)?)")
 alias PathR = String(pattern="(/(.|[\\r\\n])*)?|(ns:[0-9]+(/.*)?)")               # A path that can be the root path ("").
 alias Rev = String(min_length=9, pattern="[0-9a-f]+") # TODO: Change pattern to "rev:[0-9a-f]{9,}"
 alias ListFolderCursor = String(min_length=1)
@@ -592,7 +592,7 @@ union WriteMode
         update = "a1c10ce0dd78"
 
 struct CommitInfo
-    path Path
+    path WritePath
         "Path in the user's Dropbox to save the file."
     mode WriteMode = add
         "Selects what to do if the file already exists."
@@ -655,6 +655,58 @@ route upload (CommitInfo, FileMetadata, UploadError)
         host = "content"
         style = "upload"
         owner = "dev-plat"
+
+#
+# Batch Upload
+#
+
+struct UploadSessionFinishBatchArg
+    entries List(UploadSessionFinishArg, max_items=1000)
+        "Commit information for each file in the batch."
+
+    example default
+        entries = [default]
+
+struct UploadSessionFinishBatchResult
+    entries List(UploadSessionFinishBatchResultEntry)
+        "Commit result for each file in the batch."
+
+    example default
+        entries = [default]
+
+union UploadSessionFinishBatchResultEntry
+    success FileMetadata
+    failure UploadSessionFinishError
+
+    example default
+        success = default
+
+union UploadSessionFinishBatchJobStatus extends async.PollResultBase
+    complete UploadSessionFinishBatchResult
+        "The :route:`upload_session/finish_batch` has finished."
+
+route upload_session/finish_batch (UploadSessionFinishBatchArg, async.LaunchEmptyResult, Void)
+    "This route helps you commit many files at once into a user's Dropbox. Use
+    :route:`upload_session/start` and :route:`upload_session/append_v2` to
+    upload file contents. We recommend uploading many files in parallel to increase
+    throughput. Once the file contents have been uploaded, rather than calling
+    :route:`upload_session/finish`, use this route to finish all your upload sessions
+    in a single request.
+
+    :field:`UploadSessionStartArg.close` or :field:`UploadSessionAppendArg.close`
+    needs to be true for last
+    :route:`upload_session/start` or :route:`upload_session/append_v2` call.
+
+    This route will return job_id immediately and do the async commit job in background.
+    We have another route :route:`upload_session/finish_batch/check` to check the job
+    status.
+
+    For the same account, this route should be executed serially. That means you should not start
+    next job before current job finishes. Also we only allow up to 1000 entries in a single request"
+
+route upload_session/finish_batch/check(async.PollArg, UploadSessionFinishBatchJobStatus, async.PollError)
+    "Returns the status of an asynchronous job for :route:`upload_session/finish_batch`. If
+    success, it returns list of result for each entry"
 
 #
 # Search
@@ -795,7 +847,7 @@ union WriteConflictError
 #
 
 struct CreateFolderArg
-    path Path
+    path WritePath
         "Path in the user's Dropbox to create."
 
     example default
@@ -849,9 +901,9 @@ route permanently_delete (DeleteArg, Void, DeleteError)
 #
 
 struct RelocationArg
-    from_path Path
+    from_path WritePath
         "Path in the user's Dropbox to be copied or moved."
-    to_path Path
+    to_path WritePath
         "Path in the user's Dropbox that is the destination."
 
     example default
@@ -1008,7 +1060,7 @@ route get_preview(PreviewArg, FileMetadata, PreviewError)
 #
 
 struct ListRevisionsArg
-    path Path
+    path PathOrId
         "The path to the file you want to see the revisions of."
 
     limit UInt64(min_value=1, max_value=100) = 10
@@ -1045,7 +1097,7 @@ route list_revisions(ListRevisionsArg, ListRevisionsResult, ListRevisionsError)
 #
 
 struct RestoreArg
-    path Path
+    path WritePath
         "The path to the file you want to restore."
     rev Rev
         "The revision to restore for the file."

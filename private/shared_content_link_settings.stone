@@ -1,0 +1,45 @@
+namespace sharing
+
+#
+# Internal version of outofband Shared Content Link Settings access.
+#
+
+
+struct LinkSelector
+    "An abstract base class for identifying/locating a shared content link from APIv2 client."
+
+    union*
+        fq_path LinkSelectorFqPath
+        ns_path LinkSelectorNsPath
+        file_obj_id LinkSelectorFileObjId
+        sckey LinkSelectorSharedContentKey
+
+struct LinkSelectorFqPath extends LinkSelector
+    user_id UInt64
+        "The user ID."
+    fq_path ReadPath
+        "The full qualified path under that user's dropbox."
+
+struct LinkSelectorNsPath extends LinkSelector
+    ns_id UInt64
+        "Namespace ID."
+    ns_path ReadPath
+        "Namespace Path."
+
+    example default
+        ns_id = 123456
+        ns_path = "/Prime_Numbers.txt"
+
+struct LinkSelectorFileObjId extends LinkSelector
+    file_obj_id String
+        "A base64 encoded string that identifies a file object."
+
+    example default
+        file_obj_id = "zX103d"
+
+struct LinkSelectorSharedContentKey extends LinkSelector
+    sckey String
+        "Shared content key."
+
+    example default
+        sckey = "abcd3f"

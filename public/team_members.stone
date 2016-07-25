@@ -57,9 +57,12 @@ union MemberSelectorError extends UserSelectorError
 struct MembersListArg
     limit UInt32(min_value=1, max_value=1000) = 1000
         "Number of results to return per call."
+    include_removed Boolean = false
+        "Whether to return removed members."
 
     example default
         limit = 100
+        include_removed = false
 
 
 struct TeamMemberInfo
@@ -499,6 +502,9 @@ union MembersRemoveError extends MembersDeactivateError
         "Cannot keep account and transfer the data to another user at the same time."
     cannot_keep_account_and_delete_data
         "Cannot keep account and delete the data at the same time."
+    email_address_too_long_to_be_disabled
+        # Added value in order to handle task T82902.
+        "The email address of the user is too long to be disabled."
 
 route members/remove(MembersRemoveArg, async.LaunchEmptyResult, MembersRemoveError)
     "Removes a member from a team.
@@ -585,4 +591,38 @@ route members/unsuspend(MembersUnsuspendArg, Void, MembersUnsuspendError)
 
     attrs
         auth = "team"
+        owner = "adminx"
+
+#
+# Route members/recover
+#
+
+struct MembersRecoverArg
+    "Exactly one of team_member_id, email, or external_id must be provided to identify the user account."
+
+    user UserSelectorArg
+        "Identity of user to recover."
+
+    example default
+        user = default
+
+
+union MembersRecoverError extends UserSelectorError
+    user_unrecoverable
+        "The user is not recoverable."
+    user_not_in_team
+        "The user is not a member of the team."
+    other*
+        "An unspecified error."
+
+route members/recover(MembersRecoverArg, Void, MembersRecoverError)
+    "Recover a deleted member.
+
+    Permission : Team member management
+
+    Exactly one of team_member_id, email, or external_id must be provided to identify the user account."
+
+    attrs
+        auth = "team"
+        beta_group = "deleted_user_recovery"
         owner = "adminx"

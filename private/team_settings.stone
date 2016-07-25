@@ -168,3 +168,29 @@ struct SetSharedFolderInitialSyncSettingArg
     example default
         initial_sync_setting = sync
 
+#
+# route change_reseller_support
+#
+
+struct ChangeResellerSupportArg
+    reseller_support_enabled Boolean
+        "Whether to allow access for resellers into Admin Console as Administrator."
+
+    example default
+        reseller_support_enabled = false
+
+union ChangeResellerSupportError extends team_administration.AdministrationError
+    not_reseller_team
+        "This team is not associated to a reseller."
+
+    hipaa_baa_signed
+        "Cannot enable reseller support for HIPAA BAA signed teams."
+
+route change_reseller_support(ChangeResellerSupportArg, Void, ChangeResellerSupportError)
+    "Determines to allow access for resellers into Admin Console as Administrator.
+
+    Permission : Team member management"
+
+    attrs
+        auth="team"
+        owner="adminx"

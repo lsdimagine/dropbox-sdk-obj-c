@@ -43,6 +43,9 @@ route validate_folder_path(ValidateFolderPathArg, ExpectedSharedFolderMetadata, 
     Warning: This endpoint is in beta and is subject to minor but possibly
     backwards-incompatible changes."
 
+    attrs
+        owner = "sfi"
+
 struct ValidateFolderPathArg
     path files.Path
         "The path to the folder to share."
@@ -77,12 +80,77 @@ route get_folder_member_counts(GetFolderMemberCountsArgs, MemberCounts, SharedFo
 
     Apps must have full Dropbox access to use this endpoint."
 
+    attrs
+        owner = "sfi"
+
 struct GetFolderMemberCountsArgs
     shared_folder_id common.SharedFolderId
         "The ID for the shared folder."
 
     example default
         shared_folder_id = "84528192421"
+
+# --
+
+route list_all_members(SharedFolderListMembersArg, SharedFolderTreeMembers, SharedFolderAccessError)
+    "Returns all users in a shared folder recursively, as well as the access level for each user.
+    The access levels represent the max level the user has at any point in the shared folder."
+
+    attrs
+        owner = "company-dropbox-team"
+
+struct SharedFolderListMembersArg
+    shared_folder_id common.SharedFolderId
+        "The ID for the shared folder."
+
+    example default
+        shared_folder_id = "84528192421"
+
+struct GroupToUsers
+    group_id String
+    user_ids List(String)?
+        "List of user ids for the specified group. No list is present if the API caller
+        does not have privileges to view group members."
+
+    example default
+        group_id = ""
+        user_ids = [""]
+
+struct SharedFolderTreeUser
+    user_info UserMembershipInfo
+    access_point SharedFolderTreeAccessPoint
+
+    example default
+        user_info = default
+        access_point = first_access
+
+struct SharedFolderTreeGroup
+    group_info GroupMembershipInfo
+    access_point SharedFolderTreeAccessPoint
+
+    example default
+        group_info = default
+        access_point = first_access
+
+struct SharedFolderTreeMembers
+    users List(SharedFolderTreeUser)
+    groups List(SharedFolderTreeGroup)
+    group_to_users List(GroupToUsers)
+
+    example default
+        users = [default]
+        groups = [default]
+        group_to_users = [default]
+
+union SharedFolderTreeAccessPoint
+    inherited_access
+        "Member has access to the tree via access inherited from a parent shared folder."
+    first_access
+        "Member has access to the tree starting from the requested shared folder."
+    nested_access
+        "Member does not have access to the requested shared folder, but
+        has access at some point in the subtree."
+    other*
 
 # --
 
@@ -97,6 +165,9 @@ route downgrade_team_folder(DowngradeTeamFolderArg, async.LaunchResultBase, Down
 
     Warning: This endpoint is in beta and is subject to minor but possibly
     backwards-incompatible changes."
+
+    attrs
+        owner = "company-dropbox-team"
 
 struct DowngradeTeamFolderArg
     shared_folder_id common.SharedFolderId
@@ -128,10 +199,16 @@ route check_downgrade_team_folder_job_status(async.PollArg, DowngradeTeamFolderJ
     Warning: This endpoint is in beta and is subject to minor but possibly
     backwards-incompatible changes."
 
+    attrs
+        owner = "company-dropbox-team"
+
 # --
 
 route get_folder_metadata_2(InternalGetMetadataArgs, InternalSharedFolderMetadata, SharedFolderAccessError)
     "Returns internal shared folder metadata by its folder ID."
+
+    attrs
+        owner = "sfi"
 
 struct InternalGetMetadataArgs
     shared_folder_id common.SharedFolderId
@@ -177,6 +254,9 @@ struct InternalSharedFolderMetadata extends SharedFolderMetadataBase
     permissions List(InternalFolderPermission)?
         "Actions the current user may perform on the folder and its contents.
         The set of permissions corresponds to the InternalFolderActions in the request."
+    managed_by String?
+        "A human-readable string telling the user how to manage the folder or who can manage
+        it if they don't have permission."
 
     example default
         path_lower = "/dir"
@@ -218,3 +298,31 @@ struct GetFolderSharedContentLinkArg
         shared_folder_id = "84528192421"
         members = [default]
         gen_email_link = false
+
+# --
+
+route get_parent_folder_access(GetParentFolderAccessArg, MemberAccessLevelResult, ParentFolderAccessError)
+    "Get the parent folders that a member has access to."
+
+    attrs
+        owner = "company-dropbox-team"
+
+struct GetParentFolderAccessArg
+    shared_folder_id common.SharedFolderId
+        "The ID for the shared folder."
+    member MemberSelector
+        "The member of the shared folder to check for parent folder accesses. Only
+        the :field:`MemberSelector.dropbox_id` may be set at this time."
+    access_level AccessLevel?
+        "If present, then only parent folders where the member has greater access will be
+        returned. If not present, then returns all parent folder accesses."
+
+    example default
+        shared_folder_id = "84528192421"
+        member = default
+        access_level = viewer
+
+union ParentFolderAccessError
+    access_error SharedFolderAccessError
+    member_error SharedFolderMemberError
+    other*

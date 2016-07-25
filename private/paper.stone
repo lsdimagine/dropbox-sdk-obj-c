@@ -1,12 +1,23 @@
 namespace paper
     "This namespace contains endpoints and data types for managing documents and folders in Dropbox Paper."
 
+import sharing
+
 struct PaperDocument
     doc_id String
         "Paper document id."
 
     example default
         doc_id = "uaSvRuxvnkFa12PTkBv5q"
+
+union FolderSharingPolicyType
+    "The sharing policy of a Paper folder.
+
+    Note: The sharing policy of subfolders is inherited from the root folder."
+    team
+        "Everyone in your team and anyone directly invited can access this folder."
+    invite_only
+        "Only people directly invited can access this folder."
 
 union SharingTeamPolicyType
     "The sharing policy type of the Paper document."
@@ -34,6 +45,31 @@ struct SharingPolicy
         public_sharing_policy = people_with_link_can_edit
         team_sharing_policy = people_with_link_can_edit
 
+struct Folder
+    "Data structure representing a Paper folder."
+
+    id String
+        "Paper folder id. This id uniquely identifies the folder."
+    name String
+        "Paper folder name."
+
+    example default
+        name = "Design docs"
+        id = "e.gGYT6HSafpMej9bUv306oGm60vrHiCHgEFnzziioPGCvHf"
+
+struct FoldersContainingPaperDocument
+    "Metadata about Paper folders containing the specififed Paper doc."
+
+    folder_sharing_policy_type FolderSharingPolicyType?
+        "The sharing policy of the folder containing the Paper document."
+
+    folders List(Folder)?
+        "The folder path. If present the first folder is the root folder."
+
+    example default
+        folder_sharing_policy_type = team
+        folders = [default]
+
 struct PaperDocumentSharingPolicy extends PaperDocument
     sharing_policy SharingPolicy
         "The default sharing policy to be set for the Paper document."
@@ -42,11 +78,24 @@ struct PaperDocumentSharingPolicy extends PaperDocument
         doc_id = "uaSvRuxvnkFa12PTkBv5q"
         sharing_policy = default
 
+
+struct RemovePaperDocumentUser extends PaperDocument
+    member sharing.MemberSelector
+        "User which should be removed from the Paper document. Specify only email or Dropbox account id."
+
+    example default
+        doc_id = "uaSvRuxvnkFa12PTkBv5q"
+        member = default
+
 union PaperApiBaseError
     paper_disabled
         "Paper is Disabled."
     insufficient_permissions
         "Your account does not have permissions to perform this action."
+    not_paper_user
+        "The provided user has not used Paper yet."
+    action_requires_doc_owner
+        "The action you are trying to perform requires the user to be document owner."
     other*
         "An unspecified error."
 
@@ -75,5 +124,36 @@ route docs/sharing_policy/set (PaperDocumentSharingPolicy, Void, PaperApiNonCurs
     "Sets the default sharing policy for the given Paper document. The default sharing policy can be changed only by teams.
 
     Note: 'public_sharing_policy' cannot be set to the value 'disabled' because this setting can be changed only by team admins."
+    attrs
+        owner="paper-eng"
+
+route docs/delete (PaperDocument, Void, PaperApiNonCursorError)
+    "Marks the given Paper document as deleted. This operation is non-destructive and the document can be revived by the owner.
+
+    Note: This action can be performed only by the document owner."
+    attrs
+        owner="paper-eng"
+
+route docs/permanently_delete (PaperDocument, Void, PaperApiNonCursorError)
+    "Permanently deletes the given Paper document. This operation is final as the document cannot be recovered.
+
+    Note: This action can be performed only by the document owner."
+    attrs
+        owner="paper-eng"
+
+route docs/folder/get (PaperDocument, FoldersContainingPaperDocument, PaperApiNonCursorError)
+    "Retrieves folder information for the given Paper document. This includes:
+      - folder sharing policy type
+      - full 'filepath', i.e. the list of folders (both folderId and folderName) from the root folder
+        to the folder directly containing the Paper document
+
+    Note: If the Paper document is not in any folder (aka unfiled) the response will be empty."
+    attrs
+        owner="paper-eng"
+
+route docs/users/remove (RemovePaperDocumentUser, Void, PaperApiNonCursorError)
+    "Allows an owner or editor to remove users from a Paper document using their email or Dropbox account id.
+
+    Note: Document owner cannot be removed."
     attrs
         owner="paper-eng"

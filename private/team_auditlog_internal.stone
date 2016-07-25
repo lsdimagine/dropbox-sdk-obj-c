@@ -9,7 +9,9 @@ alias EventTypeName = String(pattern="[A-Z_]+")
 
 union TeamEventDataSelector
     paper_document team_event_data_types.PaperDocument
+    paper_document_with_sharing_policy team_event_data_types.PaperDocumentWithSharingPolicy
     paper_folder team_event_data_types.PaperFolder
+    paper_folder_with_document team_event_data_types.PaperFolderWithDocument
     paper_subfolder team_event_data_types.PaperSubfolder
     paper_recipient team_event_data_types.PaperRecipient
     paper_comment team_event_data_types.PaperComment
@@ -19,13 +21,16 @@ union TeamEventDataSelector
 
 struct TeamEventArg
     event_type_name EventTypeName
-    uuid String?
-        "Unique identifier of the event if needed."
+    uuid String
+        "Unique identifier of the event"
     actor_user_id users.AccountId
-        "ID of the user taking the action"
+        "ID of the user taking the action (the admin if a user is being assumed)"
     actor_display_name common.DisplayName
-        "Name of the actor user."
+        "Name of the actor user. (the admin if a user is being assumed)"
     event_data TeamEventDataSelector
+        "Data to be stored for the event"
+    assumed_user_id users.AccountId?
+        "The assumed user if a Team Admin is acting on behalf of a user"
 
     example default
         event_type_name = "PAPER_DOC_CREATED"
@@ -33,6 +38,7 @@ struct TeamEventArg
         actor_user_id = "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
         actor_display_name = "John Smith"
         event_data = document
+        assumed_user_id = "dbid:BBH4f99T0taONIb-OurWxbNQ6ywGRopRynx"
 
 struct TeamEventResult
     complete Boolean
@@ -49,6 +55,7 @@ union TeamEventError
     other*
 
 route log/log_event (TeamEventArg, TeamEventResult, TeamEventError)
+    "Log Team events into the team activity log"
     attrs
         auth="team"
         owner="company-dropbox-team"

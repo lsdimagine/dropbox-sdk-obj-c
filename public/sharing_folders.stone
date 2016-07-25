@@ -61,6 +61,8 @@ union FolderAction
         "Invite a user or group to join the folder with read and write permission."
     invite_viewer
         "Invite a user or group to join the folder with read permission."
+    invite_viewer_no_comment
+        "Invite a user or group to join the folder with read permission but no comment permissions."
     relinquish_membership
         "Relinquish one's own membership in the folder."
     unmount
@@ -110,6 +112,8 @@ union MemberAction
         "Make the member an owner of the folder."
     make_viewer
         "Make the member a viewer of the folder."
+    make_viewer_no_comment
+        "Make the member a viewer of the folder without commenting permissions."
     remove
         "Remove the member from the folder."
     other*
@@ -145,6 +149,8 @@ union PermissionDeniedReason
         "Target is the user itself."
     target_not_active
         "Target is not an active member of the team."
+    folder_is_limited_team_folder
+        "Folder is team folder for a limited team."
     other*
 
 union AclUpdatePolicy
@@ -254,6 +260,7 @@ struct GroupInfo extends team_common.GroupSummary
         group_name = "Test group"
         group_id = "g:e2db7665347abcd600000000001a2b3c"
         member_count = 10
+        group_management_type = user_managed
         group_type = user_managed
         is_owner = false
         same_team = true
@@ -306,6 +313,8 @@ struct SharedFolderMetadata extends SharedFolderMetadataBase
         The set of permissions corresponds to the FolderActions in the request."
     time_invited common.DropboxTimestamp
         "Timestamp indicating when the current user was invited to this shared folder."
+    preview_url String
+        "URL for displaying a web preview of the shared folder."
 
     example default
         path_lower = "/dir"
@@ -316,6 +325,7 @@ struct SharedFolderMetadata extends SharedFolderMetadataBase
         is_team_folder = false
         policy = default
         time_invited = "2016-01-20T00:00:00Z"
+        preview_url = "https://www.dropbox.com/scl/fo/fir9vjelf"
 
 union SharedFolderAccessError
     "There is an error accessing the shared folder."
@@ -794,6 +804,8 @@ union UpdateFolderPolicyError
     disallowed_shared_link_policy
         "The current account is not allowed to select the specified
         :field:`ShareFolderArg.shared_link_policy`."
+    no_permission
+        "The current user does not have permission to perform this action."
     other*
 
 # --
@@ -896,6 +908,8 @@ union AddFolderMemberError
         bad_member = default
 
 union AddMemberSelectorError
+    automatic_group
+        "Automatically created groups can only be added to team folders."
     invalid_dropbox_id DropboxId
         "The value is the ID that could not be identified."
     invalid_email common.EmailAddress

@@ -60,3 +60,6 @@ route get_seen_state_info(FileInfoList, List(SeenStateInfoResult), SeenStateErro
 
 route get_seen_state_users(SeenStateUserArg, List(SeenStateUser), SeenStateError)
     "Gets extra seen state info for a set of users."
+
+route update_seen_state_timestamp(FileInfoList, Void, SeenStateError)
+    "Updates the seen state timestamp of the passed-in files."

@@ -53,6 +53,8 @@ union FileAction
         "Change or edit contents of the file."
     invite_viewer
         "Add a member with view permissions."
+    invite_viewer_no_comment
+        "Add a member with view permissions but no comment permissions."
     unshare
         "Stop sharing this file."
     relinquish_membership
@@ -126,7 +128,7 @@ struct SharedFileMetadata
 
 struct FileMemberActionResult
     "Per-member result for :route:`remove_file_member_2` or
-    :route:`add_file_member`."
+    :route:`add_file_member` or :route:`change_file_member_access`."
 
     member MemberSelector
         "One of specified input members."
@@ -138,7 +140,7 @@ union FileMemberActionIndividualResult
         "Member was successfully removed from this file. If AccessLevel is given,
         the member still has access via a parent shared folder."
     member_error FileMemberActionError
-        "User was not able to remove this member."
+        "User was not able to perform this action."
 
     example default
         success = null
@@ -164,8 +166,9 @@ union RemoveFileMemberError
     "Errors for :route:`remove_file_member_2`."
     user_error SharingUserError
     access_error SharingFileAccessError
-    no_explicit_access
-        "This member does not have explicit access to the file and therefore cannot be removed."
+    no_explicit_access MemberAccessLevelResult
+        "This member does not have explicit access to the file and therefore cannot be removed.
+        The return value is the access that a user might have to the file from a parent folder."
     other*
 
 union FileMemberActionError
@@ -214,8 +217,34 @@ struct AddFileMemberArgs
 
 # --
 
+route change_file_member_access(ChangeFileMemberAccessArgs, FileMemberActionResult, FileMemberActionError)
+    "Changes a member's access on a shared file."
+
+    attrs
+        owner = "sharing"
+
+struct ChangeFileMemberAccessArgs
+    "Arguments for :route:`change_file_member_access`."
+
+    file PathOrId
+        "File for which we are changing a member's access."
+    member MemberSelector
+        "The member whose access we are changing."
+    access_level AccessLevel
+        "The new access level for the member."
+
+    example default
+        file = "id:3kmLmQFnf1AAAAAAAAAAAw"
+        member = default
+        access_level = viewer_no_comment
+
+# --
+
 route get_file_metadata(GetFileMetadataArg, SharedFileMetadata, GetFileMetadataError)
     "Returns shared file metadata."
+
+    attrs
+        owner = "sharing"
 
 struct GetFileMetadataArg
     "Arguments of :route:`get_file_metadata`"
@@ -443,6 +472,9 @@ route list_received_files(ListFilesArg, ListFilesResult, SharingUserError)
      Does not include files the user has received via shared folders, and does
      not include unclaimed invitations."
 
+    attrs
+        owner = "sharing"
+
 struct ListFilesArg
     "Arguments for :route:`list_received_files`."
 
@@ -472,6 +504,9 @@ struct ListFilesResult
 
 route list_received_files/continue (ListFilesContinueArg, ListFilesResult, ListFilesContinueError)
     "Get more results with a cursor from :route:`list_received_files`."
+
+    attrs
+        owner = "sharing"
 
 struct ListFilesContinueArg
     "Arguments for :route:`list_received_files/continue`."

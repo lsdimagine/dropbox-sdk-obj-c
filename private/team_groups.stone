@@ -14,3 +14,30 @@ route groups/get_summary(GroupSelector, team_common.GroupSummary, GroupSelectorE
     attrs
         auth="team"
         owner="adminx"
+
+#
+# route groups/set_creation_policy
+#
+
+union GroupCreation
+    admins_and_members
+        "Team admins and members can create groups."
+    admins_only
+        "Only team admins can create groups."
+
+struct GroupCreationPolicy
+    group_creation GroupCreation
+
+    example default
+        group_creation = admins_and_members
+
+alias GroupCreationPolicyArg = GroupCreationPolicy
+
+route groups/set_creation_policy(GroupCreationPolicyArg, Void, AdministrationError)
+    "Determines who can create groups.
+
+    Permission : Team member management"
+
+    attrs
+        auth="team"
+        owner="adminx"

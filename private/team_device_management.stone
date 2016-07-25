@@ -109,3 +109,78 @@ route device_management/update_excluded_users(UpdateExcludedUsersArg, GetExclude
     attrs
         auth="team"
         owner="adminx"
+
+struct RemoveDeviceArg
+    user_id UInt64
+        "User id."
+    device_id String
+        "Device id."
+
+    example default
+        user_id = 5
+        device_id = "9101E205-67E0-416C-BB44-2483F1B06D46"
+
+union RemoveDeviceMessage
+    "Message type return from remove device route."
+
+    success
+        "Remove user device success."
+    not_found_user_device
+        "Couldn't found user device."
+    other*
+        "An unspecified error."
+
+struct RemoveDeviceResult
+    message RemoveDeviceMessage
+        "Remove device message."
+
+    example default
+        message = success
+
+route device_management/remove_device(RemoveDeviceArg, RemoveDeviceResult, DeviceManagementError)
+    "Remove user's device.
+
+    Permission : Team member management"
+
+    attrs
+        auth="team"
+        owner="adminx"
+
+struct RemoveClientArg
+    user_id UInt64
+        "User id."
+    device_id String
+        "Device id."
+    client_unique_identifier String
+        "Client unique identifier."
+
+    example default
+        user_id = 5
+        device_id = "9101E205-67E0-416C-BB44-2483F1B06D46"
+        client_unique_identifier = "dbmsid:AAF1LLeKamhKG9HkwfD_Q8WF0tYRW-Ptuh9bW8IEv48b6hlK3xit1L39Lta-HiL5CkRiYNMUjvd7ZDbxUMJkzRut"
+
+union RemoveClientMessage
+    "Message type return from remove client route."
+
+    success
+        "Remove user client success."
+    not_found_user_client
+        "Couldn't found user client."
+    other*
+        "An unspecified error."
+
+struct RemoveClientResult
+    message RemoveClientMessage
+        "Remove client message."
+
+    example default
+        message = success
+
+route device_management/remove_client(RemoveClientArg, RemoveClientResult, DeviceManagementError)
+    "Remove user's device client.
+
+    Permission : Team member management"
+
+    attrs
+        auth="team"
+        owner="adminx"

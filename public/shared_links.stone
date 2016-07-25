@@ -201,7 +201,7 @@ route get_shared_link_metadata(GetSharedLinkMetadataArg, SharedLinkMetadata, Sha
     "Get the shared link's metadata."
 
     attrs
-        owner = "adminx"
+        owner = "sharing"
 
 #
 # List Shared links definitions and route
@@ -266,7 +266,7 @@ route list_shared_links(ListSharedLinksArg, ListSharedLinksResult, ListSharedLin
     direct_only to true."
 
     attrs
-        owner = "adminx"
+        owner = "sharing"
 
 #
 # Modify shared link settings definitions and route
@@ -361,7 +361,8 @@ route create_shared_link_with_settings(CreateSharedLinkWithSettingsArg, SharedLi
     settings). "
 
     attrs
-        owner = "adminx"
+        owner = "sharing"
+
 
 #
 # Revoke shared link
@@ -387,7 +388,7 @@ route revoke_shared_link(RevokeSharedLinkArg, Void, RevokeSharedLinkError)
     :field:`ListSharedLinksArg.path` argument. "
 
     attrs
-        owner = "adminx"
+        owner = "sharing"
 
 #
 # NSLR endpoints
@@ -405,7 +406,7 @@ route get_shared_link_file(GetSharedLinkFileArg, SharedLinkMetadata, GetSharedLi
     attrs
         host="content"
         style="download"
-        owner = "adminx"
+        owner = "sharing"
 
 #
 # Depracated endpoints
@@ -504,7 +505,7 @@ route get_shared_links(GetSharedLinksArg, GetSharedLinksResult, GetSharedLinksEr
     Note that the url field in the response is never the shortened URL."
 
     attrs
-        owner = "adminx"
+        owner = "sharing"
 
 union PendingUploadMode
     "Flag to indicate pending upload default (for linking to not-yet-existing paths)."
@@ -546,4 +547,4 @@ route create_shared_link(CreateSharedLinkArg, PathLinkMetadata, CreateSharedLink
     your app needs to revoke a shared link, use :route:`revoke_shared_link`."
 
     attrs
-        owner = "adminx"
+        owner = "sharing"

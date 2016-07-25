@@ -1,12 +1,19 @@
 namespace sharing
 
+import common
+import files
 import users
 
 # Note that this should never be made public, as this is mainly for
 # consumption by our desktop client, first-party mobile apps, and our website.
 
+alias FileOrFolderContentId = String(pattern="(file_obj_id|ns_id):.*")
+
 route dismiss_invite_notification(DismissInviteNotificationArg, Void, DismissInviteNotificationError)
     "Route to dismiss shared content invitation notification."
+
+    attrs
+        owner = "sharing"
 
 struct DismissInviteNotificationArg
     content_id String
@@ -30,6 +37,9 @@ route claim_membership(ClaimMembershipArgs, Void, ClaimMembershipError)
     acting user, who must be email verified. However, memberships for placeholder
     accounts are not transferable. Do not use this route for activating a
     placeholder account."
+
+    attrs
+        owner = "sharing"
 
 struct ClaimMembershipArgs
     # NOTE: we require a content URL instead of an email because we don't
@@ -73,6 +83,9 @@ union ClaimMembershipError
 route request_access(RequestAccessArg, Void, RequestAccessError)
     "Route to request access to a file or folder you are not a member of."
 
+    attrs
+        owner = "sharing"
+
 struct RequestAccessArg
     # We require you to supply a content URL so that a user can't just guess
     # file_obj_id or ns_id values and randomly request access. They should have
@@ -107,3 +120,54 @@ union RequestAccessError
 
     example default
         content_url_error = null
+
+route get_grant_access_info(GetGrantAccessInfoArg, GetGrantAccessInfoResult, GetGrantAccessInfoError)
+    "Route to get the info necessary to display the grant access page on mobile."
+
+struct GetGrantAccessInfoArg
+    email_link String
+        "The link sent in the grant access email (which should contain info about the access
+         requester and the content being requested)."
+
+    example default
+        email_link = "https://www.dropbox.com/ga/abcd1234"
+
+struct GetGrantAccessInfoResult
+    is_folder Boolean
+        "Whether the access request is for a folder (versus for a file)."
+    user_id users.AccountId
+        "The user requesting access."
+    display_name String
+        "The name to display for the user requesting access."
+    email common.EmailAddress
+        "The email to display for the user requesting access."
+    content_name String
+        "The name of the file or folder that is being requested."
+    content_link String
+        "The SCL to the requested content."
+    content_id FileOrFolderContentId
+        "The ID for the requested content."
+    content_path files.Path
+        "The path (relative to the root namespace) of the requested content."
+    content_size UInt64
+        "The size (in bytes) of the requested file or folder."
+
+    example default
+        is_folder = false
+        user_id = "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
+        display_name = "Bob"
+        email = "bob@abc.com"
+        content_name = "my_file.txt"
+        content_link = "https://www.dropbox.com/scl/abcdefg"
+        content_id = "file_obj_id:abcd1234"
+        content_path = "/foo/my_file.txt"
+        content_size = 12345
+
+union GetGrantAccessInfoError
+    email_link_parse_error
+        "The supplied email link cannot be parsed."
+    request_error
+        "There was an issue with the request."
+    not_owner_error
+        "The logged-in user is not the requested content's owner specified in the request."
+    other*

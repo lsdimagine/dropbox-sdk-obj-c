@@ -1,5 +1,6 @@
 namespace team_event_data_types
 
+import paper
 import common
 import users
 
@@ -19,6 +20,16 @@ struct PaperDocument
     example default
         doc_title = "My New Paper Doc"
         doc_id = "abc456"
+
+struct PaperDocumentWithSharingPolicy extends PaperDocument
+    "Information about the Paper document sharing policy"
+
+    sharing_policy paper.SharingPolicy
+
+    example default
+        doc_title = "My New Paper Doc"
+        doc_id = "abc456"
+        sharing_policy = default
 
 struct PaperFolder
     "Information about the Paper folder"
@@ -41,6 +52,18 @@ struct PaperSubfolder extends PaperFolder
         folder_id = "abc456"
         subfolder_name = "For Review"
         subfolder_id = "def789"
+
+struct PaperFolderWithDocument extends PaperFolder
+    "Information about a document inside a folder"
+
+    doc_title String
+    doc_id String
+
+    example default
+        folder_name = "My Folder"
+        folder_id = "abc123"
+        doc_title = "My Document"
+        doc_id = "def456"
 
 struct PaperRecipient
     "Information about the Paper doc and recipient"

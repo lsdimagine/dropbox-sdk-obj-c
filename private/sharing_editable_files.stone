@@ -9,6 +9,8 @@ struct SharedEditableFileMetadata
 
 # --
 route share_file(SharedFileArg, SharedFileResults, Void)
+    attrs
+        owner = "sharing"
 
 struct SharedFileArg
     path files.Path
@@ -20,6 +22,8 @@ struct SharedFileResults
 
 # --
 route mount_file(MountFileArg, MountFileResults, Void)
+    attrs
+        owner = "sharing"
 
 struct MountFileArg
     shared_file_id SharedFileId

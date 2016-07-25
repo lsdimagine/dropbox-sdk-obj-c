@@ -26,6 +26,16 @@ union TeamMemberStatus
     suspended
         "User is no longer a member of the team, but the account can be un-suspended,
         re-establishing the user as a team member."
+    removed RemovedStatus
+        "User is no longer a member of the team.
+        Removed users are only listed when include_removed is true in members/list."
+
+struct RemovedStatus
+    is_recoverable Boolean
+        "True if the removed team member is recoverable"
+
+    example default
+        is_recoverable = false
 
 union TeamMembershipType
     full
