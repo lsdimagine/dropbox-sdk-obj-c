@@ -28,7 +28,6 @@ struct DismissInviteNotificationArg
 union DismissInviteNotificationError
     notification_error
         "Unable to dismiss notification."
-    other*
 
 # --
 
@@ -76,7 +75,6 @@ union ClaimMembershipError
         "Your team policy prevents joining as an editor on this content."
     need_account_switch users.AccountId
         "You should switch to this account to request access."
-    other*
 
 # --
 
@@ -116,7 +114,6 @@ union RequestAccessError
         "You must join the content URL owner's team before you can request access."
     account_switch_required users.AccountId
         "You should switch to this account to request access."
-    other*
 
     example default
         content_url_error = null
@@ -170,4 +167,3 @@ union GetGrantAccessInfoError
         "There was an issue with the request."
     not_owner_error
         "The logged-in user is not the requested content's owner specified in the request."
-    other*

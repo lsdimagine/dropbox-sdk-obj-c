@@ -45,7 +45,7 @@ struct SeenStateInfoResult
     file_info FileInfo
     seen_state_info SeenStateInfo
 
-union SeenStateError
+union_closed SeenStateError
     no_file
         "The file does not exist."
     no_permission

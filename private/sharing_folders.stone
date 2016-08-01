@@ -102,9 +102,13 @@ route list_all_members(SharedFolderListMembersArg, SharedFolderTreeMembers, Shar
 struct SharedFolderListMembersArg
     shared_folder_id common.SharedFolderId
         "The ID for the shared folder."
+    path files.Path?
+        "Path to the folder to be searched, relative to the shared folder.
+        If the empty string or no path is provided, then the entire shared folder tree is searched."
 
     example default
         shared_folder_id = "84528192421"
+        path = "/Folder"
 
 struct GroupToUsers
     group_id String
@@ -150,7 +154,6 @@ union SharedFolderTreeAccessPoint
     nested_access
         "Member does not have access to the requested shared folder, but
         has access at some point in the subtree."
-    other*
 
 # --
 
@@ -180,9 +183,8 @@ union DowngradeTeamFolderError
     access_error SharedFolderAccessError
     no_permission
         "The current user does not have permission to perform this action."
-    other*
 
-union DowngradeTeamFolderJobStatus extends async.PollResultBase
+union_closed DowngradeTeamFolderJobStatus extends async.PollResultBase
     complete SharedFolderMetadata
         "The downgrade job has finished. The value is the metadata for the resulting shared folder."
     failed DowngradeTeamFolderError
@@ -257,6 +259,10 @@ struct InternalSharedFolderMetadata extends SharedFolderMetadataBase
     managed_by String?
         "A human-readable string telling the user how to manage the folder or who can manage
         it if they don't have permission."
+    time_invited common.DropboxTimestamp
+        "Timestamp indicating when the current user was invited to this shared folder."
+    preview_url String
+        "URL for displaying a web preview of the shared folder."
 
     example default
         path_lower = "/dir"
@@ -266,6 +272,8 @@ struct InternalSharedFolderMetadata extends SharedFolderMetadataBase
         access_type = owner
         is_team_folder = false
         policy = default
+        time_invited = "2016-01-20T00:00:00Z"
+        preview_url = "https://www.dropbox.com/scl/fo/fir9vjelf"
 
 # --
 
@@ -325,4 +333,4 @@ struct GetParentFolderAccessArg
 union ParentFolderAccessError
     access_error SharedFolderAccessError
     member_error SharedFolderMemberError
-    other*
+

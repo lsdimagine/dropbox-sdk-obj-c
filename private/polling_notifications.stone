@@ -30,7 +30,6 @@ union PollingNotificationsError
         "Application does not have permission to access this API."
     invalid_cursor
         "Invalid cursor."
-    other*
 
 route get_team_notifications (PollingNotificationsArg, PollingNotificationsResult, PollingNotificationsError)
     "Retrieve all updated teams. Clients should use the cursor param on subsequent

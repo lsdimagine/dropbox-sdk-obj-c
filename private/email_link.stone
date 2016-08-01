@@ -3,16 +3,19 @@ namespace email_link
 
 struct EmailLinkArg
     "Args for getting information about a link in an email."
+
     url String
         "The link users gets in dropbox emails."
 
 struct EmailLinkResult
     "Results for getting information about a link in an email."
+
     url String
         "An absolute link that the user should be redirected to."
 
-union EmailLinkError
+union_closed EmailLinkError
     "Errors when fetching info on an email link failed."
+
     invalid_email_link
         "When we can't find a corresponding redirect url from the url in the request."
     invalid_event_type

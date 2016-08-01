@@ -34,8 +34,6 @@ union TeamType
         "Dropbox Business team"
     enterprise
         "Dropbox Enterprise team"
-    other*
-        ""
 
 route get_info_internal(Void, TeamGetInfoResultInternal, Void)
     "Retrieves information about a team."

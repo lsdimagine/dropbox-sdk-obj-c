@@ -30,8 +30,6 @@ union PaperDocLinkPolicy
         "Link policy is open to the team only."
     public
         "Link policy is open to the public."
-    other*
-        ""
 
 union PaperEnabledPolicy
     disabled
@@ -40,8 +38,6 @@ union PaperEnabledPolicy
         "Paper is enabled"
     unspecified
         "Unspecified policy"
-    other*
-        ""
 
 union PaperDocSharePolicy
     only_team
@@ -50,5 +46,3 @@ union PaperDocSharePolicy
         "Share policy is open to the team and external users explicitly shared with."
     anyone_with_link
         "Share policy is open to anyone with a link to the doc."
-    other*
-        ""

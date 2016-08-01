@@ -10,7 +10,7 @@ alias ResellerChain = List(String(min_length=10))
 alias Link = String
 
 # NOTE - this is subject to change and not currently used.
-union TeamSuspensionState
+union_closed TeamSuspensionState
     active
         "The team is active and can be used within full quota."
     suspended
@@ -54,7 +54,7 @@ struct TeamWithState extends users.Team
 struct TeamWithStateList
     teams List(TeamWithState)
 
-union ResellerIdValidationError
+union_closed ResellerIdValidationError
     invalid_reseller_ids
         "Raised if the reseller ids passed in can't be validated.
          Either because they don't exist or the chain is not valid
@@ -137,8 +137,6 @@ union CreateTeamError extends ResellerIdValidationError
     country_embargoed
         "Dropbox is not allowed to sell their products in the country provided in country_code"
 
-    unknown*
-
 struct GetTeamArg
     # TODO(mihnea) - we might have to change this to team_id & update TeamWithState.
     id String
@@ -153,7 +151,6 @@ union GetTeamError extends ResellerIdValidationError
 
     no_access
         "The reseller identified by the reseller_ids can't access this team."
-    unknown*
 
 union ModifyTeamError extends GetTeamError
     team_cancelled

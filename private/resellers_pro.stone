@@ -1,7 +1,7 @@
 namespace resellers
 import common
 
-union UserProvisioningStatus
+union_closed UserProvisioningStatus
     active
         "Indicates that the current status of the provisioned service is active."
     inactive
@@ -87,7 +87,6 @@ struct ListSkuInfo extends ResellerListSkusArg
 union UserResellerError
     no_user
         "Returned if the user doesn't exist or the user is not managed by the partner."
-    unknown*
 
 union UserProvisioningError extends UserResellerError
     already_provisioned
@@ -103,11 +102,11 @@ union UserDeprovisioningError extends UserResellerError
     invalid_sku
         "Returned when the sku id provided is invalid."
 
-union ListProvisioningError
+union_closed ListProvisioningError
     invalid_date
         "Returned if the date provided is invalid. For example is in the future."
 
-union ListSkuError
+union_closed ListSkuError
     date_range_missing
         "Returned if none of the filter date ranges provided."
     invalid_provision_date_range

@@ -22,7 +22,7 @@ alias WritePath = String(pattern="(/(.|[\\r\\n])*)|(ns:[0-9]+(/.*)?)")
 struct Metadata
     "Metadata for a file or folder."
 
-    union
+    union_closed
         file FileMetadata
         folder FolderMetadata
         deleted DeletedMetadata  # Used by list_folder* and search
@@ -121,7 +121,7 @@ struct GpsCoordinates
 struct MediaMetadata
     "Metadata for a photo or video."
 
-    union
+    union_closed
         photo PhotoMetadata
         video VideoMetadata
 
@@ -152,7 +152,7 @@ struct VideoMetadata extends MediaMetadata
         time_taken = "2015-05-12T15:50:38Z"
         duration = 1000
 
-union MediaInfo
+union_closed MediaInfo
     pending
         "Indicate the photo/video is still under processing and metadata is
         not available yet."
@@ -233,7 +233,7 @@ struct DeletedMetadata extends Metadata
         path_display = "/Homework/math/pi.txt"
         name = "pi.txt"
 
-union GetMetadataError
+union_closed GetMetadataError
     path LookupError
 
 struct GetMetadataArg
@@ -300,7 +300,6 @@ union ListFolderLongpollError
     reset
         "Indicates that the cursor has been invalidated. Call
         :route:`list_folder` to obtain a new cursor."
-    other*
 
 route list_folder/longpoll (ListFolderLongpollArg, ListFolderLongpollResult, ListFolderLongpollError)
     "A longpoll endpoint to wait for changes on an account. In conjunction with
@@ -350,8 +349,6 @@ struct ListFolderResult
 
 union ListFolderError
     path LookupError
-    other*
-        "An unspecified error."
 
 route list_folder (ListFolderArg, ListFolderResult, ListFolderError)
     "Returns the contents of a folder."
@@ -369,7 +366,6 @@ union ListFolderContinueError
     reset
         "Indicates that the cursor has been invalidated. Call
         :route:`list_folder` to obtain a new cursor."
-    other*
 
 route list_folder/continue (ListFolderContinueArg, ListFolderResult, ListFolderContinueError)
     "Once a cursor has been retrieved from :route:`list_folder`, use this to
@@ -401,8 +397,6 @@ route list_folder/get_latest_cursor (ListFolderArg, ListFolderGetLatestCursorRes
 
 union DownloadError
     path LookupError
-    other*
-        "An unspecified error."
 
 struct DownloadArg
     path ReadPath
@@ -442,8 +436,6 @@ struct UploadWriteFailed
 union UploadError
     path UploadWriteFailed
         "Unable to save the uploaded contents to a file."
-    other*
-        "An unspecified error."
 
 struct UploadSessionOffsetError
     correct_offset UInt64
@@ -462,8 +454,6 @@ union UploadSessionLookupError
         has alread been closed (i.e. committed)."
     not_closed
         "The session must be closed before calling upload_session/finish_batch."
-    other*
-        "An unspecified error."
 
 union UploadSessionFinishError
     lookup_failed UploadSessionLookupError
@@ -473,8 +463,6 @@ union UploadSessionFinishError
     too_many_shared_folder_targets
         "The batch request commits files into too many different shared folders.
         Please limit your batch request to files contained in a single shared folder."
-    other*
-        "An unspecified error."
 
 # Req/Resp
 
@@ -555,7 +543,7 @@ route upload_session/append (UploadSessionCursor, Void, UploadSessionLookupError
         style = "upload"
         owner = "dev-plat"
 
-union WriteMode
+union_closed WriteMode
     "Your intent when writing a file to some path. This is used to determine
     what constitutes a conflict and what the autorename strategy is.
 
@@ -674,14 +662,14 @@ struct UploadSessionFinishBatchResult
     example default
         entries = [default]
 
-union UploadSessionFinishBatchResultEntry
+union_closed UploadSessionFinishBatchResultEntry
     success FileMetadata
     failure UploadSessionFinishError
 
     example default
         success = default
 
-union UploadSessionFinishBatchJobStatus extends async.PollResultBase
+union_closed UploadSessionFinishBatchJobStatus extends async.PollResultBase
     complete UploadSessionFinishBatchResult
         "The :route:`upload_session/finish_batch` has finished."
 
@@ -712,7 +700,7 @@ route upload_session/finish_batch/check(async.PollArg, UploadSessionFinishBatchJ
 # Search
 #
 
-union SearchMode
+union_closed SearchMode
     filename
         "Search file and folder names."
     filename_and_content
@@ -751,7 +739,7 @@ struct SearchArg
         path = ""
         query = "prime numbers"
 
-union SearchMatchType
+union_closed SearchMatchType
     "Indicates what type of match was found for a given item."
 
     filename
@@ -791,8 +779,6 @@ struct SearchResult
 
 union SearchError
     path LookupError
-    other*
-        "An unspecified error."
 
 route search (SearchArg, SearchResult, SearchError)
     "Searches for files and folders.
@@ -819,7 +805,6 @@ union LookupError
     restricted_content
         "The file cannot be transferred because the content is restricted.  For example,
         sometimes there are legal restrictions due to copyright claims."
-    other*
 
 union WriteError
     malformed_path MalformedPathError
@@ -831,7 +816,6 @@ union WriteError
         "The user doesn't have enough available space (bytes) to write more data."
     disallowed_name
         "Dropbox will not save the file or folder because of its name."
-    other*
 
 union WriteConflictError
     file
@@ -840,7 +824,6 @@ union WriteConflictError
         "There's a folder in the way."
     file_ancestor
         "There's a file at an ancestor path, so we couldn't create the required parent folders."
-    other*
 
 #
 # Create folder
@@ -853,7 +836,7 @@ struct CreateFolderArg
     example default
         path = "/Homework/geometry"
 
-union CreateFolderError
+union_closed CreateFolderError
     path WriteError
 
 route create_folder (CreateFolderArg, FolderMetadata, CreateFolderError)
@@ -876,7 +859,6 @@ struct DeleteArg
 union DeleteError
     path_lookup LookupError
     path_write WriteError
-    other*
 
 route delete (DeleteArg, Metadata, DeleteError)
     "Delete the file or folder at a given path.
@@ -924,8 +906,6 @@ union RelocationError
         "You cannot move a folder into itself."
     too_many_files
         "The operation would involve more than 10,000 files and folders."
-    other*
-        "An unspecified error."
 
 #
 # Copy
@@ -955,7 +935,7 @@ route move (RelocationArg, Metadata, RelocationError)
 # Thumbnail
 #
 
-union ThumbnailSize
+union_closed ThumbnailSize
     w32h32
         "32 by 32 px."
     w64h64
@@ -967,7 +947,7 @@ union ThumbnailSize
     w1024h768
         "1024 by 768"
 
-union ThumbnailFormat
+union_closed ThumbnailFormat
     jpeg
     png
 
@@ -993,7 +973,7 @@ struct ThumbnailArg
         path = "rev:a1c10ce0dd78"
         format = jpeg
 
-union ThumbnailError
+union_closed ThumbnailError
     path LookupError
         "An error occurs when downloading metadata for the image."
     unsupported_extension
@@ -1034,7 +1014,7 @@ struct PreviewArg
     example rev
         path = "rev:a1c10ce0dd78"
 
-union PreviewError
+union_closed PreviewError
     path LookupError
         "An error occurs when downloading metadata for the file."
     in_progress
@@ -1074,7 +1054,6 @@ struct ListRevisionsArg
 
 union ListRevisionsError
     path LookupError
-    other*
 
 struct ListRevisionsResult
     is_deleted Boolean
@@ -1114,8 +1093,6 @@ union RestoreError
     invalid_revision
         "The revision is invalid. It may point to a different file."
 
-    other*
-
 route restore(RestoreArg, FileMetadata, RestoreError)
     "Restore a file to a specific revision"
 
@@ -1145,8 +1122,6 @@ struct GetTemporaryLinkResult
 
 union GetTemporaryLinkError
     path LookupError
-
-    other*
 
 route get_temporary_link(GetTemporaryLinkArg, GetTemporaryLinkResult, GetTemporaryLinkError)
     "Get a temporary link to stream content of a file. This link will expire in four hours and
@@ -1183,7 +1158,6 @@ struct GetCopyReferenceResult
 
 union GetCopyReferenceError
     path LookupError
-    other*
 
 route copy_reference/get(GetCopyReferenceArg, GetCopyReferenceResult, GetCopyReferenceError)
     "Get a copy reference to a file or folder. This reference string can be used to
@@ -1223,7 +1197,6 @@ union SaveCopyReferenceError
         "The file referenced by the copy reference cannot be found."
     too_many_files
         "The operation would involve more than 10,000 files and folders."
-    other*
 
 route copy_reference/save(SaveCopyReferenceArg, SaveCopyReferenceResult, SaveCopyReferenceError)
     "Save a copy reference returned by :route:`copy_reference/get` to the user's Dropbox."
@@ -1245,7 +1218,7 @@ struct SaveUrlArg
         path = "/a.txt"
         url = "http://example.com/a.txt"
 
-union SaveUrlResult extends async.LaunchResultBase
+union_closed SaveUrlResult extends async.LaunchResultBase
     complete FileMetadata
         "Metadata of the file where the URL is saved to."
 
@@ -1257,7 +1230,6 @@ union SaveUrlError
         "The given URL is invalid."
     not_found
         "The file where the URL is saved to no longer exists."
-    other*
 
 route save_url(SaveUrlArg, SaveUrlResult, SaveUrlError)
     "Save a specified URL into a file in user's Dropbox. If the given path already
@@ -1270,7 +1242,7 @@ route save_url(SaveUrlArg, SaveUrlResult, SaveUrlError)
 # Save URL Job
 #
 
-union SaveUrlJobStatus extends async.PollResultBase
+union_closed SaveUrlJobStatus extends async.PollResultBase
     complete FileMetadata
         "Metadata of the file where the URL is saved to."
     failed SaveUrlError

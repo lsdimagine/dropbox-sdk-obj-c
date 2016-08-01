@@ -15,7 +15,6 @@ union SharingUserError
     "User account had a problem preventing this action."
     email_unverified
         "The current user must verify the account e-mail address before performing this action."
-    other*
 
 union SharingFileAccessError
     "User could not access this file."
@@ -30,7 +29,6 @@ union SharingFileAccessError
         "A file inside a public folder can't be shared this way. Use a public link instead."
     inside_osx_package
         "A Mac OS X package can't be shared this way. Use a shared link instead."
-    other*
 
 
 union FileErrorResult
@@ -40,7 +38,6 @@ union FileErrorResult
         "User does not have permission to take the specified action on the file."
     permission_denied_error files.Id
         "User does not have permission to access file specified by file.Id."
-    other*
 
 #############################################
 # File metadata and permissions definitions #
@@ -61,7 +58,6 @@ union FileAction
         "Relinquish one's own membership to the file."
     share_link
         "Create a shared link to the file."
-    other*
 
     example default
         edit_contents = null
@@ -110,6 +106,10 @@ struct SharedFileMetadata
         "The name of this file."
     id FileId
         "The ID of the file."
+    time_invited common.DropboxTimestamp?
+        "Timestamp indicating when the current user was invited to this shared file. If the user was
+        not invited to the shared file, the timestamp will indicate when the user was invited to the
+        parent shared folder. This value may be absent."
 
 
     example default
@@ -121,6 +121,7 @@ struct SharedFileMetadata
         path_display = "/dir/file.txt"
         name = "file.txt"
         id = "id:3kmLmQFnf1AAAAAAAAAAAw"
+        time_invited = "2016-01-20T00:00:00Z"
 
 ##################################
 # File membership mutation types #
@@ -135,7 +136,7 @@ struct FileMemberActionResult
     result FileMemberActionIndividualResult
         "The outcome of the action on this member."
 
-union FileMemberActionIndividualResult
+union_closed FileMemberActionIndividualResult
     success AccessLevel?
         "Member was successfully removed from this file. If AccessLevel is given,
         the member still has access via a parent shared folder."
@@ -150,7 +151,6 @@ union FileMemberRemoveActionResult
         "Member was successfully removed from this file."
     member_error FileMemberActionError
         "User was not able to remove this member."
-    other*
 
 union AddFileMemberError
     "Errors for :route:`add_file_member`."
@@ -160,7 +160,6 @@ union AddFileMemberError
         "The user has reached the rate limit for invitations."
     invalid_comment
         "The custom message did not pass comment permissions checks."
-    other*
 
 union RemoveFileMemberError
     "Errors for :route:`remove_file_member_2`."
@@ -169,15 +168,12 @@ union RemoveFileMemberError
     no_explicit_access MemberAccessLevelResult
         "This member does not have explicit access to the file and therefore cannot be removed.
         The return value is the access that a user might have to the file from a parent folder."
-    other*
 
 union FileMemberActionError
     invalid_member
         "Specified member was not found."
     no_permission
         "User does not have permission to perform this action on this member."
-    other*
-        "Unknown error when applying action to member."
 
 #####################
 # Route Definitions #
@@ -263,7 +259,6 @@ union GetFileMetadataError
 
     user_error SharingUserError
     access_error SharingFileAccessError
-    other*
 
 # --
 
@@ -307,7 +302,6 @@ union GetFileMetadataIndividualResult
         "The result for this file if it was successful."
     access_error SharingFileAccessError
         "The result for this file if it was an error."
-    other*
 
     example default
         metadata = default
@@ -367,7 +361,6 @@ union ListFileMembersError
 
     user_error SharingUserError
     access_error SharingFileAccessError
-    other*
 
 # --
 
@@ -427,7 +420,6 @@ union ListFileMembersIndividualResult
         "The results of the query for this file if it was successful"
     access_error SharingFileAccessError
         "The result of the query for this file if it was an error."
-    other*
 
     example default
         result = default
@@ -462,7 +454,6 @@ union ListFileMembersContinueError
     access_error SharingFileAccessError
     invalid_cursor
         ":field:`ListFileMembersContinueArg.cursor` is invalid."
-    other*
 
 # --
 
@@ -524,7 +515,6 @@ union ListFilesContinueError
         "User account had a problem."
     invalid_cursor
         ":field:`ListFilesContinueArg.cursor` is invalid."
-    other*
 
 # --
 
@@ -580,7 +570,6 @@ union RelinquishFileMembershipError
         membership to a file shared via groups."
     no_permission
         "The current user does not have permission to perform this action."
-    other*
 
 # --
 
@@ -603,7 +592,6 @@ union UnshareFileError
     "Error result for :route:`unshare_file`."
     user_error SharingUserError
     access_error SharingFileAccessError
-    other*
 
     example default
         user_error = email_unverified

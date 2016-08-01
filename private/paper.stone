@@ -10,7 +10,31 @@ struct PaperDocument
     example default
         doc_id = "uaSvRuxvnkFa12PTkBv5q"
 
-union FolderSharingPolicyType
+union_closed DoucmentSubscriptionLevel
+    "The subscription level of a Paper document"
+
+    default
+        "No change e-mails unless you're the creator."
+    ignore
+        "Ignored: Not shown in pad lists or activity and no email is sent"
+    every
+        "Subscribed: Shown in pad lists and activity and change e-mails are sent."
+    no_email
+        "Unsubscribed: Shown in pad lists, but not in activity and no change e-mails are sent"
+
+union_closed FolderSubscriptionLevel
+    "The subscription level of a Paper folder"
+
+    none
+        "Not shown in activity, no e-mails"
+    activity_only
+        "Shown in activity, no e-mails"
+    daily_emails
+        "Shown in activity, daily e-mails"
+    weekly_emails
+        "Shown in activity, weekly e-mails"
+
+union_closed FolderSharingPolicyType
     "The sharing policy of a Paper folder.
 
     Note: The sharing policy of subfolders is inherited from the root folder."
@@ -19,7 +43,7 @@ union FolderSharingPolicyType
     invite_only
         "Only people directly invited can access this folder."
 
-union SharingTeamPolicyType
+union_closed SharingTeamPolicyType
     "The sharing policy type of the Paper document."
 
     people_with_link_can_edit
@@ -29,7 +53,7 @@ union SharingTeamPolicyType
     invite_only
         "Only users that have been explicitly invited can access this Paper document."
 
-union SharingPublicPolicyType extends SharingTeamPolicyType
+union_closed SharingPublicPolicyType extends SharingTeamPolicyType
     disabled
         "Value used to indicate that document sharing is enabled only within team."
 
@@ -96,8 +120,6 @@ union PaperApiBaseError
         "The provided user has not used Paper yet."
     action_requires_doc_owner
         "The action you are trying to perform requires the user to be document owner."
-    other*
-        "An unspecified error."
 
 union PaperApiNonCursorError extends PaperApiBaseError
     document_not_found

@@ -4,7 +4,7 @@ import paper
 import common
 import users
 
-union DocFolderType
+union_closed DocFolderType
     document PaperDocument
     folder PaperFolder
 
@@ -31,6 +31,16 @@ struct PaperDocumentWithSharingPolicy extends PaperDocument
         doc_id = "abc456"
         sharing_policy = default
 
+struct PaperDocumentWithSubscriptionLevel extends PaperDocument
+    "Information about the Paper document subscription level"
+
+    doc_subscription_level paper.DoucmentSubscriptionLevel
+
+    example default
+        doc_title = "My New Paper Doc"
+        doc_id = "abc456"
+        doc_subscription_level = default
+
 struct PaperFolder
     "Information about the Paper folder"
 
@@ -40,6 +50,16 @@ struct PaperFolder
     example default
         folder_name = "My Documents"
         folder_id = "abc456"
+
+struct PaperFolderWithSubscriptionLevel extends PaperFolder
+    "Information about the Paper folder subscription level"
+
+    folder_subscription_level paper.FolderSubscriptionLevel
+
+    example default
+        folder_name = "My New Paper Folder"
+        folder_id = "abc456"
+        folder_subscription_level = none
 
 struct PaperSubfolder extends PaperFolder
     "Information about the Paper subfolder"

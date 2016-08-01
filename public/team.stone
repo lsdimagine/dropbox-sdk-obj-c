@@ -16,7 +16,7 @@ alias MemberExternalId = String(max_length=64)
 # But the API is not going to expose such users externally.  We will omit such users
 # in API responses.
 #
-union TeamMemberStatus
+union_closed TeamMemberStatus
     "The user's status as a member of a specific team."
 
     active
@@ -37,7 +37,7 @@ struct RemovedStatus
     example default
         is_recoverable = false
 
-union TeamMembershipType
+union_closed TeamMembershipType
     full
         "User uses a license and has full access to team resources like the shared quota."
     limited
@@ -74,7 +74,7 @@ struct MemberProfile
         name = default
         membership_type = full
 
-union UserSelectorArg
+union_closed UserSelectorArg
     "Argument for selecting a single user, either by team_member_id, external_id or email."
 
     team_member_id TeamMemberId
@@ -88,14 +88,14 @@ union UserSelectorArg
         email = "dan@hotmail.com"
 
 
-union UserSelectorError
+union_closed UserSelectorError
     "Error that can be returned whenever a struct derived from :type:`UserSelectorArg` is used."
 
     user_not_found
         "No matching user found. The provided team_member_id, email, or external_id does not exist on this team."
 
 
-union UsersSelectorArg
+union_closed UsersSelectorArg
     "Argument for selecting a list of users, either by team_member_ids, external_ids or emails."
 
     team_member_ids List(TeamMemberId)

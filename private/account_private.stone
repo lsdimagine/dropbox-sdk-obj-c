@@ -9,7 +9,6 @@ union Role
         "Personal account unaffiliated with any team."
     business
         "Work account associated with a team."
-    other*
 
 struct AccessInfo
     "Access token details returned after logging in. Contains
@@ -140,7 +139,6 @@ union LoginResult
     requires_two_factor TwoFactorAuthRequest
         "login requires 2-factor authentication.
         Complete login using 2FA."
-    other*
 
     example default
         success = default
@@ -170,7 +168,6 @@ union LoginError
     role_mismatch
         "User does not the required role (e.g. business, personal) to
         complete request."
-    other*
 
 struct SmsError
     "Error sending an SMS to a mobile phone."
@@ -188,7 +185,7 @@ struct SmsError
         phone_suffix = "5432"
         reason = carrier_unsupported
 
-union SmsErrorReason
+union_closed SmsErrorReason
     "Reason an SMS error occurred (see :type:`SmsError`)"
 
     number_invalid
@@ -224,7 +221,6 @@ union TwoFactorDeliveryMode
     sms String
         "Factor will be provided through SMS (text).  Value is the last 4 digits of
         phone number that will receive the SMS."
-    other*
 
     example default
         offline = null
@@ -273,7 +269,6 @@ union TwoFactorVerifyError
         checkpoint token."
     login_rate_exceeded
         "Too many login attempts have been made.  Try again later."
-    other*
 
 #
 # Route: create_account
@@ -335,7 +330,6 @@ union CreateAccountResult
     requires_captcha ReCaptchaRequest
         "Account creation requires a response to CAPTCHA before
         proceeding.  Process CAPTCHA and retry with CAPTCHA response."
-    other*
 
     example default
         success = default
@@ -357,4 +351,3 @@ union CreateAccountError
     password_invalid
         "Password does not meet minimum criteria.  See user error
         message for details."
-    other*

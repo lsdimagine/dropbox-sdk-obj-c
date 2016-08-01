@@ -16,7 +16,6 @@ union ProfileServicePermissionType
         "Permission for accessing profile services stored documents."
     calendar
         "Permission for accessing profile service calendar service."
-    other*
 
 union ServiceType
     "Supported services."
@@ -26,7 +25,6 @@ union ServiceType
         "Yahoo"
     facebook
         "Facebook"
-    other*
 
 
 # --
@@ -71,7 +69,6 @@ union ServiceError
         "Specified service is not recognized."
     permissions_not_supported
         "Specified service does not support the specified permissions."
-    other*
 
 
 struct GetAccessTokenError
@@ -91,7 +88,6 @@ route get_access_token(GetAccessTokenArg, GetAccessTokenResult, GetAccessTokenEr
 union SupportedPermissionsError
     unrecognized_service
         "Specified service is not recognized."
-    other*
 
 struct GetSupportedPermissionsArg
     "Argument for getting supported permissions for a specified service."
@@ -149,7 +145,6 @@ union ServicePermissionsError
         "Specified service is not recognized."
     missing_token
         "User has not linked the specified profile service account."
-    other*
 
 
 struct ServicePermissionsStateError

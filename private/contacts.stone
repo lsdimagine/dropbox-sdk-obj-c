@@ -2,7 +2,7 @@ namespace contacts
 
 import async
 
-union ContactsError
+union_closed ContactsError
     rate_limit_exception
         "Too many calls to this endpoint."
     invalid_schema_version
@@ -68,7 +68,7 @@ struct GetContactsResult
         compressed_server_contacts = "eJyrVk/OzytJTC4pVreKjq0FAC01BZg="
 
 union GetContactsError extends ContactsError
-    other*
+    ""
 
 route get(GetContactsArg, GetContactsResult, GetContactsError)
 
@@ -110,7 +110,7 @@ struct AddContactsArg
         local_digest = "e29d26eb75be738ca336bf8b491d5557"
         contacts = default
 
-union AddContactsLaunchResult extends async.LaunchResultBase
+union_closed AddContactsLaunchResult extends async.LaunchResultBase
     complete ServerLocalContactsUpToDate
         "Represents whether the server's currently stored local contacts
         from the client are up to date. If this is false, then the client should
@@ -142,9 +142,8 @@ union AddContactsError extends ContactsError
         will process."
     merging_error
         "An error occurred during the merging process."
-    other*
 
-union AddContactsJobStatus extends async.PollResultBase
+union_closed AddContactsJobStatus extends async.PollResultBase
     complete
         "The job has finished. The client should download the updated
         data via :route:`get`."

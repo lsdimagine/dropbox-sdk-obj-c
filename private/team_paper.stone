@@ -9,7 +9,6 @@ import team_administration
 union DropboxTerms
     agree
         "Agree to Dropbox terms."
-    other*
 
 struct PaperPolicy
     paper_enabled Boolean
@@ -23,7 +22,7 @@ struct PaperPolicy
 
 alias PaperPolicyArg = PaperPolicy
 
-union PaperError extends team_administration.AdministrationError
+union_closed PaperError extends team_administration.AdministrationError
     dropbox_terms_error
         "You must agree to dropbox terms in order to call the API."
 
@@ -51,6 +50,29 @@ alias PaperLinkPolicyArg = PaperLinkPolicy
 
 route paper/set_paper_link_policy(PaperLinkPolicyArg, Void, AdministrationError)
     "Settings the default paper link policy.
+
+    Permission : Team member management"
+
+    attrs
+        auth="team"
+        owner="adminx"
+
+#
+# Set team's paper sharing policy
+#
+
+struct PaperSharingPolicyArg
+    external_sharing_allowed Boolean
+        "Whether to allow team members to share paper docs and folders with people outside of the team."
+    default_visibility team_administration.Visibility
+        "Who do you want to be able to view Paper docs by default."
+
+    example default
+        external_sharing_allowed = true
+        default_visibility = public
+
+route paper/set_paper_sharing_policy(PaperSharingPolicyArg, Void, team_administration.AdministrationError)
+    "Setting the paper sharing policy.
 
     Permission : Team member management"
 

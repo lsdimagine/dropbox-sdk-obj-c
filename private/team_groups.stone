@@ -19,7 +19,7 @@ route groups/get_summary(GroupSelector, team_common.GroupSummary, GroupSelectorE
 # route groups/set_creation_policy
 #
 
-union GroupCreation
+union_closed GroupCreation
     admins_and_members
         "Team admins and members can create groups."
     admins_only

@@ -45,7 +45,7 @@ struct Interval
         start = "2016-01-20T00:00:00Z"
         end = "2016-02-20T00:00:00Z"
 
-union ExternalInvoiceSource
+union_closed ExternalInvoiceSource
     "Source for a given ExternalID. If you need a new Source, ask somebody on cash-team@ to change the code."
 
     salesforce_opportunity_id
@@ -165,7 +165,7 @@ struct TeamStatusResponse
 
 
 # TODO wimax Apr 2016: Rename this as it's used all throughout, not just provisioning.
-union ProvisionNewTeamError
+union_closed ProvisionNewTeamError
     validation_error
         "Your arguments were somehow invalid. We've attached a message about how, exactly, it failed."
     unexpected_error

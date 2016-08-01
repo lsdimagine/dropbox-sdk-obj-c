@@ -117,7 +117,7 @@ struct SpaceDisableArg
 
 ### Responses
 
-union SkuProvisionState
+union_closed SkuProvisionState
     awaiting_requirement
         "The SKU has been provisioned, but is not yet fully active. This is
         typically the case if users are required to satisfy another requirement,
@@ -230,32 +230,32 @@ struct SpaceUserListResult
 
 ### Errors
 
-union SpaceError
+union_closed SpaceError
     unknown_uid
         "There is no user with the supplied `uid`."
 
     user_deleted
         "The account of the user with the supplied `uid` was deleted."
 
-union ListSpaceError
+union_closed ListSpaceError
     future_date
         "The specified date is in the future."
 
-union SpaceErrorWithSkuId extends SpaceError
+union_closed SpaceErrorWithSkuId extends SpaceError
     "Both :route:`space/provision` as well as :route:`space/disable` can return
     `invalid_sku_id`."
 
     invalid_sku_id
         "The supplied `sku_id` is not valid for this partner."
 
-union ProvisionSpaceError extends SpaceErrorWithSkuId
+union_closed ProvisionSpaceError extends SpaceErrorWithSkuId
     invalid_country_code
         "The supplied `SpaceProvisionArg.country_code` is invalid."
 
     not_eligible
         "The user is not eligible for the supplied sku_id."
 
-union DisableSpaceError extends SpaceErrorWithSkuId
+union_closed DisableSpaceError extends SpaceErrorWithSkuId
     invalid_user_id
         "The supplied `SpaceDisableArg.user_id` is invalid."
 

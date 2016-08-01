@@ -16,8 +16,6 @@ union VisibilityPolicyDisallowedReason
         "The user needs to be on a team to set this policy"
     user_account_type
         "The user is a basic user or is on a limited team."
-    other*
-        "This visibility policy is not allowed for this user because of an unknown reason."
 
 union AlphaResolvedVisibility extends ResolvedVisibility
     only_you
@@ -165,7 +163,7 @@ struct AlphaSharedLinkMetadata
     "Alpha version of :type:`SharedLinkMetadata` that uses :type:`AlphaLinkPermissions` instead of
     :type:`LinkPermissions`"
 
-    union*
+    union
         file AlphaFileLinkMetadata
         folder AlphaFolderLinkMetadata
 

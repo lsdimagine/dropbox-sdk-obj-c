@@ -7,9 +7,11 @@ import users
 # EventType names should be the same as TeamEvent.EventType key
 alias EventTypeName = String(pattern="[A-Z_]+")
 
-union TeamEventDataSelector
+union_closed TeamEventDataSelector
     paper_document team_event_data_types.PaperDocument
     paper_document_with_sharing_policy team_event_data_types.PaperDocumentWithSharingPolicy
+    paper_document_with_subscription_level team_event_data_types.PaperDocumentWithSubscriptionLevel
+    paper_folder_with_subscription_level team_event_data_types.PaperFolderWithSubscriptionLevel
     paper_folder team_event_data_types.PaperFolder
     paper_folder_with_document team_event_data_types.PaperFolderWithDocument
     paper_subfolder team_event_data_types.PaperSubfolder
@@ -51,8 +53,6 @@ union TeamEventError
         "No EventType found. The provided event_type_name does not exist."
     invalid_actor_user_id
         "The user_id provided is not valid."
-
-    other*
 
 route log/log_event (TeamEventArg, TeamEventResult, TeamEventError)
     "Log Team events into the team activity log"

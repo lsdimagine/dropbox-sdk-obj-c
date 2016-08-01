@@ -28,7 +28,6 @@ union GroupManagementType
         "A group which is managed by team admins only."
     user_managed
         "A group which is managed by selected users."
-    other*
 
 
 union GroupType
@@ -39,5 +38,3 @@ union GroupType
         :link:`team folders https://www.dropbox.com/help/986` only."
     user_managed
         "A group is created and managed by a user."
-    other*
-

@@ -18,7 +18,7 @@ route log_impression(CampaignArg, Void, CampaignErr)
 
 alias CampaignId = Int64
 
-union TopNotificationStyle
+union_closed TopNotificationStyle
     info
         "Informational notification style."
     notification
@@ -26,13 +26,13 @@ union TopNotificationStyle
     warning
         "Warning notification style."
 
-union TopNotificationAction
+union_closed TopNotificationAction
     open_recents_tab
     open_photos_tab
     open_payments_page
     open_link_computer_page
 
-union TopNotificationIcon
+union_closed TopNotificationIcon
     info
 
 struct TopNotification
@@ -52,7 +52,7 @@ struct TopNotification
         not_dismissable = false
 
 
-union CampaignContent
+union_closed CampaignContent
     top_notification TopNotification
 
     example default
@@ -68,7 +68,7 @@ struct CampaignResult
         campaign_name = "over-quota-top-notification"
         content = default
 
-union RefAction
+union_closed RefAction
     files_personal
     files_work
     recents_personal
@@ -94,7 +94,7 @@ struct CampaignArg
     example default
         campaign_id = 499
 
-union CampaignErr
+union_closed CampaignErr
     not_found String
         "A campaign couldn't be found."
 

@@ -8,7 +8,7 @@ namespace sharing
 struct LinkSelector
     "An abstract base class for identifying/locating a shared content link from APIv2 client."
 
-    union*
+    union
         fq_path LinkSelectorFqPath
         ns_path LinkSelectorNsPath
         file_obj_id LinkSelectorFileObjId

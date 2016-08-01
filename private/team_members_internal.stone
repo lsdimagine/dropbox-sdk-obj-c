@@ -27,7 +27,6 @@ union ReminderEmailError
         "There was no pending invite for the current user to the dfb team specified."
     unknown_error
         "Some unknown internal error happened."
-    other*
 
 route send_reminder_email_to_self(ReminderEmailArgs, Void, ReminderEmailError)
     "Send the signed in user a team join reminder email immediately, if he was invited to the specified DfB team.

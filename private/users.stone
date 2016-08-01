@@ -2,11 +2,9 @@ namespace users
 
 union GetSharingPrefsError
     "Errors that happen when getting sharing preferences"
-    other*
 
 union SetSharingPrefsError
     "Errors that happen when setting sharing preferences"
-    other*
 
 struct SharingPrefs
     "Information about a user's sharing preferences.

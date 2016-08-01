@@ -59,7 +59,7 @@ route reset_all_passwords(Void, async.LaunchEmptyResult, AdministrationError)
 # Getting the status of a reset all passwords job
 #
 
-union ResetAllPasswordsJobStatus extends async.PollResultBase
+union_closed ResetAllPasswordsJobStatus extends async.PollResultBase
     complete async.LaunchEmptyResult
         "The asynchronous job has finished."
 
@@ -77,7 +77,7 @@ route reset_all_passwords/job_status/check(async.PollArg, ResetAllPasswordsJobSt
 # Set request membership policy.
 #
 
-union RequestMembership
+union_closed RequestMembership
     require_approval
         "Asking to join."
     auto_accept
@@ -93,7 +93,7 @@ struct RequestMembershipPolicy
 
 alias RequestMembershipPolicyArg = RequestMembershipPolicy
 
-union RequestMembershipPolicyError extends team_administration.AdministrationError
+union_closed RequestMembershipPolicyError extends team_administration.AdministrationError
     feature_not_available String
         "This feature is not available for your team."
 
@@ -179,7 +179,7 @@ struct ChangeResellerSupportArg
     example default
         reseller_support_enabled = false
 
-union ChangeResellerSupportError extends team_administration.AdministrationError
+union_closed ChangeResellerSupportError extends team_administration.AdministrationError
     not_reseller_team
         "This team is not associated to a reseller."
 

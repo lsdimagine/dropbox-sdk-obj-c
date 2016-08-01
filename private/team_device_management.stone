@@ -1,6 +1,6 @@
 namespace team
 
-union DevicesLimit
+union_closed DevicesLimit
     limited UInt64
         "A specific number of devices."
     unlimited
@@ -9,7 +9,7 @@ union DevicesLimit
     example default
         limited = 1
 
-union RolloutMethod
+union_closed RolloutMethod
     unlink_all
         "Unlink all."
     unlink_most_inactive
@@ -50,8 +50,6 @@ union DeviceManagementError
 
     invalid_input
         "Set settings invalid input."
-    other*
-        "An unspecified error."
 
 route device_management/configure_settings(ConfigureSettingsDeviceManagementArg, ConfigureSettingsDeviceManagementResult, DeviceManagementError)
     "Configure device management admin's settings.
@@ -127,8 +125,6 @@ union RemoveDeviceMessage
         "Remove user device success."
     not_found_user_device
         "Couldn't found user device."
-    other*
-        "An unspecified error."
 
 struct RemoveDeviceResult
     message RemoveDeviceMessage
@@ -166,8 +162,6 @@ union RemoveClientMessage
         "Remove user client success."
     not_found_user_client
         "Couldn't found user client."
-    other*
-        "An unspecified error."
 
 struct RemoveClientResult
     message RemoveClientMessage
