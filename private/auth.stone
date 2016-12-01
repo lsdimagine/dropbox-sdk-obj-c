@@ -9,11 +9,3 @@ union WebAuthError
         "The user is not logged in."
     no_team_api_access
         "The user doesn't have access to team endpoints."
-
-route token/from_oauth1(Void, OAuth2TokenResult, Void)
-    "Only our internal apps know how to use OAuth 1 with API v2. This endpoint
-    can be used by them to transition from OAuth 1 to OAuth 2. Note: This does
-    not disable the OAuth 1 credentials."
-
-struct OAuth2TokenResult
-    oauth2_token String(min_length=1)

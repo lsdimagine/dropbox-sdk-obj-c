@@ -16,8 +16,74 @@ struct Changeset
     changes List(UInt64)
         "IDs of the changes that map to our internal bookkeeping."
 
+    example default
+        ns_id = 1
+        changes = [2]
+
 route upload_session/check_finish_batch_job_status(async.PollArg, UploadSessionFinishBatchJobStatus, async.PollError) deprecated by upload_session/finish_batch/check
-    "An alias of :route:`upload_session/finish_batch/check`"
+    "An alias of :route:`upload_session/finish_batch/check`."
 
 route upload_session/finish_batch_sync (UploadSessionFinishBatchArg, UploadSessionFinishBatchResult, Void)
-    "sync version of :route:`upload_session/finish_batch`"
+    "sync version of :route:`upload_session/finish_batch`."
+
+route delete_batch_with_changeset_sync (DeleteBatchArg, InternalFileOpBatchResult, DeleteError)
+    "This route helps you to delete multiple files/folders at once.
+
+    Input should not contain duplicated/nested entries. If input contains
+    both '/A' and '/A/B', this route won't be able to find '/A/B' after '/A'
+    is deleted."
+
+struct InternalFileOpBatchResult
+    entries List(DeleteBatchResultEntry)
+    changesets List(Changeset)
+
+    example default
+        entries = [default]
+        changesets = [default]
+
+route copy_batch_sync(RelocationBatchArg, RelocationBatchResult, RelocationBatchError)
+    "Copy multiple files or folders to different locations at once in the
+    user's Dropbox."
+
+route move_batch_sync(RelocationBatchArg, RelocationBatchResult, RelocationBatchError)
+    "Move multiple files or folders to different locations at once in the
+    user's Dropbox."
+
+
+#
+# Browse folders routes
+#
+route tree_view_folders(InternalTreeViewFoldersArgs, InternalTreeViewFoldersResult, ListFolderError)
+    "An internal version of browse_util/tree_view_folders AJAX endpoint."
+
+struct InternalTreeViewFoldersArgs
+    path PathR
+        "The path to the folder you want to see the contents of."
+
+    example default
+        path = "/homework"
+
+struct InternalTreeViewFoldersResult
+    folders List(InternalTreeViewFoldersEntry)
+
+    example default
+        folders = [default]
+
+struct InternalTreeViewFoldersEntry
+    path PathR
+        "The path of the sub folder."
+    read_only Boolean
+        "True when the folder is a read only folder."
+    has_subdirs Boolean
+        "True when the folder contains subfolders."
+    is_shared Boolean = false
+        "True when the folder is a shared folder."
+    icon String
+        "For web client, provides the icon file name for this folder."
+
+    example default
+        path = "/homework/math"
+        read_only = false
+        has_subdirs = true
+        is_shared = false
+        icon = "folder"

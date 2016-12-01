@@ -1,0 +1,73 @@
+namespace internal_provisioner
+
+##### Types #####
+
+# String containing >1 digit, optionally followed by a period and two digits
+alias PriceAmount = String(pattern="\\d+(\\.\\d{2})?", min_length=1)
+
+# 3 capitalized letters
+alias Currency = String(pattern="[A-Z]{3}")
+
+# 2 capitalized letters
+alias CountryCode = String(pattern="[A-Z]{2}")
+
+union_closed ExternalInvoiceSource
+    "Source for a given ExternalID. If you need a new Source, ask somebody on cash-team@ to change the code."
+
+    salesforce_opportunity_id
+        "There is an Opportunity for every time we receive payment. This means every Upsell, Renewal, and Team Start
+        will have its own Opportunity. Since payments can happen many time for a given team, multiple
+        Opportunities can be associated with a Team."
+
+struct ExternalInvoiceId
+    "Defines some external ID representing a payment. For instance, every upsell should have a different ExternalInvoiceId.
+    NOTE: the length of source plus the length of identifier should not exceed 47. We validate this on our side."
+    source ExternalInvoiceSource
+        "The source of this ExternalId."
+    identifier String(min_length=1)
+        "Within the above source, the identifier that maps to this provision request."
+
+    example salesforce_example
+        "Salesforce example"
+        source = salesforce_opportunity_id
+        identifier = "ed8c84SomeIdFromSalesforce23c98"
+
+struct Interval
+    start common.DropboxTimestamp
+    end common.DropboxTimestamp
+
+    example default
+        "Sample interval"
+        start = "2016-01-20T00:00:00Z"
+        end = "2016-02-20T00:00:00Z"
+
+struct Price
+    "Equivalent to dropbox/money/cash.py#Cash. Contains an Amount and a Currency.."
+
+    currency Currency
+        "A string of 3 capitalized letters."
+    amount PriceAmount
+        "Total price paid for the team, as a string."
+
+    example seventy_thousand_yen
+        currency = "JPY"
+        amount = "700000"
+
+    example seven_hundred_usd
+        currency = "USD"
+        amount = "700.00"
+
+    example trial_costs_nothing
+        currency = "USD"
+        amount = "0.00"
+
+# Check metaserver.model.payments.moneytree.tax for tax exclusion types (TaxExclusionType) and
+# their usage (TaxProfile.exclusion_type/id)
+struct TaxExclusion
+    tax_exclusion_type UInt64
+    tax_exclusion_id String
+
+    example default
+        # VAT
+        tax_exclusion_type = 1
+        tax_exclusion_id = "some_tax_exclusion_id"

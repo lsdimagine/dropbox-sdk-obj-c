@@ -25,12 +25,16 @@ union_closed TopNotificationStyle
         "Regular notification style."
     warning
         "Warning notification style."
+    promo
+        "Promo notification style."
 
-union_closed TopNotificationAction
+union_closed MobilePromptAction
     open_recents_tab
     open_photos_tab
     open_payments_page
     open_link_computer_page
+    open_camera_upload_settings
+    open_doc_scanner
 
 union_closed TopNotificationIcon
     info
@@ -39,8 +43,9 @@ struct TopNotification
     text String
     subtext String?
     style TopNotificationStyle
-    action TopNotificationAction?
+    action MobilePromptAction?
     icon TopNotificationIcon?
+    icon_url String?
     not_dismissable Boolean = false
 
     example default
@@ -49,11 +54,34 @@ struct TopNotification
         style = notification
         action = open_recents_tab
         icon = info
+        icon_url = ""
         not_dismissable = false
 
+struct TopNotificationWithModal
+    top_notification TopNotification
+    modal Modal
+
+union_closed ModalStyle
+    default
+        "Modal with a title, subtitle, image, cancel button, action button, and an optional second action button."
+    stretched
+        "Default modal with an image that is stretched to span the entire width of the modal."
+
+struct Modal
+    title String
+    text String
+    subtext String
+    style ModalStyle
+    image_url String
+    dismiss_text String
+    confirm_action_1 MobilePromptAction
+    confirm_text_1 String
+    confirm_action_2 MobilePromptAction?
+    confirm_text_2 String?
 
 union_closed CampaignContent
     top_notification TopNotification
+    top_notification_with_modal TopNotificationWithModal
 
     example default
         top_notification = default

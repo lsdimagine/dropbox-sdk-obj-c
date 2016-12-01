@@ -1,6 +1,8 @@
 # Resellers is being used in production by customers. Be careful to not make
 # backwards incompatible changes.
 
+# TODO(jacobo): Update examples (and add examples for cases that currently have none).
+
 namespace resellers
 
 import common
@@ -19,19 +21,53 @@ union_closed TeamSuspensionState
     deleted
         "This team has been deleted."
 
+struct SkuQuantity
+    "A combination of a SKU and how much of it there is."
+
+    sku_id String
+        "The SKU ID."
+    quantity UInt32
+        "The quantity of the given SKU."
+
+alias SkuQuantityList = List(SkuQuantity)
+
+struct SubscriptionState
+    "A subscription state of a team."
+
+    skus SkuQuantityList
+        "The list of SKUs in the state."
+    num_licensed_users UInt32
+        "The total number of licenses provisioned for the team."
+    space_quota UInt64
+        "The total space quota for the team (in bytes)."
+
+struct TeamUsage
+    "Information about how much of its subscription a team is currently using."
+
+    num_provisioned_users UInt32
+        "Number of accounts that have been invited or are already active members of the team."
+
+    space_quota_used UInt64
+        "The total space quota used by the team (in bytes)."
+
+
 struct TeamWithState extends users.Team
     "Information about a team along with its current state."
 
     num_licensed_users UInt32
-        "Total number of licenses the team has authorized"
+        "Total number of licenses the team has authorized."
     num_provisioned_users UInt32
         "Number of accounts that have been invited or are already active members of the team."
     sku UInt32?
         "Deprecated. Please use :field:`sku_id` instead."
     sku_id String?
         "The ID of the SKU the team was provisioned with."
+    current_state SubscriptionState?
+        "The current state of the team."
+    renewal_state SubscriptionState?
+        "The state that the team will be renewed with."
     end_date common.Date?
-        "The end date for the current billing period."
+        "The end date for the current subscription period."
     active Boolean?
         "Whether the team is currently active."
     auto_renew Boolean?
@@ -42,6 +78,8 @@ struct TeamWithState extends users.Team
         "Whether the reseller can manage the team through admin console."
     country_code String(min_length=2,max_length=2, pattern="[A-Za-z]{2}")?
         "A ISO639-1 code that specifies the country the team is in."
+    usage TeamUsage?
+        "Information about how much of its subscription a team is currently using."
 
     example default
         id="dbtid:AAFdgehTzw7WlXhZJsbGCLePe8RvQGYDr-I"
@@ -58,7 +96,7 @@ union_closed ResellerIdValidationError
     invalid_reseller_ids
         "Raised if the reseller ids passed in can't be validated.
          Either because they don't exist or the chain is not valid
-         (they don't have relationship between them)"
+         (they don't have relationship between them)."
 
 ### Request & Errors
 struct TeamListArg
@@ -67,12 +105,14 @@ struct TeamListArg
 struct CreateTeamArg
     name String(min_length=2, max_length=20, pattern="^\\S+.*\\S+$")
         "The name of the team."
-    num_licensed_users UInt32
+    num_licensed_users UInt32?
         "The number of licenses of the team."
     sku UInt32?
         "Deprecated. Please use :field:`sku_id` instead."
     sku_id String?
         "SKU of team to use."
+    skus SkuQuantityList?
+        "The list of SKUs to provision the team with."
     invite_admin common.EmailAddress
         "Email address of the initial admin of this team."
     default_language_code String(min_length=2)?
@@ -81,7 +121,7 @@ struct CreateTeamArg
         "A ISO639-1 code that specifies the country the team is in."
     reseller_ids ResellerChain?
         "A list of reseller_ids provided by the caller.
-        Optional for backward compatibility with SoftBank"
+        Optional for backward compatibility with SoftBank."
     promo_code String?
         "A promo code we can generate and supply to the resellers."
 
@@ -93,24 +133,38 @@ struct CreateTeamArg
         default_language_code="ja"
 
 union CreateTeamError extends ResellerIdValidationError
+    deprecated_plan
+        "The plan specified in :field:`CreateTeamArg.sku`, :field:`CreateTeamArg.sku_id`, or
+         :field:`CreateTeamArg.skus` has been deprecated."
+
+    num_licensed_users_missing
+        "If one of :field:`CreateTeamArg.sku` or :field:`CreateTeamArg.sku_id` is specified, then
+         :field:`CreateTeamArg.num_licensed_users` must be specified."
+
     # Used to enforce per-partner limits.
     num_licensed_users_not_allowed
         "The specified :field:`CreateTeamArg.num_licensed_users` is not allowed."
 
     no_sku
-        "The specified :field:`CreateTeamArg.sku` or :field:`CreateTeamArg.sku_id` does not exist."
+        "The specified :field:`CreateTeamArg.sku`, :field:`CreateTeamArg.sku_id`, or one or more of
+        :field:`CreateTeamArg.skus` does not exist."
 
     no_sku_specified
-        "At least one of :field:`CreateTeamArg.sku` or :field:`CreateTeamArg.sku_id` must be specified."
+        "At least one of :field:`CreateTeamArg.sku`, :field:`CreateTeamArg.sku_id`, or one or more
+         of :field:`CreateTeamArg.skus` must be specified."
 
     sku_over_specified
-        "Only one of :field:`CreateTeamArg.sku` or :field:`CreateTeamArg.sku_id` may be specified."
+        "Only one of :field:`CreateTeamArg.sku`, :field:`CreateTeamArg.sku_id`, or
+         :field:`CreateTeamArg.skus` may be specified."
+
+    skus_invalid
+        "The specified :field:`CreateTeamArg.skus` are not allowed or form an invalid combination."
 
     no_default_language_code
         "The specified :field:`CreateTeamArg.default_language_code` does not exist."
 
     invalid_country_code
-        "The specified :field:`CreateTeamArg.country_code` is not valid"
+        "The specified :field:`CreateTeamArg.country_code` is not valid."
 
     # The following errors are specific to the "invite member" action, and could
     # be moved in a different union at some point.
@@ -135,7 +189,10 @@ union CreateTeamError extends ResellerIdValidationError
         "The reseller_id list provided is not a valid registered Dropbox Reseller Partner."
 
     country_embargoed
-        "Dropbox is not allowed to sell their products in the country provided in country_code"
+        "Dropbox is not allowed to sell their products in the country provided in country_code."
+
+    not_implemented
+        "This feature is not implemented."
 
 struct GetTeamArg
     # TODO(mihnea) - we might have to change this to team_id & update TeamWithState.
@@ -143,7 +200,7 @@ struct GetTeamArg
         "A team's unique ID."
     reseller_ids ResellerChain?
         "A list of reseller_ids provided by the caller.
-        Optional for backward compatibility with SoftBank"
+        Optional for backward compatibility with SoftBank."
 
 union GetTeamError extends ResellerIdValidationError
     no_team
@@ -152,6 +209,9 @@ union GetTeamError extends ResellerIdValidationError
     no_access
         "The reseller identified by the reseller_ids can't access this team."
 
+    not_implemented
+        "This feature is not implemented."
+
 union ModifyTeamError extends GetTeamError
     team_cancelled
         "Returned when the team is not active (cancelled) and the operation is not allowed on inactive teams."
@@ -159,7 +219,7 @@ union ModifyTeamError extends GetTeamError
 struct GetTeamTokenArg extends GetTeamWithResellerChainArg
     invalidate_old_tokens Boolean?
         "If true all old tokens will be invalidated.
-         Can be used when the team is being transferred from one reseller to another"
+         Can be used when the team is being transferred from one reseller to another."
 
 struct GetTeamWithResellerChainArg
     id String
@@ -187,15 +247,48 @@ union ModifyLicensesError extends ModifyTeamError
     new_num_licensed_users_not_allowed
         "The specified :field:`ModifyLicensesArg.new_num_licensed_users` is not allowed."
 
+union ModifySkusError extends ModifyTeamError
+    deprecated_plan
+        "The plan specified in :field:`ModifySkusArg.new_skus` has been deprecated."
+    incorrect_current_state
+        "The :field:`ModifySkusArg.current_skus` specified does not match currently provisioned state."
+    transition_not_allowed
+        "It is impossible to transition the team to :field:`ModifySkusArg.new_skus`."
+    new_state_not_allowed
+        "The :field:`ModifySkusArg.new_skus` is an invalid state for this team."
+    skus_invalid
+        "The specified :field:`ModifySkusArg.new_skus` or :field:`ModifySkusArg.current_skus`
+         are not allowed or form an invalid combination."
+    no_sku
+        "One or more of :field:`ModifySkusArg.new_skus` or :field:`ModifySkusArg.current_skus` does
+         not exist."
+
+
 struct ModifyAutoRenewArg extends GetTeamArg
     new_auto_renew Boolean
-        "The state to switch the auto_renew to"
+        "The state to switch the auto_renew to."
 
 union ModifyAutoRenewError extends ModifyTeamError
     already_set
         "Returned if the specified :field:`ModifyAutoRenewArg.new_auto_renew` is the same as the
          current value for the team.
          We treat it as an error because the intent of the renew/modify is to change it."
+
+struct ModifySkusArg extends GetTeamArg
+    current_skus SkuQuantityList
+        "The complete list of SKUs that the team is currently provisioned with."
+    new_skus SkuQuantityList
+        "The new complete list of SKUs that the team should be provisioned with.
+         If a SKU is present in :field:`current_skus` but is not present in here, it's an indication
+         that the SKU should be removed from the team. If a SKU is not in :field:`current_skus` but
+         is present in here, it's an indication that the SKU should be added to the team. If a SKU
+         is present in both fields but the quantity is different, it's an indication that the team
+         should keep the SKU but have the quantity adjusted. If a SKU is present in both fields and
+         has the same quantity, there should be no change to that SKU for the team."
+
+struct ReinstateArg extends GetTeamArg
+    skus SkuQuantityList?
+        "The list of SKUs to provision the team with."
 
 union CancelTeamError extends GetTeamError
     already_cancelled
@@ -209,14 +302,24 @@ union ReinstateTeamError extends GetTeamError
     active_team
         "Returned if the team is currently active. It cannot be reinstated in that case."
 
+    skus_required
+        "Returned if :field:`ReinstateArg.skus` is not provided when there are incompatible
+         scheduled changes present on the cancelled team."
+
+    new_state_not_allowed
+        "The :field:`ReinstateArg.skus` is an invalid state for this team."
+
+    skus_invalid
+        "The specified :field:`ReinstateArg.skus` is not allowed or forms an invalid combination."
+
 struct MigrateTeamArg extends GetTeamArg
 
     to_reseller_ids ResellerChain
-        "The new chain of resellers to be managing it"
+        "The new chain of resellers to be managing it."
 
 union MigrateTeamError extends GetTeamError
     unknown_reseller
-        "Returned if the :field:`MigrateTeamArg.to_reseller_ids` contains unknown resellers"
+        "Returned if the :field:`MigrateTeamArg.to_reseller_ids` contains unknown resellers."
 
 ### Routes ###
 
@@ -239,7 +342,7 @@ route team/list (Void, TeamWithStateList, Void)
         auth="app"
 
 route team/list2 (TeamListArg, TeamWithStateList, Void)
-    "Retrieves information about the teams managed by the reseller in TeamListArg"
+    "Retrieves information about the teams managed by the reseller in TeamListArg."
     attrs
         auth="app"
 
@@ -249,8 +352,14 @@ route team/licenses/modify (ModifyLicensesArg, TeamWithState, ModifyLicensesErro
     attrs
         auth="app"
 
+route team/skus/modify (ModifySkusArg, TeamWithState, ModifySkusError)
+    "Modifies the SKUs that a team has."
+
+    attrs
+        auth="app"
+
 route team/auto_renew/modify (ModifyAutoRenewArg, TeamWithState, ModifyAutoRenewError)
-    "Modifies the auto_renew flag of the team"
+    "Modifies the auto_renew flag of the team."
 
     attrs
         auth="app"
@@ -262,11 +371,11 @@ route team/token (GetTeamTokenArg, TeamAuthToken, GetTeamError)
 
 route team/cancel (GetTeamArg, TeamWithState, CancelTeamError)
     "Cancels the current billing agreement for the team.
-     Suspends the team, but preserves the tam structure so it can be reinstated using team/reinstate"
+     Suspends the team, but preserves the team structure so it can be reinstated using team/reinstate."
     attrs
         auth="app"
 
-route team/reinstate (GetTeamArg, TeamWithState, ReinstateTeamError)
+route team/reinstate (ReinstateArg, TeamWithState, ReinstateTeamError)
     "Reinstates a team in the cancelled state.
      Starts a new billing agreement that begins with the current date.
     "
@@ -275,7 +384,7 @@ route team/reinstate (GetTeamArg, TeamWithState, ReinstateTeamError)
 
 route team/migrate (MigrateTeamArg, TeamWithState, MigrateTeamError)
     "Migrates the team from being managed by MigrateTeamArg.from_reseller_ids
-    to being managed by MigrateTeamArg.to_reseller_ids"
+    to being managed by MigrateTeamArg.to_reseller_ids."
 
     attrs
         auth="app"
@@ -289,8 +398,8 @@ route team/delete (GetTeamArg, Void, GetTeamError)
 route team/admin_link (GetTeamWithResellerChainArg, Link, GetTeamError)
     "Generates one-time link which gains access to the team specified by
     :field:`GetTeamWithResellerChainArg.id`. To use this endpoint, the reseller in the
-    :field:GetTeamWithResellerChainArg.reseller_ids must has managing access to the specified team.
-    (see :field:`TeamWithState.can_manage`)"
+    :field:GetTeamWithResellerChainArg.reseller_ids must has managing access to the specified team
+    (see :field:`TeamWithState.can_manage`)."
 
     attrs
         auth="app"

@@ -29,6 +29,10 @@ struct GetContactsArg
         Merges shouldn't be started too frequently, or the async task worker may get
         overloaded. If an async merge is started, the client won't see the updated
         contacts in the same call."
+    use_bolt Boolean = false
+        "If this parameter is true, the server will respond with Bolt subscription information
+        necessary to subscribe to the given user's Bolt contacts channel, in addition to the
+        contacts and/or digest information normally returned."
     version UInt32
         "The version of the contacts schema that the client expects."
 
@@ -59,6 +63,16 @@ struct GetContactsResult
     compressed_server_contacts String?
         "The server's compressed cached contacts. This field won't exist
         if no contacts need to be downloaded."
+    contacts_cache_revision String?
+        "The revision of the server's ContactsCacheEntity for the given user.
+        Used to subscribe to a Bolt channel for Bolt contacts updates."
+    bolt_token String?
+        "The token necessary to subscribe to a Bolt channel for this user and
+        the current state of their contacts."
+    bolt_unique_id String?
+        "The unique_id of this user to subscribe to the appropriate Bolt
+        channel. The user needs to get this information from the server to
+        subscribe."
 
     example up_to_date
         server_digest = "e1faffb3e614e6c2fba74296962386b7"

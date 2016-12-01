@@ -7,8 +7,20 @@ struct TeamMemberPoliciesInternal
     paper PaperPolicies
         "Policies concerning the Paper product"
 
+    permanent_delete_policy PermanentDeletePolicyInternal
+        "Whether non-admin members of a team can permanently delete their team data"
+
     example default
         paper = default
+        permanent_delete_policy = disabled
+
+union PermanentDeletePolicyInternal
+    "Policy used by internal apps governing whether non-admin team members can permanently delete their data"
+
+    disabled
+        "Non-admin members of a team cannot permanently delete their team data"
+    enabled
+        "Non-admin members of a team can permanently delete their team data"
 
 struct PaperPolicies
     "Policies governing Paper access for a given team"

@@ -1,16 +1,34 @@
 namespace seen_state
     "Endpoints to access seen state data"
 
+import team_common
+
 alias PathOrSjid = String(pattern="((\/|sjid:).*|nspath:[^:]*)", min_length=1)
 
 struct SeenStateUserArg
     "The arguments to the get_seen_state_users endpoint. Just takes a list of user_ids."
+
     user_ids List(String)
         "List of encoded user_ids."
+    file_info FileInfo?
+        "The file that is currently being viewed."
+
+struct BeaconInfo
+    "Identifiers to uniquely identify a file and session for Beacon."
+
+    auth_key String
+    context String
+    identifier String
+
+struct BeaconInfoList
+    "List of BeaconInfo objects that represent a list of files for Beacon."
+
+    beacon_infos List(BeaconInfo, min_items=1)
 
 struct FileInfo
     "Identifiers to uniquely identify a file. ns_id is required, and either the
     sjid and ns_path is specified in file_identifier with a prefix."
+
     ns_id UInt64
     file_identifier PathOrSjid
         "Either the ns_path of the file or the sjid with a prefix to identify which."
@@ -19,39 +37,95 @@ struct FileInfo
 
 struct FileInfoList
     "List of FileInfo objects that represent a list of files."
+
     file_infos List(FileInfo, min_items=1)
 
 struct SeenStateUser
     "Represents a user that has seen state and the information we need for rendering."
+
     user_id String
     display_name String
+    email String?
     photo_circle_url String?
+    sharing_access_type SharingAccessType?
 
 struct SeenStateLastSeen
     "Seen State object consists of a timestamp of when the user last viewed as well as
-    a SeenStateUser object holding user information."
-    when_last_seen UInt64
+    a SeenStateUser object holding user information. If when_last_seen is null, then it means
+    that the user has not seen the object."
+
+    when_last_seen UInt64?
     seen_state_user SeenStateUser
 
 struct SeenStateInfo
     "Holds a list of seen states representing a list of views that unique users have on
-    the object. We also return the total number of toatl views that we have recorded."
+    the object as well as the total number of accessors on the file."
+
     seen_states List(SeenStateLastSeen)
-    total_views UInt32
+    num_accessors Int32?
 
 struct SeenStateInfoResult
     "Seen state info appended with file info. We return a list of these in fetching seen
-    state info."
+    state info.
+
+    If integrating with sharing, we also return a user_info object which has sharing information
+    as well.
+    "
+
     file_info FileInfo
     seen_state_info SeenStateInfo
+
+union SharingAccessType
+    "Possible levels of access that the user has when viewing the content. If the user has access of
+    member_access, the user is either on the ACL directly or through a group (includes both
+    explicit and inherited). If the user has access through a group, the group ids that the user has
+    access through are specified through a list of group ids. If the user has link_only access, this
+    means that the user is only able to view the file via a link.
+    "
+
+    member_access List(team_common.GroupId)
+        "The user is explicitly on the ACL, either on the file or through inheritance from a parent
+        namespace. Also includes a list of group ids that the user has access through."
+    link_only
+        "The user has access through a link only."
+
+union SeenStateCoachmarkType
+    "An enumeration of relevant coachmark types. Each entry in the union may also declare
+    an associated datatype, but it must be optional. It should only be supplied on server
+    return, iff there is additional data associated with that coachmark for the
+    client to display."
+
+    general
+        "The coachmark generally explaining seen state; appears on the facepile."
+    feedback
+        "The coachmark prompting the user for product feedback."
+    none
+        "No coachmark should be shown to the user."
+
+struct GetCoachmarkInfoArg
+    type SeenStateCoachmarkType
+
+struct CoachmarkInfo
+    type_with_data SeenStateCoachmarkType?
+        "The type of the seen state which the user requested, as well as any
+        associated type-specific data. None if no coachmark should be shown to
+        the user."
+
+union CoachmarkInteraction
+    accepted
+        "User accepted the coachmark"
+    dismissed
+        "User dismissed the coachmark"
+
+struct CoachmarkInteractionData
+    type SeenStateCoachmarkType
+    interaction CoachmarkInteraction
 
 union_closed SeenStateError
     no_file
         "The file does not exist."
     no_permission
         "The user doesn't have permission to view this file."
-    not_in_team
-        "The user isn't in a team."
     inconsistent_params
         "The shared link passed in doesn't match the file identifier params."
 
@@ -61,5 +135,12 @@ route get_seen_state_info(FileInfoList, List(SeenStateInfoResult), SeenStateErro
 route get_seen_state_users(SeenStateUserArg, List(SeenStateUser), SeenStateError)
     "Gets extra seen state info for a set of users."
 
-route update_seen_state_timestamp(FileInfoList, Void, SeenStateError)
-    "Updates the seen state timestamp of the passed-in files."
+route update_timestamps_and_mark_offline(BeaconInfoList, Void, SeenStateError)
+    "Updates the seen state timestamp of and marks the viewer as offline for the passed-in files."
+
+route get_coachmark_info(Void, CoachmarkInfo, SeenStateError)
+    "Gets the coachmark that, based on current user state, the seen state frontend
+    should show the user."
+
+route log_coachmark_interaction(CoachmarkInteractionData, Void, SeenStateError)
+    "Called when the user interacts with the seen state coachmark."

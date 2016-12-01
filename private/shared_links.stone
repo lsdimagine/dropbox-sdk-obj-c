@@ -250,7 +250,7 @@ struct AlphaListSharedLinksResult
         yet. Pass the cursor into :route:`list_shared_links` to retrieve them."
     cursor String?
         "Pass the cursor into :route:`list_shared_links` to obtain the additional links. Cursor is
-        returned only if no path is given or the path is empty."
+        returned only if no path is given."
 
     example default
         links = [default]
@@ -296,7 +296,8 @@ route alpha/list_shared_links(ListSharedLinksArg, AlphaListSharedLinksResult, Li
     :route:`list_shared_links` with additional link permissions information from the private API."
 
     attrs
-        alpha_group="sharing"
+        api_group = "sharing"
+        is_preview = true
         owner = "sharing"
 
 route alpha/create_shared_link_with_settings(AlphaCreateSharedLinkWithSettingsArg, AlphaSharedLinkMetadata, CreateSharedLinkWithSettingsError)

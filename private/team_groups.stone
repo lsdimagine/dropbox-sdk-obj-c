@@ -15,6 +15,7 @@ route groups/get_summary(GroupSelector, team_common.GroupSummary, GroupSelectorE
         auth="team"
         owner="adminx"
 
+
 #
 # route groups/set_creation_policy
 #

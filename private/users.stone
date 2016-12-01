@@ -1,5 +1,11 @@
 namespace users
 
+import common
+
+#
+# Sharing preferences
+#
+
 union GetSharingPrefsError
     "Errors that happen when getting sharing preferences"
 
@@ -26,3 +32,77 @@ route get_sharing_prefs(Void, SharingPrefs, GetSharingPrefsError)
 
 route set_sharing_prefs(SharingPrefs, Void, SetSharingPrefsError)
     "Set sharing preferences for the curent user"
+
+# --
+
+route get_root_info(Void, RootInfo, Void)
+    "Temporary private route to expose CDM information."
+
+    attrs
+        owner = "dev-plat"
+
+union RootInfo
+    cdm_team CDMInfo
+        "The user is on a CDM-enabled team."
+        struct
+            path_root String
+                "The ID of the team shared Dropbox."
+            home_path String
+                "The path relative to the team shared Dropbox to the user's
+                team member folder."
+            home_ns_id String
+                "The ID of the user's TMF"
+    not_on_cdm_team String
+        "The user is not on a CDM-enabled team, but we'll return their home_ns_id"
+
+#
+# Paywall endpoints
+#
+
+struct GrandfatherModalInfo
+    "Informations about the grandfather modal."
+    show Boolean
+        "Whether the modal should be displayed"
+
+struct SharingPaywallInfo
+    "Information about whether certain features are blocked for a user based on
+    their plan."
+
+    is_on Boolean?
+        "If the user is subjected to this paywall (e.g. in a stormcrow rule)."
+
+    num_shared_folders_owned Int64?
+        "How many shared folders the user owns."
+
+    max_owned_shared_folders Int64?
+        "The maximum number of shared folders the user is allowed to own as
+        defined by the paywall."
+
+    grandfather_modal GrandfatherModalInfo
+        "Informations about the grandfather modal."
+
+route get_sharing_paywall_info(Void, SharingPaywallInfo, Void)
+    "Get the sharing paywall info for the current user."
+
+struct OwnedSharedFolder
+    "Only the bare-bones information necessary for the sharing paywall experiment."
+
+    name String
+        "The name of the shared folder the user owns."
+
+    last_active common.DropboxTimestamp
+        "The timestamp of when the contents of the shared folder were last changed."
+
+    id Int64
+        "The namespace id of the folder."
+
+struct ListOwnedFoldersResult
+    "Result for :route:`list_owned_shared_folders`
+
+    Returns a list of the names (paths) of shared folders, owned by the current user."
+
+    entries List(OwnedSharedFolder)
+        "List of all shared folders the authenticated user has access to."
+
+route list_owned_shared_folders(Void, ListOwnedFoldersResult, Void)
+    "Get the list of shared folders that the current user owns."

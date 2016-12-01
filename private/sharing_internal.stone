@@ -8,6 +8,7 @@ import users
 # consumption by our desktop client, first-party mobile apps, and our website.
 
 alias FileOrFolderContentId = String(pattern="(file_obj_id|ns_id):.*")
+alias GrantAccessNotificationTargetObjectKey = String(pattern="sharing:grant_access-(file_obj_id|ns_id):.*-[0-9]+")
 
 route dismiss_invite_notification(DismissInviteNotificationArg, Void, DismissInviteNotificationError)
     "Route to dismiss shared content invitation notification."
@@ -64,7 +65,7 @@ union ClaimMembershipError
     content_url_error
         "The content URL is invalid."
     membership_not_claimable
-        "This membership cannot be claimed by others"
+        "This membership cannot be claimed by others."
     membership_already_claimed
         "This membership was already claimed."
     team_join_required
@@ -92,12 +93,17 @@ struct RequestAccessArg
     content_url String
         "The invitation or link preview URL of the file or folder for which
          you want to request access."
+    custom_message String?
+        "An optional message from the requester to the content owner to give
+        context or more information about why they are requesting access."
 
     example default
         content_url = "https://www.dropbox.com/scl/fi/abcdefg"
+        custom_message = "Plz can I see your file?"
 
     example folder
         content_url = "https://www.dropbox.com/scl/fo/abcdefg/hijkl"
+        custom_message = "Plz can I see your folder?"
 
 union RequestAccessError
     content_url_error
@@ -132,7 +138,7 @@ struct GetGrantAccessInfoArg
 struct GetGrantAccessInfoResult
     is_folder Boolean
         "Whether the access request is for a folder (versus for a file)."
-    user_id users.AccountId
+    encoded_account_id users.AccountId
         "The user requesting access."
     display_name String
         "The name to display for the user requesting access."
@@ -148,10 +154,13 @@ struct GetGrantAccessInfoResult
         "The path (relative to the root namespace) of the requested content."
     content_size UInt64
         "The size (in bytes) of the requested file or folder."
+    target_object_key GrantAccessNotificationTargetObjectKey
+        "The target_object_key of the notification that should have been sent along with the
+         grant-access email."
 
     example default
         is_folder = false
-        user_id = "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
+        encoded_account_id = "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
         display_name = "Bob"
         email = "bob@abc.com"
         content_name = "my_file.txt"
@@ -159,11 +168,35 @@ struct GetGrantAccessInfoResult
         content_id = "file_obj_id:abcd1234"
         content_path = "/foo/my_file.txt"
         content_size = 12345
+        target_object_key = "sharing:grant_access-file_obj_id:abc123-12345"
 
 union GetGrantAccessInfoError
+    access_error
+        "You do not have permission to access this function."
+    already_granted
+        "The requester is already a member of the content being requested."
     email_link_parse_error
         "The supplied email link cannot be parsed."
     request_error
         "There was an issue with the request."
     not_owner_error
-        "The logged-in user is not the requested content's owner specified in the request."
+        "The logged-in user is not currently an owner of the requested shared folder."
+    unshared_error
+        "The folder is not shared and must be shared before access can be granted."
+    content_not_found_error
+        "The requested content cannot be found."
+
+route ack_grant_access_notification(AckGrantAccessNotificationArg, Void, AckGrantAccessNotificationError)
+    "Route to acknowledge a grant-access notification (marking it as read on all devices)."
+
+struct AckGrantAccessNotificationArg
+    target_object_key GrantAccessNotificationTargetObjectKey
+        "The target_object_key sent in the grant access notification to be acknowledged."
+
+    example default
+        target_object_key = "sharing:grant_access-file_obj_id:abcd1234-54321"
+
+union AckGrantAccessNotificationError
+    ack_notification_error
+        "There was an error while acknowledging the notification. This usually means that no
+         notification with that target_object_key was sent."

@@ -18,11 +18,12 @@ struct UserProvisioningArg extends UserGetArg
 
 struct ResellerListArg
     date common.DropboxTimestamp
-        "A UTC date time that indicates the latest point in time to be included
-        in the response from this endpoint. Any changes that happened after the
-        indicated point in time will not be reflected in the response. Supply
-        the same date in subsequent queries to obtain a consistent response
-        when paginating."
+        "A UTC date time that indicates the latest original provisioning date to look for. All
+         users returned in the response will have an original provisioning date on or before this
+         date. All events for the user are included, i.e. if a user meeting this criteria has
+         changes, e.g. provisions or deprovisions, that happened after the indicated date, those
+         will be included. Supply the same date in subsequent queries to obtain a consistent
+         response when paginating."
     page UInt64?
         "An integer specifying which page of the response to display. Optional.
         Defaults to 0 if not supplied."

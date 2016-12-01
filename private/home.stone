@@ -1,0 +1,32 @@
+namespace home
+
+struct FetchIncomingArg
+    "The retrieve request args."
+
+    cursor String?
+        "Optional. A string representing the cursor. Use this to fetch additional pages."
+
+    example default
+        cursor = "Returned from previous fetch_incoming calls."
+
+struct FetchIncomingResult
+    "The returned object from retrieve."
+
+    entries_json String
+        "The events we fetched, as JSON."
+    cursor String
+        "An opaque serialized cursor. Use this cursor to fetch additional pages."
+
+    example default
+        entries_json = "[]"
+        cursor = "Returned from previous fetch_incoming calls."
+
+union FetchIncomingError
+    unused
+
+route fetch_incoming (FetchIncomingArg, FetchIncomingResult, FetchIncomingError)
+    "Fetches the incoming events for the Home feed."
+
+    attrs
+        owner="home"
+        is_preview=true

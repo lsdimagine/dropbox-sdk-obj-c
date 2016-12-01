@@ -1,0 +1,290 @@
+namespace internal_provisioner
+
+import common
+
+##########
+### Types ###
+
+
+alias SkuCode = String(pattern="([A-Z0-9]|\-)*")
+    "Any number of A-Z, 0-9, or -"
+
+struct Product
+    union
+        cx_space_pack CxSpacePackProduct
+        space_pack SpacePackProduct
+
+    example space_pack_500gb
+        space_pack = space_pack_500gb
+
+
+struct SpacePackProduct extends Product
+    sku_code SkuCode
+
+    example space_pack_500gb
+        sku_code = "DBX-EDU-500GB-FAKESKU"
+
+struct CxSpacePackProduct extends Product
+    sku_code SkuCode
+    quantity UInt64
+
+    example cx_space_pack_300gb
+        sku_code = "TEAMADD-SP1Y"
+        quantity = 3
+
+
+struct SubscriptionState
+    "SubscriptionState inputs."
+    team_plan_sku_code SkuCode?
+        "The SKU of this team's plan. If team is Fastrak, use null."
+    total_licenses UInt64
+    products List(Product)
+        "The list of Products in the state."
+
+    example default
+        team_plan_sku_code = "TEAM-1YR"
+        total_licenses = 5
+        products = [space_pack_500gb]
+
+    example boring_team
+        team_plan_sku_code = "TEAM-1YR"
+        total_licenses = 5
+        products = []
+
+    example boring_team_10_licenses
+        team_plan_sku_code = "TEAM-1YR"
+        total_licenses = 10
+        products = []
+
+    example fastrak_aka_limited
+        "A Fastrak or Limited team looks like the following."
+        total_licenses = 0
+        products = []
+
+
+struct ScheduledSubscriptionState extends SubscriptionState
+    "An extension of SubscriptionState for states that will occur in the future."
+    effective_date common.DropboxTimestamp?
+        "When this scheduled state is intended to kick in. None for Fastrak."
+    example default
+        team_plan_sku_code = "TEAM-1YR"
+        total_licenses = 10
+        products = []
+        effective_date = "2016-01-01T00:00:00Z"
+
+    example fastrak_aka_limited
+        "change_team_plan on Fastrak->Anything will give you a previously_scheduled_state like this"
+        total_licenses = 0
+        products = []
+
+struct ModifySubscriptionStateArg
+    current_state SubscriptionState
+    desired_state SubscriptionState
+
+    example default
+        current_state = default
+        desired_state = boring_team
+
+struct IntervalEndModification
+    "Defines modification of a team's interval end, especially for trials."
+    old_interval_end common.DropboxTimestamp
+    new_interval_end common.DropboxTimestamp
+
+    example default
+        old_interval_end = "2016-01-20T00:00:00Z"
+        new_interval_end = "2016-02-20T00:00:00Z"
+
+##########
+### Input/Output ###
+
+struct BillingDetails
+    "Common properties needed to bill."
+    price Price
+        "Defines the price."
+    billing_country CountryCode
+        "The 2-letter country code of the country."
+    billing_zip String?
+        "If applicable - the zip code of the billing address.
+         It will be used for tax eligibility/calculation."
+    tax_exclusion TaxExclusion?
+
+    example default
+        price = trial_costs_nothing
+        billing_country = "US"
+        billing_zip = "10027"
+        tax_exclusion = default
+
+struct ProvisionNewTeamArgs
+    team_name String(min_length=1, max_length=200)
+        "The name of the new team."
+    contact_email common.EmailAddress
+        "Main point of contact for this team."
+    admin_emails List(common.EmailAddress, min_items=1)
+        "List of emails for the first users to be provisioned."
+    billing_details BillingDetails
+        "Billing details."
+    external_invoice_id ExternalInvoiceId
+        "The Salesforce Opportunity ID associated with this request."
+
+    example default
+        team_name = "Vandelay Industries"
+        contact_email = "cosmo@vandelay.com"
+        admin_emails = ["newman@vandelay.com", "elaine@vandelay.com"]
+        billing_details = default
+        external_invoice_id = salesforce_example
+
+########
+# Universal output TeamStatusResponseOrion
+
+struct TeamStatusResponseOrion
+    team_id UInt64
+        "The Dropbox team's ID."
+    interval Interval
+        "The teams's current interval before a rebill."
+    num_provisioned_users UInt64(min_value=1)
+        "The number of users currently consuming licenses."
+    current_state SubscriptionState
+        "Represents the current state of the team."
+    scheduled_state ScheduledSubscriptionState?
+        "The currently scheduled transition, or the full state the team will be at the point of renewal.  This will be the same as current_state if there are no pending transitions."
+    previously_scheduled_state ScheduledSubscriptionState?
+        "The previously scheduled transition, or the full state the team would have been at the point of renewal had the change not been applied.  This will be the same as current_state before the change was applied if there were no pending transitions."
+
+    example default
+        "Sample response"
+        team_id = 12345
+        interval = default
+        num_provisioned_users = 2
+        current_state = default
+        scheduled_state = default
+        previously_scheduled_state = default
+
+########
+# Per-route inputs
+
+struct ProvisionNewTrialTeamArgs
+    provision_new_team_args ProvisionNewTeamArgs
+    trial_plan_sku_code SkuCode
+    trial_length UInt64(min_value=1)
+        "If this is a Trial request, specify the trial length."
+    subscription_state SubscriptionState
+
+    example default
+        provision_new_team_args = default
+        trial_plan_sku_code = "TEAM-TRU"
+        trial_length = 14
+        subscription_state = default
+
+
+struct ProvisionNewPaidTeamArgs
+    provision_new_team_args ProvisionNewTeamArgs
+    subscription_state SubscriptionState
+
+    example default
+        provision_new_team_args = default
+        subscription_state = default
+
+
+struct ChangeTeamPlanArgs
+    "Arguments to upgrade or downgrade an existing team to a different plan, add or remove licenses, and/or add or remove addons."
+    team_id UInt64
+        "The ID of the team being modified."
+    old_subscription_state SubscriptionState
+        "Current subscription state (purely for validation)."
+    new_subscription_state SubscriptionState
+        "The state to put this Team into.  This should be the full desired state (if an existing addon is not present it will be removed)."
+    price Price
+        "Defines the price."
+    external_invoice_id ExternalInvoiceId
+        "Some external ID representing a payment that didn't happen through Cash-Team's systems."
+
+    example default
+        team_id = 12345
+        old_subscription_state = boring_team
+        new_subscription_state = default
+        price = seven_hundred_usd
+        external_invoice_id = salesforce_example
+
+
+struct ExtendTrialArgs
+    "Args to extend an existing trial's duration."
+    team_id UInt64
+        "The ID of the team being modified."
+    interval_end_modification IntervalEndModification
+        "The old and new end of the trial interval. New date should be later than the old date."
+
+    example default
+        team_id = 12345
+        interval_end_modification = default
+
+
+struct GetTeamStatusArgs
+    "Arguments to inspect the status of an existing team."
+    team_id UInt64
+
+    example default
+        team_id = 98765
+
+
+struct RenewArgs
+    "Arguments to instantly renew (or trial-convert) a team. Can include upsells."
+    team_id UInt64
+        "The ID of the team being renewed."
+    old_subscription_state SubscriptionState?
+        "The current state of the team (the trial sku for a trial-convert). Omit if you're not changing anything."
+    new_subscription_state SubscriptionState?
+        "The state of the team after the renew (the full plan sku for a trial-convert). Include any upsells or downsells here. Omit if you're not changing anything."
+    price Price
+    external_invoice_id ExternalInvoiceId
+        "Some external ID representing a payment that didn't happen through Cash-Team's systems."
+
+    example trial_convert_to_yearly
+        team_id = 12345
+        price = seventy_thousand_yen
+        external_invoice_id = salesforce_example
+
+    example renew_with_license_downsell
+        team_id = 12345
+        price = seven_hundred_usd
+        external_invoice_id = salesforce_example
+        old_subscription_state = boring_team_10_licenses
+        new_subscription_state = boring_team
+
+
+##########
+### Routes ###
+
+route provision_new_trial_team (ProvisionNewTrialTeamArgs, TeamStatusResponseOrion, InternalProvisionerError)
+    "Provision a new trial team."
+    attrs
+        auth = "app"
+
+route provision_new_paid_team (ProvisionNewPaidTeamArgs, TeamStatusResponseOrion, InternalProvisionerError)
+    "Provision a new paid team."
+    attrs
+        auth = "app"
+
+route change_team_plan (ChangeTeamPlanArgs, TeamStatusResponseOrion, InternalProvisionerError)
+    "Upgrade or downgrade an existing team to a different plan, add or remove licenses, and/or add or remove addons."
+    attrs
+        auth = "app"
+
+route extend_trial(ExtendTrialArgs, TeamStatusResponseOrion, InternalProvisionerError)
+    "Extend a Team trial."
+    attrs
+        auth="app"
+
+route get_team_status(GetTeamStatusArgs, TeamStatusResponseOrion, InternalProvisionerError)
+    "No-op. Returns the state of the requested team."
+    attrs
+        auth="app"
+
+route renew_team(RenewArgs, TeamStatusResponseOrion, InternalProvisionerError)
+    "Rebill an existing paid team."
+    attrs
+        auth="app"
+
+route trial_convert_team(RenewArgs, TeamStatusResponseOrion, InternalProvisionerError)
+    "Convert a Trial to Paid."
+    attrs
+        auth="app"

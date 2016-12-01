@@ -1,0 +1,41 @@
+namespace file_activity_stream
+
+import common
+
+struct FileActivityStreamUser
+    display_name String
+    email String?
+    photo_url String?
+
+struct Activity
+    union
+        add AddActivity
+        edit EditActivity
+
+    id String
+    timestamp common.DropboxTimestamp
+    user FileActivityStreamUser
+
+struct AddActivity extends Activity
+    "Activity for added files."
+
+struct EditActivity extends Activity
+    "Activity for edited files."
+
+    revision_num UInt32
+    revision_url String
+
+struct GetActivityStreamRequest
+    file_id String
+    cursor String?
+
+struct GetActivityStreamResponse
+    activity List(Activity)
+
+union FileActivityStreamError
+    no_file
+        "The file does not exist."
+    no_permission
+        "The user does not have permission to view this file."
+
+route get_activity_stream (GetActivityStreamRequest, GetActivityStreamResponse, FileActivityStreamError)

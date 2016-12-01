@@ -1,0 +1,22 @@
+namespace notifications
+
+alias NotificationIdString = String(pattern="^[0-9]*$")
+
+struct MarkAsSeenArgs
+    "Request struct for mark_as_seen route"
+
+    nids List(NotificationIdString)
+
+    example default
+        nids = ["123"]
+
+struct MarkAsSeenResponse
+    "Response struct for mark_as_seen route"
+
+union MarkAsSeenError
+    "Error struct for mark_as_seen route"
+
+route mark_as_seen (MarkAsSeenArgs, MarkAsSeenResponse, MarkAsSeenError)
+    "Marks notifications with specified notification ids as seen."
+    attrs
+        owner="notifications-team"

@@ -187,9 +187,11 @@ struct FolderLinkMetadata extends SharedLinkMetadata
 
 union SharedLinkError
     shared_link_not_found
-        "The shared link wasn't found"
+        "The shared link wasn't found."
     shared_link_access_denied
-        "The caller is not allowed to access this shared link"
+        "The caller is not allowed to access this shared link."
+    unsupported_link_type
+        "This type of link is not supported."
 
 route get_shared_link_metadata(GetSharedLinkMetadataArg, SharedLinkMetadata, SharedLinkError)
     "Get the shared link's metadata."
@@ -234,7 +236,7 @@ struct ListSharedLinksResult
         yet. Pass the cursor into :route:`list_shared_links` to retrieve them."
     cursor String?
         "Pass the cursor into :route:`list_shared_links` to obtain the additional links. Cursor is
-        returned only if no path is given or the path is empty."
+        returned only if no path is given."
 
     example default
         links = [default]
@@ -250,8 +252,7 @@ union ListSharedLinksError
 route list_shared_links(ListSharedLinksArg, ListSharedLinksResult, ListSharedLinksError)
     "List shared links of this user.
 
-    If no path is given or the path is empty, returns a list of all
-    shared links for the current user.
+    If no path is given, returns a list of all shared links for the current user.
 
     If a non-empty path is given, returns a list of all shared links
     that allow access to the given path - direct links to the given path and links to parent folders
@@ -485,8 +486,8 @@ route get_shared_links(GetSharedLinksArg, GetSharedLinksResult, GetSharedLinksEr
     "Returns a list of :type:`LinkMetadata` objects for this user,
     including collection links.
 
-    If no path is given or the path is empty, returns a list of all
-    shared links for the current user, including collection links.
+    If no path is given, returns a list of all shared links for the current
+    user, including collection links.
 
     If a non-empty path is given, returns a list of all shared links
     that allow access to the given path.  Collection links are never

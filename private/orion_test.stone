@@ -1,0 +1,12 @@
+namespace team
+
+route orion_example(OrionExampleArg, Void, Void)
+    attrs
+        auth="team"
+        feature = "content_manager_file_ops"
+
+struct OrionExampleArg
+    need_domain_insights Boolean
+
+    example default
+        need_domain_insights = false

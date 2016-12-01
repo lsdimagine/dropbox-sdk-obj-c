@@ -3,14 +3,29 @@ namespace sharing
 import common
 import files
 
-struct ExpectedSharedFolderMetadata extends SharedFolderMetadataBase
+# NOTE(davy): this ideally should extend SharedFolderMetadataBase, but we can't do that since we
+# need to override the policy field with an AlphaFolderPolicy.
+struct ExpectedSharedFolderMetadata
     "Properties the shared folder will have upon creation."
 
-    path_lower String
-        "The lower-cased full path of this shared folder."
-    permissions List(FolderPermission)?
+    access_type AccessLevel
+        "The current user's access level for this shared folder."
+    is_team_folder Boolean
+        "Whether this folder is a
+        :link:`team folder https://www.dropbox.com/en/help/986`."
+    policy AlphaFolderPolicy
+        "Policies governing this shared folder."
+    owner_team users.Team?
+        "The team that owns the folder. This field is not present if the folder
+        is not owned by a team."
+    parent_shared_folder_id common.SharedFolderId?
+        "The ID of the parent shared folder. This field is present only if the
+        folder is contained within another shared folder."
+    path_lower String?
+        "The lower-cased full path of this shared folder. Absent for unmounted folders."
+    permissions List(InternalFolderPermission)?
         "Actions the current user may perform on the folder and its contents.
-        The set of permissions corresponds to the FolderActions in the request."
+        The set of permissions corresponds to the :type:InternalFolderActions in the request."
     members_cursor String?
         "Cursor to retrieve inherited members of this shared folder,
         if any exist. Pass into :route:`list_folder_members/continue`
@@ -47,9 +62,9 @@ route validate_folder_path(ValidateFolderPathArg, ExpectedSharedFolderMetadata, 
         owner = "sfi"
 
 struct ValidateFolderPathArg
-    path files.Path
-        "The path to the folder to share."
-    actions List(FolderAction)?
+    path files.WritePath
+        "Folder path to validate for shared folder creation."
+    actions List(InternalFolderAction)?
         "Folder actions to query."
     list_members_arg ListFolderMembersCursorArg?
         "If this field is provided, the return value will include a cursor
@@ -59,6 +74,53 @@ struct ValidateFolderPathArg
         path = "/example/workspace"
         actions = []
         list_members_arg = default
+
+# --
+
+route validate_folder_path/batch(ValidateFolderPathBatchArg, ValidateFolderPathBatchResult, ValidateFolderPathError)
+    "Determines whether a shared folder can be created at each of the given paths.
+    For each path, we return either metadata for the yet-to-be-shared folder at that path
+    or an error explaining why a shared folder cannot be created at that path."
+
+    attrs
+        owner = "sfi"
+
+struct ValidateFolderPathBatchArg
+    paths List(files.WritePath)
+        "Folder paths to validate for shared folder creation."
+    actions List(InternalFolderAction)?
+        "Folder actions to query."
+    list_members_arg ListFolderMembersCursorArg?
+        "If this field is provided, the return value will include a cursor
+        for listing inherited folder members."
+
+    example default
+        paths = ["/example/workspace", "/example/other"]
+        actions = []
+        list_members_arg = default
+
+struct ValidateFolderPathBatchResult
+    entries List(ValidateFolderPathBatchEntry)
+
+struct ValidateFolderPathBatchEntry
+    path files.Path?
+        "Input path corresponding to one of :field:`ValidateFolderPathBatchArg.paths`.
+        Absent for unmounted folders."
+    result ValidateFolderPathIndividualResult
+        "Result of the given path."
+
+    example default
+        path = "/example/workspace"
+        result = default
+
+union ValidateFolderPathIndividualResult
+    metadata ExpectedSharedFolderMetadata
+        "Metadata for the yet-to-be-shared folder if a shared folder can be created at this path."
+    path_error ValidateFolderPathError
+        "Error explaining why a shared folder cannot be created at this path."
+
+    example default
+        metadata = default
 
 # --
 
@@ -228,6 +290,9 @@ union InternalFolderAction extends FolderAction
     upgrade_to_team_folder
         "Upgrade the shared folder to a team folder."
 
+    update_confidentiality
+        "Update the confidentiality for a shared folder."
+
 struct InternalFolderPermission
     "Whether the user is allowed to take the action on the shared folder."
 
@@ -263,6 +328,8 @@ struct InternalSharedFolderMetadata extends SharedFolderMetadataBase
         "Timestamp indicating when the current user was invited to this shared folder."
     preview_url String
         "URL for displaying a web preview of the shared folder."
+    is_confidential Boolean = false
+        "Specifies that the folder is invite only."
 
     example default
         path_lower = "/dir"
@@ -274,6 +341,7 @@ struct InternalSharedFolderMetadata extends SharedFolderMetadataBase
         policy = default
         time_invited = "2016-01-20T00:00:00Z"
         preview_url = "https://www.dropbox.com/scl/fo/fir9vjelf"
+        is_confidential = false
 
 # --
 
@@ -334,3 +402,239 @@ union ParentFolderAccessError
     access_error SharedFolderAccessError
     member_error SharedFolderMemberError
 
+# --
+
+route share_folder_internal (ShareFolderInternalArg, ShareFolderInternalLaunch, ShareFolderError)
+    "An internal version of :route:share_folder that can mark a folder Confidential."
+
+    attrs
+        owner = "company-dropbox-team"
+
+struct ShareFolderInternalArg extends ShareFolderArg
+    confidentiality ConfidentialityArgs = not_confidential
+        "Specifies the confidentiality settings on the folder"
+
+    example default
+        path = "/example/workspace"
+        member_policy = team
+        acl_update_policy = editors
+        shared_link_policy = members
+
+union_closed ShareFolderInternalLaunch extends async.LaunchResultBase
+    complete InternalSharedFolderMetadata
+
+    example default
+        complete = default
+
+# --
+
+route set_confidentiality (SetConfidentialityArgs, ShareFolderInternalLaunch, SetConfidentialityError)
+    "Set or unset an existing Shared Folder as Confidential.
+
+    If a :field:`ShareFolderLaunch.async_job_id` is returned, you'll need to
+    call :route:`check_share_job_status` until the action completes to get the
+    metadata for the folder.
+    "
+
+    attrs
+        owner = "company-dropbox-team"
+
+struct SetConfidentialityArgs
+    confidentiality ConfidentialityArgs = not_confidential
+        "The Confidentiality settings for the folder"
+
+    shared_folder_id common.SharedFolderId
+        "The ID for the shared folder."
+
+    example default
+        shared_folder_id = "84528192421"
+        confidentiality = not_confidential
+
+
+union ConfidentialityArgs
+    not_confidential
+        "The Shared Folder is not Confidential and instead inherits its Members from the parent folder."
+
+    confidential
+        "The Shared Folder is marked Confidential and its Members can be restricted."
+
+union SetConfidentialityError
+    access_error SharedFolderAccessError
+        "Unable to access shared folder."
+    no_permission
+        "The current user does not have permission to perform this action."
+
+    example default
+        no_permission = null
+
+# --
+
+union_closed ShareFolderInternalJobStatus extends async.PollResultBase
+    complete InternalSharedFolderMetadata
+        "The internal job has finished. The value is the internal metadata for the shared folder."
+    failed ShareFolderError
+        "Error occurred while performing the asynchronous job."
+
+    example default
+        complete = default
+
+route check_share_internal_job_status (async.PollArg, ShareFolderInternalJobStatus, async.PollError)
+    "Check the status of tasks that are expected to return InternalSharedFolderMetadata"
+
+    attrs
+        owner = "company-dropbox-team"
+
+# --
+
+struct AlphaSharedFolderMembers
+    "Shared folder user and group membership. Same as SharedFolderMembers, but has AlphaUserMembershipInfo instead."
+
+    users List(AlphaUserMembershipInfo)
+        "The list of user members of the shared folder."
+    groups List(GroupMembershipInfo)
+        "The list of group members of the shared folder."
+    invitees List(InviteeMembershipInfo)
+        "The list of invitees to the shared folder."
+    cursor String?
+        "Present if there are additional shared folder members that have not been returned yet. Pass
+        the cursor into :route:`list_folder_members/continue` to list additional members."
+
+    example default
+        users = [default]
+        groups = [default]
+        invitees = [default]
+        cursor = "ZtkX9_EHj3x7PMkVuFIhwKYXEpwpLwyxp9vMKomUhllil9q7eWiAu"
+
+# --
+
+route unshare_folder/batch(UnshareFoldersBatchArg, async.LaunchEmptyResult, UnshareFoldersBatchError)
+    "Allows an user to unshare a list of folders. Used only for the Sharing Paywall experiment
+
+    Apps must have full Dropbox access to use this endpoint."
+
+    attrs
+        owner = "sub-growth"
+
+struct UnshareFoldersBatchArg
+    shared_folder_ids List(common.SharedFolderId)
+        "The IDs for the shared folders."
+    leave_a_copy Boolean = false
+        "If true, members of this shared folder will get a copy of the folders
+        after it's unshared. Otherwise, they will be removed from their Dropbox.
+        The current user, who is an owner, will always retain their copy."
+
+    example default
+        shared_folder_ids = ["84528192421", "59285924215", "49120283928"]
+        leave_a_copy = false
+
+union UnshareFoldersBatchError
+    some_folders_not_unshared
+        "Some folders are not correctly unshared"
+
+# --
+
+struct AlphaFolderPolicy extends FolderPolicy
+    download_policy DownloadPolicy
+    pass_policy PassPolicy
+
+    example default
+        member_policy = anyone
+        resolved_member_policy = team
+        acl_update_policy = owner
+        shared_link_policy = anyone
+        download_policy = disallow
+        pass_policy = enabled
+
+union AlphaFolderAction extends FolderAction
+    disable_pass
+        "Whether the user has permission to disable the presence and seen state information on the
+        folder."
+    enable_pass
+        "Whether the user has permission to enable presence and seen state information on the
+        folder."
+    remove_download_policy
+        "Whether the user has permission to remove the download policy and allow downloads on the
+        folder.
+
+        NOTE: This policy is probably subject to removal sometime soon. Talk to davy@ before using
+        it."
+    set_download_policy
+        "Whether the user has permission to set the download policy and disallow downloads on the
+        folder."
+
+struct AlphaFolderPermission
+    "Whether the user is allowed to take the action on the shared folder."
+
+    action AlphaFolderAction
+        "The action that the user may wish to take on the folder."
+    allow Boolean
+        "True if the user is allowed to take the action."
+    reason PermissionDeniedReason?
+        "The reason why the user is denied the permission. Not present if the action
+        is allowed, or if no reason is available."
+
+    example default
+        action = edit_contents
+        allow = false
+        reason = user_not_same_team_as_owner
+
+struct AlphaSharedFolderMetadata
+    "Extended version of SharedFolderMetadata with link metadata and extended folder policy"
+    access_type AccessLevel
+        "The current user's access level for this shared folder."
+    is_team_folder Boolean
+        "Whether this folder is a
+        :link:`team folder https://www.dropbox.com/en/help/986`."
+    link_metadata SharedContentLinkMetadata
+    name String
+        "The name of the this shared folder."
+    owner_team users.Team?
+        "The team that owns the folder. This field is not present if the folder
+        is not owned by a team."
+    parent_shared_folder_id common.SharedFolderId?
+        "The ID of the parent shared folder. This field is present only if the
+        folder is contained within another shared folder."
+    path_lower String?
+        "The lower-cased full path of this shared folder. Absent for unmounted folders."
+    permissions List(AlphaFolderPermission)?
+        "Actions the current user may perform on the folder and its contents.
+        The set of permissions corresponds to the FolderActions in the request."
+    policy AlphaFolderPolicy
+        "Policies governing this shared folder."
+    preview_url String
+        "URL for displaying a web preview of the shared folder."
+    shared_folder_id common.SharedFolderId
+        "The ID of the shared folder."
+    time_invited common.DropboxTimestamp
+        "Timestamp indicating when the current user was invited to this shared folder."
+
+route alpha/get_folder_metadata(GetMetadataArgs, AlphaSharedFolderMetadata, SharedFolderAccessError)
+    "Returns shared folder metadata by its folder ID.
+
+    Apps must have full Dropbox access to use this endpoint.
+
+    The same as get_folder_metadata, but also includes link metadata
+    "
+
+    attrs
+        api_group = "sharing"
+        is_preview = true
+        owner = "sfi"
+
+struct AlphaUpdateFolderPolicyArg extends UpdateFolderPolicyArg
+    download_policy DownloadPolicy?
+    pass_policy PassPolicy?
+    link_settings LinkSettings?
+
+route alpha/update_folder_policy(AlphaUpdateFolderPolicyArg, AlphaSharedFolderMetadata, UpdateFolderPolicyError)
+    "Update the sharing policies for a shared folder.
+
+    User must have :field:`AccessLevel.owner` access to the shared folder to update its policies."
+
+    attrs
+        owner = "sfi"
+
+union_closed AlphaShareFolderLaunch extends async.LaunchResultBase
+    complete AlphaSharedFolderMetadata
+
+route alpha/share_folder(ShareFolderArg, AlphaShareFolderLaunch, ShareFolderError)

@@ -71,6 +71,8 @@ union FolderAction
     leave_a_copy
         "Keep a copy of the contents upon leaving or being kicked from the folder."
     share_link
+        "This action is deprecated. Use create_link instead."
+    create_link
         "Create a shared link for folder."
 
 struct FolderPermission
@@ -242,6 +244,8 @@ struct GroupInfo extends team_common.GroupSummary
 
     group_type team_common.GroupType
         "The type of group."
+    is_member Boolean
+        "If the current user is a member of the group."
     is_owner Boolean
         "If the current user is an owner of the group."
     same_team Boolean
@@ -253,6 +257,7 @@ struct GroupInfo extends team_common.GroupSummary
         member_count = 10
         group_management_type = user_managed
         group_type = user_managed
+        is_member = false
         is_owner = false
         same_team = true
 
@@ -556,7 +561,7 @@ route share_folder(ShareFolderArg, ShareFolderLaunch, ShareFolderError)
         owner = "sfi"
 
 struct ShareFolderArg
-    path files.Path
+    path files.WritePath
         "The path to the folder to share. If it does not exist, then a new one
         is created."
     member_policy MemberPolicy = anyone
@@ -599,6 +604,10 @@ union SharePathError
         "We do not support sharing a folder inside a shared folder."
     contains_shared_folder
         "We do not support shared folders that contain shared folders."
+    contains_app_folder
+        "We do not support shared folders that contain app folders."
+    contains_team_folder
+        "We do not support shared folders that contain team folders."
     is_app_folder
         "We do not support sharing an app folder."
     inside_app_folder
@@ -616,6 +625,8 @@ union SharePathError
         "We do not support sharing a Mac OS X package."
     inside_osx_package
         "We do not support sharing a folder inside a Mac OS X package."
+    invalid_path_root files.PathRootError
+        "The path root parameter provided is invalid."
 
 # --
 
@@ -707,6 +718,8 @@ union UnshareFolderError
         "This action cannot be performed on a team shared folder."
     no_permission
         "The current user does not have permission to perform this action."
+    too_many_files
+        "This shared folder has too many files to be unshared."
 
 # --
 
@@ -1118,3 +1131,6 @@ union RelinquishFolderMembershipError
         "This action cannot be performed on a team shared folder."
     no_permission
         "The current user does not have permission to perform this action."
+    no_explicit_access
+        "The current user only has inherited access to the shared folder.  You can't relinquish
+        inherited membership to folders."

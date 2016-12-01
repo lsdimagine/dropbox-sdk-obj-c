@@ -12,7 +12,7 @@ union_closed DocFolderType
         document = default
 
 struct PaperDocument
-    "Information about the Paper doc"
+    "Information about the Paper doc."
 
     doc_title String
     doc_id String
@@ -22,7 +22,7 @@ struct PaperDocument
         doc_id = "abc456"
 
 struct PaperDocumentWithSharingPolicy extends PaperDocument
-    "Information about the Paper document sharing policy"
+    "Information about the Paper document sharing policy."
 
     sharing_policy paper.SharingPolicy
 
@@ -32,9 +32,9 @@ struct PaperDocumentWithSharingPolicy extends PaperDocument
         sharing_policy = default
 
 struct PaperDocumentWithSubscriptionLevel extends PaperDocument
-    "Information about the Paper document subscription level"
+    "Information about the Paper document subscription level."
 
-    doc_subscription_level paper.DoucmentSubscriptionLevel
+    doc_subscription_level paper.DocSubscriptionLevel
 
     example default
         doc_title = "My New Paper Doc"
@@ -42,7 +42,7 @@ struct PaperDocumentWithSubscriptionLevel extends PaperDocument
         doc_subscription_level = default
 
 struct PaperFolder
-    "Information about the Paper folder"
+    "Information about the Paper folder."
 
     folder_name String
     folder_id String
@@ -52,7 +52,7 @@ struct PaperFolder
         folder_id = "abc456"
 
 struct PaperFolderWithSubscriptionLevel extends PaperFolder
-    "Information about the Paper folder subscription level"
+    "Information about the Paper folder subscription level."
 
     folder_subscription_level paper.FolderSubscriptionLevel
 
@@ -62,7 +62,7 @@ struct PaperFolderWithSubscriptionLevel extends PaperFolder
         folder_subscription_level = none
 
 struct PaperSubfolder extends PaperFolder
-    "Information about the Paper subfolder"
+    "Information about the Paper subfolder."
 
     subfolder_name String
     subfolder_id String
@@ -74,7 +74,7 @@ struct PaperSubfolder extends PaperFolder
         subfolder_id = "def789"
 
 struct PaperFolderWithDocument extends PaperFolder
-    "Information about a document inside a folder"
+    "Information about a document inside a folder."
 
     doc_title String
     doc_id String
@@ -86,7 +86,7 @@ struct PaperFolderWithDocument extends PaperFolder
         doc_id = "def456"
 
 struct PaperRecipient
-    "Information about the Paper doc and recipient"
+    "Information about the Paper doc and recipient."
 
     doc_type DocFolderType
     recipient_user_id users.AccountId?

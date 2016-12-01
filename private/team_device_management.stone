@@ -28,6 +28,10 @@ struct SettingsDeviceManagement
         "Can user remove a device."
     rollout_method RolloutMethod?
         "Rollout method."
+    users_to_add List(String)?
+        "List of users email to add to the excluded list."
+    users_to_remove List(String)?
+        "List of users email to remove to the excluded list."
 
     example default
         is_enabled = true
@@ -35,6 +39,8 @@ struct SettingsDeviceManagement
         mobile_devices_limit = default
         can_user_remove_device = false
         rollout_method = unlink_all
+        users_to_add = ["harry@potter.com"]
+        users_to_remove = []
 
 struct ConfigureSettingsDeviceManagementResult extends SettingsDeviceManagement
     num_of_excluded_users UInt64?
@@ -60,47 +66,8 @@ route device_management/configure_settings(ConfigureSettingsDeviceManagementArg,
         auth="team"
         owner="adminx"
 
-struct ExcludedUser
-    display_name String
-        "User display name."
-    email String
-        "User email."
-    photo_circle_url String?
-        "User circle photo."
-
-    example default
-        display_name = "Harry Potter"
-        email = "harry@potter.com"
-        photo_circle_url = "harry.jpg"
-
-struct GetExcludedUsersResult
-    users List(ExcludedUser)
-        "List of excluded users."
-
-    example default
-        users=[default]
-
 route device_management/get_excluded_users(Void, GetExcludedUsersResult, DeviceManagementError)
     "Get list of excluded users.
-
-    Permission : Team member management"
-
-    attrs
-        auth="team"
-        owner="adminx"
-
-struct UpdateExcludedUsersArg
-    users_to_add List(String)
-        "List of users email to add to the excluded list."
-    users_to_remove List(String)
-        "List of users email to remove to the excluded list."
-
-    example default
-        users_to_add = ["harry@potter.com"]
-        users_to_remove = []
-
-route device_management/update_excluded_users(UpdateExcludedUsersArg, GetExcludedUsersResult, DeviceManagementError)
-    "update excluded users by adding or removing users.
 
     Permission : Team member management"
 
@@ -113,10 +80,13 @@ struct RemoveDeviceArg
         "User id."
     device_id String
         "Device id."
+    delete_data Boolean?
+        "To delete data also?"
 
     example default
         user_id = 5
         device_id = "9101E205-67E0-416C-BB44-2483F1B06D46"
+        delete_data = false
 
 union RemoveDeviceMessage
     "Message type return from remove device route."
@@ -149,11 +119,14 @@ struct RemoveClientArg
         "Device id."
     client_unique_identifier String
         "Client unique identifier."
+    delete_data Boolean?
+        "To delete data also?"
 
     example default
         user_id = 5
         device_id = "9101E205-67E0-416C-BB44-2483F1B06D46"
         client_unique_identifier = "dbmsid:AAF1LLeKamhKG9HkwfD_Q8WF0tYRW-Ptuh9bW8IEv48b6hlK3xit1L39Lta-HiL5CkRiYNMUjvd7ZDbxUMJkzRut"
+        delete_data = false
 
 union RemoveClientMessage
     "Message type return from remove client route."

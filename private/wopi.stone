@@ -1,0 +1,33 @@
+namespace wopi
+
+import files
+
+alias Path = files.Path
+
+struct GetWopiMetadataArg
+    file_name Path
+        "File for which we want WOPI information."
+
+    example default
+        file_name = "/foo/bar.xlsx"
+
+struct GetWopiMetadataResult
+    wopi_src String
+        "The WopiSrc to the file, which conceptually is the WOPI ID.
+        For more information about what exactly a WopiSrc is, see:
+        http://wopi.readthedocs.io/projects/wopirest/en/latest/concepts.html?highlight=wopisrc ."
+
+    user_id String
+        "The numeric ID of the user, as a string."
+
+    example default
+        wopi_src = "https://wopi.dropbox.com/wopi/files/ABCD1234"
+        user_id = "12345"
+
+union GetWopiMetadataError
+    file_name_invalid
+        "The provided file name does not correspond to a valid WOPI-accessible file."
+
+route get_wopi_metadata(GetWopiMetadataArg, GetWopiMetadataResult, GetWopiMetadataError)
+    attrs
+        owner="productivity-infra-team"

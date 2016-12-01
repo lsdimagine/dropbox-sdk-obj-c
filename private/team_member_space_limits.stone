@@ -1,0 +1,46 @@
+namespace team
+
+union LimitLevel
+    "The enumerator value of the team default limit level."
+
+    strict
+        "Strict level."
+    moderate
+        "Moderate level."
+    generous
+        "Generous level."
+    no_limit
+        "No limit level."
+
+    example default
+        strict = null
+
+
+struct SetMemberSpaceDefaultLimitArg
+    limit_level LimitLevel
+        "Team's users quota limit level enumerator value."
+
+    example default
+        limit_level = default
+
+union SetMemberSpaceDefaultLimitError extends team_administration.AdministrationError
+    "Error returned by setting member space limit."
+
+    invalid_value
+        "Invalid limit value."
+
+
+route member_space_limits/set_default_limit(SetMemberSpaceDefaultLimitArg, Void, SetMemberSpaceDefaultLimitError)
+    "update space limits for the non excluded team members."
+
+    attrs
+        auth="team"
+        owner="adminx"
+
+
+route member_space_limits/update_excluded_users(UpdateExcludedUsersArg, GetExcludedUsersResult, ExclusionListError)
+    "Updates space limits exclusion users list by adding or removing users."
+
+    attrs
+        auth="team"
+        owner="adminx"

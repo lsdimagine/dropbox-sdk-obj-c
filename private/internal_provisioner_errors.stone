@@ -1,0 +1,13 @@
+namespace internal_provisioner
+
+union_closed InternalProvisionerError
+    price_too_high_error
+        "Indicates that the price of this exceeds what Moneytree thinks it should cost, as defined in PaymentRunner#_reconcile_amounts()."
+    provision_error
+        "Indicates that, although arguments were valid, something went wrong during the provisioning step."
+    transition_not_supported_error
+        "The transition from the current state to the requested state it not supported. We've attached a message about how, exactly, it failed."
+    unexpected_error
+        "Something unexpected occurred, but it likely wasn't your fault."
+    validation_error
+        "Your arguments were somehow invalid. We've attached a message about how, exactly, it failed."

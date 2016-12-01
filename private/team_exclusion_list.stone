@@ -1,0 +1,41 @@
+namespace team
+
+
+struct ExcludedUser
+    display_name String
+        "User display name."
+    email String
+        "User email."
+    photo_circle_url String?
+        "User circle photo."
+
+    example default
+        display_name = "Harry Potter"
+        email = "harry@potter.com"
+        photo_circle_url = "harry.jpg"
+
+
+struct UpdateExcludedUsersArg
+    users_to_add List(UserSelectorArg)
+        "List of users email to add to the excluded list."
+    users_to_remove List(UserSelectorArg)
+        "List of users email to remove to the excluded list."
+
+    example default
+        users_to_add = [default]
+        users_to_remove = []
+
+
+struct GetExcludedUsersResult
+    users List(ExcludedUser)
+        "List of excluded users."
+
+    example default
+        users=[default]
+
+
+union ExclusionListError extends team_administration.AdministrationError
+    "Error returned by exclusion list route."
+
+    invalid_input
+        "Set settings invalid input."

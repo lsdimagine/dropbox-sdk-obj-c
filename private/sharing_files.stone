@@ -4,6 +4,8 @@ import common
 import files
 import users
 
+alias FqPathOrNsPath = String(pattern="(\/.*|nspath:[0-9]+:.*)|ns:[0-9]+(/.*)?", min_length=1)
+
 route add_file_members(AddFileMemberArgs, List(FileMemberActionResult), AddFileMemberError) deprecated by add_file_member
     "Identical to add_file_member. This is used in the desktop client 3.18."
 
@@ -11,6 +13,184 @@ route add_file_members(AddFileMemberArgs, List(FileMemberActionResult), AddFileM
         owner = "sharing"
 
 # --
+
+
+# --
+
+route share_file(ShareFileArg, AlphaSharedFileMetadata, ShareFileError)
+    "Share a file. Creates a url for the file."
+
+    attrs
+        owner = "sharing"
+
+struct ShareFileArg
+    "Arguments for :route:`share_file`."
+
+    file PathOrId
+        "The file to share."
+    actions List(AlphaFileAction)?
+        "File actions to query."
+
+    example default
+        file = "id:3kmLmQFnf1AAAAAAAAAAAw"
+        actions = []
+
+union ShareFileError
+    "Error result for :route:`share_file`."
+    access_error SharingFileAccessError
+    user_error SharingUserError
+
+    example default
+        user_error = email_unverified
+
+# --
+
+route share_file/internal(ShareFileInternalArg, ShareFileInternalResult, ShareFileError)
+    "Share a file. This is would be used in the case for temporary path based links."
+
+    attrs
+        owner = "sharing"
+
+
+struct ShareFileInternalArg
+    "Arguments for :route:`share_file/internal`."
+
+    file FqPathOrNsPath
+        "The path to the file to share ."
+
+    example default
+        file = "/dir/file.txt"
+
+union ShareFileInternalResult
+    "Result of :route:`share_file/internal`."
+    pending_file TempPathBasedFileMetadata
+    file AlphaSharedFileMetadata
+
+struct TempPathBasedFileMetadata
+    "Properties of the temporary path based file placeholder."
+
+    policy FolderPolicy
+        "Policies governing this shared file."
+    owner_team users.Team?
+        "The team that owns the file. This field is not present if the file
+        is not owned by a team."
+    parent_shared_folder_id common.SharedFolderId?
+        "The ID of the parent shared folder. This field is present only if the
+        file is contained within a shared folder."
+    preview_url String
+        "URL for displaying a web preview of the shared file."
+    path_lower String?
+        "The lower-case full path of this file. Absent for unmounted files."
+    path_display String?
+        "The cased path to be used for display purposes only. In rare instances
+        the casing will not correctly match the user's filesystem, but this
+        behavior will match the path provided in the Core API v1.
+        Absent for unmounted files."
+    name String
+        "The name of this file."
+    time_created common.DropboxTimestamp
+        "Timestamp indicating when the current user created this shared file."
+
+    example default
+        policy = default
+        owner_team = default
+        preview_url = "https://www.dropbox.com/scl/fi/fir9vjelf"
+        path_lower = "/dir/file.txt"
+        path_display = "/dir/file.txt"
+        name = "file.txt"
+        time_created = "2016-01-20T00:00:00Z"
+
+# --
+
+union AlphaFileAction extends FileAction
+    change_options
+        "Change file options, such as whether presence and seen state is enabled for the file.
+        DEPRECATED: Use enable_pass and disable_pass instead."
+    disable_pass
+        "Whether the user has permission to disable the presence and seen state information on the
+        file."
+    enable_pass
+        "Whether the user has permission to enable presence and seen state information on the file."
+    remove_download_policy
+        "Whether the user has permission to remove the download policy and allow downloads on the
+        file.
+
+        NOTE: This policy is probably subject to removal sometime soon. Talk to davy@ before using
+        it."
+    set_download_policy
+        "Whether the user has permission to set the download policy and disallow downloads on the
+        file.
+
+        NOTE: This policy is probably subject to removal sometime soon. Talk to davy@ before using
+        it."
+struct AlphaFilePermission
+    "Whether the user is allowed to take the sharing action on the file."
+
+    action AlphaFileAction
+        "The action that the user may wish to take on the file."
+    allow Boolean
+        "True if the user is allowed to take the action."
+    reason PermissionDeniedReason?
+        "The reason why the user is denied the permission. Not present if the action
+        is allowed."
+
+    example default
+        action = edit_contents
+        allow = false
+        reason = user_not_same_team_as_owner
+
+struct AlphaSharedFileMetadata
+    "Properties of the shared file."
+
+    policy AlphaFolderPolicy
+        "Policies of the parent folder governing this shared file."
+    permissions List(AlphaFilePermission)?
+        "The sharing permissions that requesting user has on this file. This
+        corresponds to the entries given in :field:`AlphaGetFileMetadataBatchArg.actions`
+        or :field:`AlphaGetFileMetadataArg.actions`."
+    owner_team users.Team?
+        "The team that owns the file. This field is not present if the file
+        is not owned by a team."
+    parent_shared_folder_id common.SharedFolderId?
+        "The ID of the parent shared folder. This field is present only if the
+        file is contained within a shared folder."
+    preview_url String
+        "URL for displaying a web preview of the shared file."
+    path_lower String?
+        "The lower-case full path of this file. Absent for unmounted files."
+    path_display String?
+        "The cased path to be used for display purposes only. In rare instances
+        the casing will not correctly match the user's filesystem, but this
+        behavior will match the path provided in the Core API v1.
+        Absent for unmounted files."
+    name String
+        "The name of this file."
+    id FileId
+        "The ID of the file."
+    time_invited common.DropboxTimestamp?
+        "Timestamp indicating when the current user was invited to this shared file. If the user was
+        not invited to the shared file, the timestamp will indicate when the user was invited to the
+        parent shared folder. This value may be absent."
+    pass_policy PassPolicy
+        "DEPRECATED, use file_policy instead"
+    download_policy DownloadPolicy
+        "DEPRECATED, use file_policy instead"
+    link_metadata SharedContentLinkMetadata
+
+route alpha/get_file_metadata(AlphaGetFileMetadataArg, AlphaSharedFileMetadata, GetFileMetadataError)
+    "Similar to get_file_metadata, except for a few additional features.
+
+    This accepts change_options as an incoming permission, for whether the actor can change the
+    options of the file.
+
+    This also fetches the appropriate PASS and download settings.
+
+    This also returns the link metadata of the file."
+
+route alpha/get_file_metadata/batch(AlphaGetFileMetadataBatchArg, List(AlphaGetFileMetadataBatchResult), SharingUserError)
+
+route update_file_policy(UpdateFilePolicyArg, AlphaSharedFileMetadata, UpdateFilePolicyError)
+    "Update the policies of a file. This includes both PASS settings and link settings associated with the file."
 
 route internal_test_only/get_file_shared_content_link(GetFileSharedContentLinkArg, List(String), AddFileMemberError)
     "Get the file shared content link for the given file and member information. Note: This is used ONLY for mobile integration test.
@@ -29,6 +209,24 @@ route internal_test_only/get_file_shared_content_link(GetFileSharedContentLinkAr
     attrs
         owner = "sharing"
 
+route alpha/list_file_members(AlphaListFileMembersArg, AlphaSharedFileMembers, ListFileMembersError)
+
+route alpha/list_file_members/continue(AlphaListFileMembersContinueArg, AlphaSharedFileMembers, ListFileMembersContinueError)
+    "Once a cursor has been retrieved from :route:`alpha/list_file_members` or
+    :route:`list_file_members/batch`, use this to paginate through all shared
+    file members."
+
+    attrs
+        owner = "sharing"
+
+struct AlphaListFileMembersArg extends ListFileMembersArg
+    url String?
+        "The shared link URL that the user is viewing the content on when the file is not in their dropbox."
+
+struct AlphaListFileMembersContinueArg extends ListFileMembersContinueArg
+    url String?
+        "The shared link URL that the user is viewing the content on when the file is not in their dropbox."
+
 struct GetFileSharedContentLinkArg
     "Arguments of :route:`internal_test_only/get_file_shared_content_link`"
 
@@ -43,3 +241,119 @@ struct GetFileSharedContentLinkArg
         file = "id:3kmLmQFnf1AAAAAAAAAAAw"
         members = [default]
         gen_email_link = false
+
+union PassPolicy
+    enabled
+        "Presence and seen state information is available on this file"
+    disabled
+        "Presence and seen state information is disabled on this file"
+
+union DownloadPolicy
+    "This policy is probably subject to removal sometime soon. Talk to davy@ before using it."
+    allow
+        "Downloads are allowed on this file."
+    disallow
+        "Downloads are disallowed on this file."
+
+struct AlphaGetFileMetadataArg
+    "Arguments of :route:`alpha/get_file_metadata`"
+
+    file PathOrId
+        "The file to query."
+    url String?
+        "The shared link URL that the user is viewing the content on when the file is not in their dropbox."
+    actions List(AlphaFileAction)?
+        "File actions to query."
+
+    example default
+        file = "id:3kmLmQFnf1AAAAAAAAAAAw"
+        actions = []
+
+struct AlphaGetFileMetadataBatchArg
+    "Arguments of :route:`get_file_metadata/batch`"
+
+    files List(PathOrId, max_items=100)
+        "The files to query."
+    actions List(AlphaFileAction)?
+        "File actions to query."
+
+    example default
+        files = ["id:3kmLmQFnf1AAAAAAAAAAAw","id:VvTaJu2VZzAAAAAAAAAADQ"]
+        actions = []
+
+struct AlphaGetFileMetadataBatchResult
+    "Per file results of :route:`alpha/get_file_metadata/batch`"
+
+    file PathOrId
+        "This is the input file identifier corresponding to one of
+        :field:`GetFileMetadataBatchArg.files`."
+    result AlphaGetFileMetadataIndividualResult
+        "The result for this particular file"
+
+union AlphaGetFileMetadataIndividualResult
+    metadata AlphaSharedFileMetadata
+        "The result for this file if it was successful."
+    access_error SharingFileAccessError
+        "The result for this file if it was an error."
+
+struct FileSettings
+    download_policy DownloadPolicy?
+        "The download policy on the file."
+    pass_policy PassPolicy?
+        "The presence and seen state policy on the file."
+
+struct UpdateFilePolicyArg
+    file PathOrId
+        "File that we are changing the policy for."
+    actions List(AlphaFileAction)?
+        "File actions to query."
+    file_settings FileSettings?
+        "Settings for the file. DEPRECATED: use download_policy and pass_policy instead."
+    link_settings LinkSettings?
+        "Settings on the link for the file."
+    download_policy DownloadPolicy?
+        "The download policy on the file."
+    pass_policy PassPolicy?
+        "The presence and seen state policy on the file."
+
+union UpdateFilePolicyError
+    access_error SharingFileAccessError
+    invalid_file_settings
+        "The file settings are invalid."
+    no_permission
+        "The current user does not have permission to perform this action."
+
+struct AlphaSharedFileMembers
+    "Shared file user, group, and invitee membership.
+
+    Used for the results of :route:`alpha/list_file_members` and
+    :route:`alpha/list_file_members/continue`."
+
+    users List(AlphaUserMembershipInfo)
+        "The list of user members of the shared file."
+    groups List(GroupMembershipInfo)
+        "The list of group members of the shared file."
+    invitees List(InviteeMembershipInfo)
+        "The list of invited members of a file, but have not logged in and
+        claimed this."
+    cursor String?
+        "Present if there are additional shared file members that have not been returned yet. Pass
+        the cursor into :route:`list_file_members/continue` to list additional members."
+
+    example default
+        users = [default]
+        groups = [default]
+        invitees = [default]
+
+struct AlphaUserMembershipInfo extends MembershipInfo
+    "The information about a user member of the shared content."
+
+    user UserInfo
+        "The account information for the membership user."
+    time_last_seen common.DropboxTimestamp?
+        "The UTC timestamp of when the user has last seen the content."
+
+    example default
+        user = default
+        access_type = owner
+        permissions = []

@@ -1,0 +1,20 @@
+namespace team
+
+struct BlockTrafficPolicy
+    block_traffic_enabled Boolean
+        "Whether to block authenticated Dropbox traffic for members not on your team."
+
+    example block_traffic_enabled
+        block_traffic_enabled = true
+
+alias BlockTrafficPolicyArg = BlockTrafficPolicy
+
+route nts/set_block_traffic_policy(BlockTrafficPolicyArg, Void, AdministrationError)
+    "Block/unblock authenticated Dropbox traffic for members not on your team.
+
+    Permission : Team member management"
+
+    attrs
+        auth="team"
+        owner="adminx"
+

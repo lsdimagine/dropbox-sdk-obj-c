@@ -169,6 +169,46 @@ struct SetSharedFolderInitialSyncSettingArg
         initial_sync_setting = sync
 
 #
+# Policy types for infinite
+#
+
+union InfinitePolicy
+    initial_root_policy
+        "The policy that determines the infinite status of files on first link"
+    locked_root_policy
+        "An optional policy that locks existing devices root folder to a given policy"
+
+union InfinitePolicySetting
+    local
+        "The specified content will be synced as local files by default."
+    on_demand
+        "The specified content will be synced as on-demand files by default."
+    default
+        "The specified content will take the default setting (policy specific)"
+
+
+#
+# Set an infinite policy setting
+#
+
+route set_infinite_policy(SetInfinitePolicyArg, Void, AdministrationError)
+
+    attrs
+        auth="team"
+        owner="adminx" # TODO: switch to infinite, after finding where we can add infinite to the owner enum
+
+struct SetInfinitePolicyArg
+    policy InfinitePolicy
+        "The policy which we are setting"
+
+    setting InfinitePolicySetting
+        "Whether new shared folders should sync by default for members."
+
+    example default
+        policy = initial_root_policy
+        setting = on_demand
+
+#
 # route change_reseller_support
 #
 
@@ -188,6 +228,65 @@ union_closed ChangeResellerSupportError extends team_administration.Administrati
 
 route change_reseller_support(ChangeResellerSupportArg, Void, ChangeResellerSupportError)
     "Determines to allow access for resellers into Admin Console as Administrator.
+
+    Permission : Team member management"
+
+    attrs
+        auth="team"
+        owner="adminx"
+
+#
+# route configure_sso
+#
+
+union SsoPolicy
+    disabled
+        "Users will be able to sign in with their Dropbox credentials."
+    optional
+        "Users will be able to sign in with either their Dropbox or single sign-on credentials."
+    required
+        "Users will be required to sign in with their single sign-on credentials."
+
+union SamlNameIdFormat
+    email
+        "Email."
+    persistent
+        "Persistent email."
+    transient
+        "Transient email."
+
+
+struct ConfigureSsoArg
+    sso_policy SsoPolicy
+        "SSO policy to set."
+
+    sign_in_url String?
+        "Sign in URL. Users will be redirected to this page to sign in. Required when :field:`ConfigureSsoArg.sso_policy` is not :field:`SsoPolicy.disabled`."
+
+    saml_cert String?
+        "SAML certificate. Required when :field:`ConfigureSsoArg.sso_policy` is not :field:`SsoPolicy.disabled`."
+
+    nameid_format SamlNameIdFormat?
+        "SAML name ID format. Default value for this field is :field:`SamlNameIdFormat.email` (relevant only when :field:`ConfigureSsoArg.sso_policy` is not :field:`SsoPolicy.disabled`)."
+
+    sign_out_url String?
+        "Sign out URL. Users will be redirected to this page after they logout of Dropbox. This field is optional."
+
+
+union_closed ConfigureSsoError extends team_administration.AdministrationError
+    missing_sign_in_url
+        "Sign in URL is missing."
+    invalid_sign_in_url
+        "Sign in URL is invalid."
+    missing_saml_cert
+        "SAML certificate is missing."
+    invalid_saml_cert
+        "SAML certificate is invalid."
+    invalid_sign_out_url
+        "Sign out URL is invalid."
+
+route configure_sso(ConfigureSsoArg, Void, ConfigureSsoError)
+    "Set SSO policy for the team.
 
     Permission : Team member management"
 

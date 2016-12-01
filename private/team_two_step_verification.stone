@@ -1,0 +1,40 @@
+namespace team
+
+import common
+import team_administration
+
+union_closed TwoStepVerificationMemberRequirementValue
+    required
+        "Two step verification is requires."
+    optional
+        "Two step verification is optional."
+
+struct TwoStepVerificationMemberRequirementStatus
+    user UserSelectorArg
+        "Team member selector."
+    status TwoStepVerificationMemberRequirementValue
+        "Two step verification requirement status."
+
+    example default
+        user = default
+        status = required
+
+union_closed TwoStepVerificationTeamRequirementSet
+    require_all
+        "Requires two step verification for all team members."
+    optional_all
+        "Make two step verification optional for all team members."
+    require_specific List(TwoStepVerificationMemberRequirementStatus)
+        "Requires (or remove the requirement) of the two step verification for specific members."
+
+alias TwoStepVerificationSetArg = TwoStepVerificationTeamRequirementSet
+alias TwoStepVerificationError = team_administration.AdministrationError
+
+route two_step_verification/set(TwoStepVerificationSetArg, Void, TwoStepVerificationError)
+    "Set two step verification admin's settings.
+
+    Permission : Team member management."
+
+    attrs
+        auth="team"
+        owner="adminx"
