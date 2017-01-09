@@ -83,8 +83,7 @@ struct TeamFolderSyncSettingArg
         team_folder_id = "84528192421"
         default_sync_setting = sync
 
-union TeamFolderSyncSettingError
-    access_error TeamFolderAccessError
+union TeamFolderSyncSettingError extends BaseTeamFolderError
     empty_membership
         "Can't change default sync setting because parent folder has no active members."
 
@@ -140,8 +139,7 @@ struct TeamFolderAccessPoints
     example default
         access_points = ["", "/folder"]
 
-union TeamFolderGetAccessPointsError
-    access_error TeamFolderAccessError
+union TeamFolderGetAccessPointsError extends BaseTeamFolderError
     invalid_dropbox_id
         "The dropbox_id is malformed. Please provide a valid account or group id."
 
@@ -168,11 +166,9 @@ struct TeamFolderFileMetadata
     example default
         created = "2016-08-05T15:50:38Z"
 
-union TeamFolderFileMetadataError
+union TeamFolderFileMetadataError extends BaseTeamFolderError
     "There was an error accessing metadata for the team folder file or folder."
-
     path files.LookupError
-    access_error TeamFolderAccessError
 
 #
 # Membership and Policy Management endpoints (unimplemented)
@@ -190,9 +186,8 @@ struct TeamFolderListMembersArg extends TeamFolderIdArg
     example default
         team_folder_id = "123456789"
 
-union TeamFolderListMembersError
-    access_error TeamFolderAccessError
-    status_error TeamFolderInvalidStatusError
+union TeamFolderListMembersError extends BaseTeamFolderError
+    ""
 
 route team_folder/update_members(TeamFolderUpdateMembersArg, Void, TeamFolderUpdateMembersError)
     "[NOT IMPLEMENTED] Updates the membership of the team folder."
@@ -216,9 +211,7 @@ struct TeamFolderUpdateMembersArg extends TeamFolderIdArg
         update_members = []
         remove_members = []
 
-union TeamFolderUpdateMembersError
-    access_error TeamFolderAccessError
-    status_error TeamFolderInvalidStatusError
+union TeamFolderUpdateMembersError extends BaseTeamFolderError
     cant_share_outside_team
         "Your team policy does not allow sharing outside of the team."
     cant_add_user
@@ -246,9 +239,7 @@ struct TeamFolderUpdatePolicyArg extends TeamFolderIdArg
         acl_update_policy = owner
         shared_link_policy = members
 
-union TeamFolderUpdatePolicyError
-    access_error TeamFolderAccessError
-    status_error TeamFolderInvalidStatusError
+union TeamFolderUpdatePolicyError extends BaseTeamFolderError
     team_policy_disallows_member_policy
         "Team policy is more restrictive than :field:`TeamFolderUpdatePolicyArg.member_policy`."
 

@@ -3,7 +3,7 @@ namespace seen_state
 
 import team_common
 
-alias PathOrSjid = String(pattern="((\/|sjid:).*|nspath:[^:]*)", min_length=1)
+alias PathOrSjidOrFileId = String(pattern="((\/|sjid:).*|nspath:[^:]*|id:.*)", min_length=1)
 
 struct SeenStateUserArg
     "The arguments to the get_seen_state_users endpoint. Just takes a list of user_ids."
@@ -29,9 +29,10 @@ struct FileInfo
     "Identifiers to uniquely identify a file. ns_id is required, and either the
     sjid and ns_path is specified in file_identifier with a prefix."
 
-    ns_id UInt64
-    file_identifier PathOrSjid
-        "Either the ns_path of the file or the sjid with a prefix to identify which."
+    ns_id UInt64?
+        "The ns_id of the file. Must be specified if the file_identifier corresponds to a ns_id or sjid."
+    file_identifier PathOrSjidOrFileId
+        "Either the ns_path, sjid, or file_id of the file with a prefix to identify which."
     url String?
         "If viewing the file on a shared link or shared content link, the url to the file."
 
@@ -70,10 +71,14 @@ struct SeenStateInfoResult
 
     If integrating with sharing, we also return a user_info object which has sharing information
     as well.
+
+    If the user does not have permission to see seen state, the seen_state_error field will be
+    populated.
     "
 
     file_info FileInfo
     seen_state_info SeenStateInfo
+    seen_state_error SeenStateError?
 
 union SharingAccessType
     "Possible levels of access that the user has when viewing the content. If the user has access of

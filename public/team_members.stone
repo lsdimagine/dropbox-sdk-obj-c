@@ -196,7 +196,7 @@ struct MemberAddArg
         "Member's first name."
     member_surname common.NamePart
         "Member's last name."
-    member_external_id MemberExternalId?
+    member_external_id team_common.MemberExternalId?
         "External ID for member."
     send_welcome_email Boolean = true
         "Whether to send a welcome email to the member.
@@ -320,7 +320,7 @@ struct MembersSetProfileArg
         "Identity of user whose profile will be set."
     new_email common.EmailAddress?
         "New email for member."
-    new_external_id MemberExternalId?
+    new_external_id team_common.MemberExternalId?
         "New external ID for member."
     new_given_name common.NamePart?
         "New given name for member."
@@ -342,7 +342,7 @@ union MembersSetProfileError extends MemberSelectorError
     external_id_used_by_other_user
         "The external ID is already in use by another team member."
     set_profile_disallowed
-        "Setting profile disallowed"
+        "Pending team member's email cannot be modified."
     param_cannot_be_empty
         "Parameter new_email cannot be empty."
 
@@ -374,7 +374,7 @@ struct MembersSetPermissionsArg
 
 
 struct MembersSetPermissionsResult
-    team_member_id TeamMemberId
+    team_member_id team_common.TeamMemberId
         "The member ID of the user to which the change was applied."
     role AdminTier
         "The role after the change."

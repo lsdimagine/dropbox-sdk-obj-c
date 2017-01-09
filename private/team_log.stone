@@ -1,10 +1,9 @@
-namespace team
+namespace team_log
 
 import async
+import team
 import team_common
 import users
-
-alias AppId = String
 
 ###############################
 # Routes declarations
@@ -13,9 +12,9 @@ alias AppId = String
 struct GetTeamEventsArg
     limit UInt32(min_value=1, max_value=1000) = 1000
         "Number of results to return per call."
-    user UserSelectorArg?
-        "Filter the events by user."
-    date DateRange?
+    account_id users.AccountId?
+        "Filter the events by user account ID."
+    date team.DateRange?
         "Filter by time range."
     category EventCategory?
         "Filter the returned events to a single category."
@@ -31,10 +30,10 @@ struct GetTeamEventsResult
     events List(TeamEvent)
         "List of events."
     cursor String
-        "Pass the cursor into :route:`log/get_events/continue` to obtain additional events."
+        "Pass the cursor into :route:`get_events/continue` to obtain additional events."
     has_more Boolean
         "Is true if there are additional events that have not been returned yet.
-        An additional call to :route:`log/get_events/continue` can retrieve them."
+        An additional call to :route:`get_events/continue` can retrieve them."
 
 #    example default
 #        events = [TeamEvent]
@@ -42,12 +41,14 @@ struct GetTeamEventsResult
 #        has_more = true
 
 union GetTeamEventsError
-    "Errors that can be raised when calling :route:`log/get_events`."
+    "Errors that can be raised when calling :route:`get_events`."
 
     user_not_found
         "No matching user found. The provided team_member_id, email, or external_id does not exist on this team."
+    empty_date_range
+        "Start timestamp must be before end timestamp."
 
-route log/get_events(GetTeamEventsArg, GetTeamEventsResult, GetTeamEventsError)
+route get_events(GetTeamEventsArg, GetTeamEventsResult, GetTeamEventsError)
     "Retrieves team events.
 
     Permission : Team Auditing."
@@ -65,14 +66,14 @@ struct GetTeamEventsContinueArg
 
 
 union GetTeamEventsContinueError
-    "Errors that can be raised when calling :route:`log/get_events/continue`."
+    "Errors that can be raised when calling :route:`get_events/continue`."
 
     bad_cursor
         "Bad cursor."
 
 
-route log/get_events/continue(GetTeamEventsContinueArg, GetTeamEventsResult, GetTeamEventsContinueError)
-    "Once a cursor has been retrieved from :route:`log/get_events`, use this to paginate through all events.
+route get_events/continue(GetTeamEventsContinueArg, GetTeamEventsResult, GetTeamEventsContinueError)
+    "Once a cursor has been retrieved from :route:`get_events`, use this to paginate through all events.
 
     Permission : Team Auditing."
 

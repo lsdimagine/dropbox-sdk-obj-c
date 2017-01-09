@@ -212,6 +212,9 @@ union GetTeamError extends ResellerIdValidationError
     not_implemented
         "This feature is not implemented."
 
+    contact_support
+        "Something has gone wrong. Please contact support."
+
 union ModifyTeamError extends GetTeamError
     team_cancelled
         "Returned when the team is not active (cancelled) and the operation is not allowed on inactive teams."
@@ -321,6 +324,9 @@ union MigrateTeamError extends GetTeamError
     unknown_reseller
         "Returned if the :field:`MigrateTeamArg.to_reseller_ids` contains unknown resellers."
 
+    new_reseller_ids_not_allowed
+        "Returned if the :field:`MigrateTeamArg.to_reseller_ids` is not allowed."
+
 ### Routes ###
 
 route team/create (CreateTeamArg, TeamWithState, CreateTeamError)
@@ -341,7 +347,7 @@ route team/list (Void, TeamWithStateList, Void)
     attrs
         auth="app"
 
-route team/list2 (TeamListArg, TeamWithStateList, Void)
+route team/list2 (TeamListArg, TeamWithStateList, ResellerIdValidationError)
     "Retrieves information about the teams managed by the reseller in TeamListArg."
     attrs
         auth="app"

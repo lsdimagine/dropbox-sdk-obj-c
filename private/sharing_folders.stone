@@ -41,7 +41,49 @@ struct ExpectedSharedFolderMetadata
         permissions = []
         members_cursor = "ZtkX9_EHj3x7PMkVuFIhwKYXEpwpLwyxp9vMKomUhllil9q7eWiAu"
 
-union ValidateFolderPathError extends ShareFolderErrorBase
+union AlphaShareFolderErrorBase
+    email_unverified
+        "The current user's e-mail address is unverified."
+    bad_path AlphaSharePathError
+        ":field:`AlphaShareFolderArg.path` is invalid."
+    team_policy_disallows_member_policy
+        "Team policy is more restrictive than :field:`AlphaShareFolderArg.member_policy`."
+    disallowed_shared_link_policy
+        "The current user's account is not allowed to select the specified
+        :field:`AlphaShareFolderArg.shared_link_policy`."
+
+union AlphaSharePathError
+    is_file
+        "A file is at the specified path."
+    inside_shared_folder
+        "We do not support sharing a folder inside a shared folder."
+    contains_shared_folder
+        "We do not support shared folders that contain shared folders."
+    contains_app_folder
+        "We do not support shared folders that contain app folders."
+    contains_team_folder
+        "We do not support shared folders that contain team folders."
+    is_app_folder
+        "We do not support sharing an app folder."
+    inside_app_folder
+        "We do not support sharing a folder inside an app folder."
+    is_public_folder
+        "A public folder can't be shared this way. Use a public link instead."
+    inside_public_folder
+        "A folder inside a public folder can't be shared this way. Use a public
+        link instead."
+    already_shared AlphaSharedFolderMetadata
+        "Folder is already shared. Contains metadata about the existing shared folder."
+    invalid_path
+        "Path is not valid."
+    is_osx_package
+        "We do not support sharing a Mac OS X package."
+    inside_osx_package
+        "We do not support sharing a folder inside a Mac OS X package."
+    invalid_path_root files.PathRootError
+        "The path root parameter provided is invalid."
+
+union ValidateFolderPathError extends AlphaShareFolderErrorBase
     no_permission ExpectedSharedFolderMetadata?
         "The current user does not have permission to perform this action. If they don't have
         permission because it would create a nested shared folder, this contains metadata about
@@ -284,7 +326,7 @@ struct InternalGetMetadataArgs
         shared_folder_id = "84528192421"
         actions = []
 
-union InternalFolderAction extends FolderAction
+union InternalFolderAction extends AlphaFolderAction
     "Internal-only actions that may be taken on a shared folder."
 
     upgrade_to_team_folder
@@ -410,7 +452,7 @@ route share_folder_internal (ShareFolderInternalArg, ShareFolderInternalLaunch, 
     attrs
         owner = "company-dropbox-team"
 
-struct ShareFolderInternalArg extends ShareFolderArg
+struct ShareFolderInternalArg extends AlphaShareFolderArg
     confidentiality ConfidentialityArgs = not_confidential
         "Specifies the confidentiality settings on the folder"
 
@@ -533,9 +575,24 @@ union UnshareFoldersBatchError
 
 # --
 
-struct AlphaFolderPolicy extends FolderPolicy
+struct AlphaFolderPolicy
+    "A set of policies governing membership and privileges for a shared
+    folder."
+
+    member_policy MemberPolicy?
+        "Who can be a member of this shared folder, as set on the folder itself.
+        The effective policy may differ from this value if the team-wide policy
+        is more restrictive. Present only if the folder is owned by a team."
+    resolved_member_policy MemberPolicy?
+        "Who can be a member of this shared folder, taking into account both the
+        folder and the team-wide policy. This value may differ from that of
+        member_policy if the team-wide policy is more restrictive than the folder
+        policy. Present only if the folder is owned by a team."
+    acl_update_policy AclUpdatePolicy
+        "Who can add and remove members from this shared folder."
     download_policy DownloadPolicy
     pass_policy PassPolicy
+    shared_link_policy AlphaSharedLinkPolicy
 
     example default
         member_policy = anyone
@@ -621,10 +678,26 @@ route alpha/get_folder_metadata(GetMetadataArgs, AlphaSharedFolderMetadata, Shar
         is_preview = true
         owner = "sfi"
 
-struct AlphaUpdateFolderPolicyArg extends UpdateFolderPolicyArg
+struct AlphaUpdateFolderPolicyArg
+    "If any of the policy's are unset, then they retain their current setting."
+
+    shared_folder_id common.SharedFolderId
+        "The ID for the shared folder."
+    member_policy MemberPolicy?
+        "Who can be a member of this shared folder. Only applicable if the
+        current user is on a team."
+    acl_update_policy AclUpdatePolicy?
+        "Who can add and remove members of this shared folder."
     download_policy DownloadPolicy?
     pass_policy PassPolicy?
+    shared_link_policy AlphaSharedLinkPolicy?
     link_settings LinkSettings?
+
+    example default
+        shared_folder_id = "84528192421"
+        member_policy = team
+        acl_update_policy = owner
+        shared_link_policy = members
 
 route alpha/update_folder_policy(AlphaUpdateFolderPolicyArg, AlphaSharedFolderMetadata, UpdateFolderPolicyError)
     "Update the sharing policies for a shared folder.
@@ -638,3 +711,103 @@ union_closed AlphaShareFolderLaunch extends async.LaunchResultBase
     complete AlphaSharedFolderMetadata
 
 route alpha/share_folder(ShareFolderArg, AlphaShareFolderLaunch, ShareFolderError)
+
+
+union AlphaSharedLinkPolicy extends SharedLinkPolicy
+    team
+        "Links can only be shared among members of the team or shared folder."
+
+struct AlphaShareFolderArg
+    path files.WritePath
+        "The path to the folder to share. If it does not exist, then a new one
+        is created."
+    member_policy MemberPolicy = anyone
+        "Who can be a member of this shared folder. Only applicable if the
+        current user is on a team."
+    acl_update_policy AclUpdatePolicy = owner
+        "Who can add and remove members of this shared folder."
+    shared_link_policy AlphaSharedLinkPolicy = anyone
+        "The policy to apply to shared links created for content inside this
+        shared folder.  The current user must be on a team to set this policy to
+        :field:`SharedLinkPolicy.members` or
+        :field:`AlphaSharedLinkPolicy.team`."
+    force_async Boolean = false
+        "Whether to force the share to happen asynchronously."
+
+
+# --
+
+
+route alpha/list_folders(AlphaListFoldersArgs, AlphaListFoldersResult, Void)
+    "Return the list of all shared folders the current user has access to.
+
+    Apps must have full Dropbox access to use this endpoint."
+
+    attrs
+        owner = "sfi"
+
+struct AlphaListFoldersResult
+    "Result for :route:`list_folders` or :route:`list_mountable_folders`, depending on which
+    endpoint was requested.
+
+    Unmounted shared folders can be identified by the absence of
+    :field:`AlphaSharedFolderMetadata.path_lower`."
+
+    entries List(AlphaSharedFolderMetadata)
+        "List of all shared folders the authenticated user has access to."
+    cursor String?
+        "Present if there are additional shared folders that have not been returned yet. Pass the
+        cursor into the corresponding continue endpoint (either :route:`alpha/list_folders/continue`
+        or :route:`alpha/list_mountable_folders/continue`) to list additional folders."
+
+struct AlphaListFoldersArgs
+    limit UInt32(min_value=1, max_value=1000) = 1000
+        "The maximum number of results to return per request."
+    actions List(AlphaFolderAction)?
+        "This is a list indicating whether each returned folder data entry will
+        include a boolean field :field:`AlphaFolderPermission.allow` that describes
+        whether the current user can perform the `AlphaFolderAction` on the folder."
+
+    example default
+        limit = 100
+        actions = []
+
+
+# --
+
+
+route alpha/list_folders/continue(ListFoldersContinueArg, AlphaListFoldersResult, ListFoldersContinueError)
+    "Once a cursor has been retrieved from :route:`list_folders`, use this to paginate through all
+    shared folders. The cursor must come from a previous call to :route:`list_folders` or
+    :route:`list_folders/continue`.
+
+    Apps must have full Dropbox access to use this endpoint."
+
+    attrs
+        owner = "sfi"
+
+
+# --
+
+
+route alpha/list_mountable_folders(AlphaListFoldersArgs, AlphaListFoldersResult, Void)
+    "Return the list of all shared folders the current user can mount or unmount.
+
+    Apps must have full Dropbox access to use this endpoint."
+
+    attrs
+        owner = "sfi"
+
+
+# --
+
+
+route alpha/list_mountable_folders/continue(ListFoldersContinueArg, AlphaListFoldersResult, ListFoldersContinueError)
+    "Once a cursor has been retrieved from :route:`list_mountable_folders`, use this to paginate through all
+    mountable shared folders. The cursor must come from a previous call to :route:`list_mountable_folders` or
+    :route:`list_mountable_folders/continue`.
+
+    Apps must have full Dropbox access to use this endpoint."
+
+    attrs
+        owner = "sfi"

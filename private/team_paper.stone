@@ -10,15 +10,37 @@ union DropboxTerms
     agree
         "Agree to Dropbox terms."
 
+union_closed PaperDeploymentModeType
+    full
+        "All team members will be able to use paper."
+    partial
+        "Only selected team members will be able to use paper."
+
+alias EnabledMembersUpdate = UpdateExcludedUsersArg
+
+struct PaperDeploymentMode
+    paper_deployment_type PaperDeploymentModeType = full
+        "The paper deployment type."
+    enabled_members_update EnabledMembersUpdate?
+        "If :field:`paper_deployment_type` is `partial` then this can be used to update the
+        list of enabled team members."
+
+    example default
+        paper_deployment_type = full
+
+
 struct PaperPolicy
     paper_enabled Boolean
         "Whether to Allow people on the team to use Dropbox Paper."
     dropbox_terms DropboxTerms?
         "Whether to agree to Dropbox terms. This is required when :field:`paper_enabled` is :val:`true`."
+    paper_deployment_mode PaperDeploymentMode?
+        "Which team members will be able to use paper."
 
     example default
         paper_enabled = true
         dropbox_terms = agree
+        paper_deployment_mode = default
 
 alias PaperPolicyArg = PaperPolicy
 

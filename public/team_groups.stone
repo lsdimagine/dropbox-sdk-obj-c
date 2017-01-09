@@ -35,6 +35,13 @@ union GroupSelectorError
     group_not_found
         "No matching group found. No groups match the specified group ID."
 
+union GroupSelectorWithTeamGroupError extends GroupSelectorError
+    "Error that can be raised when :type:`GroupSelector` is used and team groups are disallowed from
+    being used."
+
+    team_group_disallowed
+        "This operation is disallowed on team groups."
+
 
 union_closed GroupsSelector
     "Argument for selecting a list of groups, either by group_ids, or external group IDs."
@@ -61,7 +68,7 @@ struct GroupMemberSelector
         user = default
 
 
-union GroupMemberSelectorError extends GroupSelectorError
+union GroupMemberSelectorError extends GroupSelectorWithTeamGroupError
     "Error that can be raised when :type:`GroupMemberSelector` is used, and the user
     is required to be a member of the specified group."
 
@@ -78,7 +85,7 @@ struct GroupMembersSelector
         "A list of users that are members of :field:`group`."
 
 
-union GroupMembersSelectorError extends GroupSelectorError
+union GroupMembersSelectorError extends GroupSelectorWithTeamGroupError
     "Error that can be raised when :type:`GroupMembersSelector` is used, and the users
     are required to be members of the specified group."
 
@@ -261,7 +268,7 @@ route groups/create(GroupCreateArg, GroupFullInfo, GroupCreateError)
 # route groups/delete  (async method)
 #
 
-union GroupDeleteError extends GroupSelectorError
+union GroupDeleteError extends GroupSelectorWithTeamGroupError
     group_already_deleted
         "This group has already been deleted."
 
@@ -301,7 +308,7 @@ struct GroupUpdateArgs extends IncludeMembersArg
         new_group_external_id = "sales-234"
         new_group_management_type = company_managed
 
-union GroupUpdateError extends GroupSelectorError
+union GroupUpdateError extends GroupSelectorWithTeamGroupError
     group_name_already_used
         "The requested group name is already being used by another group."
     group_name_invalid
@@ -361,7 +368,7 @@ struct GroupMembersAddArg extends IncludeMembersArg
         members = [default]
 
 
-union GroupMembersAddError extends GroupSelectorError
+union GroupMembersAddError extends GroupSelectorWithTeamGroupError
     duplicate_user
         "You cannot add duplicate users. One or more of the members
         you are trying to add is already a member of the group."

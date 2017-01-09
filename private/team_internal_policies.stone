@@ -30,12 +30,15 @@ struct PaperPolicies
     paper_enabled_policy PaperEnabledPolicy
         "Whether Paper is enabled for this team or not."
     paper_doc_share_policy PaperDocSharePolicy
-        "Who can Paper docs be shared with"
+        "Who can Paper docs be shared with."
+    paper_deployment_policy PaperDeploymentPolicy
+        "Whether the whole team can access Paper or just part of it."
 
     example default
         paper_doc_link_policy = team
         paper_enabled_policy = enabled
         paper_doc_share_policy = team_and_explicitly_shared
+        paper_deployment_policy = full
 
 union PaperDocLinkPolicy
     team
@@ -58,3 +61,10 @@ union PaperDocSharePolicy
         "Share policy is open to the team and external users explicitly shared with."
     anyone_with_link
         "Share policy is open to anyone with a link to the doc."
+
+union PaperDeploymentPolicy
+    full
+        "All team members have access to Paper."
+    partial
+        "Only whitelisted team members can access Paper.
+        To see which user is whitelisted, check 'is_paper_whitelisted' on 'account/info'."

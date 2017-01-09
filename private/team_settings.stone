@@ -2,6 +2,7 @@ namespace team
 
 import team_administration
 import async
+import common
 
 alias AdministrationError = team_administration.AdministrationError
 
@@ -272,6 +273,32 @@ struct ConfigureSsoArg
     sign_out_url String?
         "Sign out URL. Users will be redirected to this page after they logout of Dropbox. This field is optional."
 
+union_closed CertificateStatus
+    valid
+        "The certificate is valid."
+    invalid
+        "The certificate is invalid."
+    no_certificate
+        "There is no certificate."
+
+struct CertificateMetaData
+    status  CertificateStatus
+        "The status of the certificate."
+    common_name String?
+        "The common name of the certificate."
+    expiry_time common.Date?
+        "Expiration time of the certificate."
+
+    example default
+        status = valid
+        common_name = "Certificate common name"
+        expiry_time = "2016-5-1"
+
+struct ConfigureSsoResult
+    cert_metadata CertificateMetaData
+
+    example default
+        cert_metadata = default
 
 union_closed ConfigureSsoError extends team_administration.AdministrationError
     missing_sign_in_url
@@ -285,8 +312,29 @@ union_closed ConfigureSsoError extends team_administration.AdministrationError
     invalid_sign_out_url
         "Sign out URL is invalid."
 
-route configure_sso(ConfigureSsoArg, Void, ConfigureSsoError)
+route configure_sso(ConfigureSsoArg, ConfigureSsoResult, ConfigureSsoError)
     "Set SSO policy for the team.
+
+    Permission : Team member management"
+
+    attrs
+        auth="team"
+        owner="adminx"
+
+
+
+#
+# route configure_google_login_policy
+#
+
+struct ConfigureGoogleLoginPolicyArg
+    google_login_enabled Boolean
+        "Whether to allow google for team members."
+    example google_login_enabled
+        google_login_enabled = true
+
+route configure_google_login_policy(ConfigureGoogleLoginPolicyArg, Void, AdministrationError)
+    "Set google login policy for the team.
 
     Permission : Team member management"
 

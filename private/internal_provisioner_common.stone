@@ -19,6 +19,16 @@ union_closed ExternalInvoiceSource
         will have its own Opportunity. Since payments can happen many time for a given team, multiple
         Opportunities can be associated with a Team."
 
+    zendesk_ticket
+        "This request was generated from a Zendesk ticket. Please just use the ticket ID, not the URL."
+
+    tails_task
+        "This request was generated from a tails.corp task. Please use the form Txxxxxx."
+
+    legacy_admin_no_guarantees
+        "This is some legacy External Invoice from /admin and we really have no idea where it's from. If you're
+        developing new code as of Dec 2016, this should not be used, no matter what, under any circumstances."
+
 struct ExternalInvoiceId
     "Defines some external ID representing a payment. For instance, every upsell should have a different ExternalInvoiceId.
     NOTE: the length of source plus the length of identifier should not exceed 47. We validate this on our side."
@@ -31,6 +41,11 @@ struct ExternalInvoiceId
         "Salesforce example"
         source = salesforce_opportunity_id
         identifier = "ed8c84SomeIdFromSalesforce23c98"
+
+    example tails_example
+        "Tails example"
+        source = tails_task
+        identifier = "T123456"
 
 struct Interval
     start common.DropboxTimestamp

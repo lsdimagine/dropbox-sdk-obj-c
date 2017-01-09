@@ -2,15 +2,34 @@ namespace file_activity_stream
 
 import common
 
+union FileActivityStreamAccessType
+    view_name_only
+    traverse
+    reader_no_comment
+    reader
+    writer
+    owner
+
+union SharedLinkAudience
+    off
+    team
+    public
+
 struct FileActivityStreamUser
+    id String
     display_name String
     email String?
     photo_url String?
 
 struct Activity
     union
-        add AddActivity
-        edit EditActivity
+        add          AddActivity
+        edit         EditActivity
+        move         MoveActivity
+        rename       RenameActivity
+        share        ShareActivity
+        shared_link  SharedLinkActivity
+        view         ViewActivity
 
     id String
     timestamp common.DropboxTimestamp
@@ -19,11 +38,40 @@ struct Activity
 struct AddActivity extends Activity
     "Activity for added files."
 
+    path String
+
 struct EditActivity extends Activity
     "Activity for edited files."
 
     revision_num UInt32
     revision_url String
+
+struct MoveActivity extends Activity
+    "Activity for moved files."
+
+    path String
+    last_path String
+
+struct RenameActivity extends Activity
+    "Activity for renamed files."
+
+    filename String
+    last_filename String
+
+struct ViewActivity extends Activity
+    "Activity for viewed files."
+
+struct ShareActivity extends Activity
+    "Activity for shared files."
+
+    shared_user FileActivityStreamUser
+    access_type FileActivityStreamAccessType
+
+struct SharedLinkActivity extends Activity
+    "Activity for shared links."
+
+    link_audience SharedLinkAudience
+
 
 struct GetActivityStreamRequest
     file_id String

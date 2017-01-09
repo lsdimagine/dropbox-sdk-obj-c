@@ -28,6 +28,12 @@ union_closed TopNotificationStyle
     promo
         "Promo notification style."
 
+struct MobilePromptOpenUrlActionParameters
+    url String
+
+struct MobilePromptOpenUrlAction
+    action_parameters MobilePromptOpenUrlActionParameters
+
 union_closed MobilePromptAction
     open_recents_tab
     open_photos_tab
@@ -35,6 +41,7 @@ union_closed MobilePromptAction
     open_link_computer_page
     open_camera_upload_settings
     open_doc_scanner
+    open_url MobilePromptOpenUrlAction
 
 union_closed TopNotificationIcon
     info

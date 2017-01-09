@@ -141,7 +141,7 @@ struct TeamStatusResponseOrion
         "The Dropbox team's ID."
     interval Interval
         "The teams's current interval before a rebill."
-    num_provisioned_users UInt64(min_value=1)
+    num_provisioned_users UInt64
         "The number of users currently consuming licenses."
     current_state SubscriptionState
         "Represents the current state of the team."

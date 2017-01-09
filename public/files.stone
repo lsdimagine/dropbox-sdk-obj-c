@@ -1033,6 +1033,9 @@ union RelocationError
         "You cannot move a folder into itself."
     too_many_files
         "The operation would involve more than 10,000 files and folders."
+    duplicated_or_nested_paths
+        "There are duplicated/nested paths among :field:`RelocationArg.from_path`
+        and :field:`RelocationArg.to_path`."
 
 struct RelocationBatchArg
     entries List(RelocationPath)
@@ -1084,9 +1087,6 @@ struct RelocationResult
         metadata = default
 
 union RelocationBatchError extends RelocationError
-    duplicated_or_nested_paths
-        "There are duplicated/nested paths among :field:`RelocationArg.from_path`
-        and :field:`RelocationArg.to_path`."
     too_many_write_operations
         "There are too many write operations in user's Dropbox. Please retry
         this request."

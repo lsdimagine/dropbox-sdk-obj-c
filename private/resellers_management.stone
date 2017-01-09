@@ -1,0 +1,100 @@
+namespace resellers
+
+import common
+import users
+
+alias ResellerId = String(min_length=10)
+
+struct DomainResellerLookupArg
+    domain String
+
+    example default
+        domain="it-solutions.com"
+
+struct DomainResellerLookupResult
+    reseller_ids List(ResellerId)
+
+    example default
+        reseller_ids=["RESELLER_1", "RESELLER_2"]
+
+struct ResellerContactInfo
+    title String?
+    first_name common.NamePart
+    last_name common.NamePart
+    email common.EmailAddress
+    contact_number String
+
+    example default
+        title=""
+        first_name="John"
+        last_name="Doe"
+        email="johndoe@it-solutions.com"
+        contact_number="(555) 123-4567"
+
+struct Address
+    street String
+    city String
+    state String?
+    postal String?
+    country_code String(min_length=2,max_length=2, pattern="[A-Za-z]{2}")
+
+    example default
+        street="123 4th Ave"
+        city="Seattle"
+        state="WA"
+        postal="98104"
+        country_code="US"
+
+    example no_zip
+        street="123 Main st"
+        city="Dublin"
+        country_code="IE"
+
+
+
+struct ResellerCreationArg
+    biz_contact ResellerContactInfo
+    tech_contact ResellerContactInfo
+
+    company_name common.NamePart
+    company_domain String
+    company_size UInt32
+    partner_type UInt32
+    num_customers UInt32
+    customer_size UInt32
+
+    address Address
+
+    example default
+        biz_contact=default
+        tech_contact=default
+
+        company_name="IT Solutions"
+        company_domain="it-solutions.com"
+        company_size=1
+        partner_type=1
+        num_customers=1
+        customer_size=1
+
+        address=default
+
+
+struct ResellerCreationResult
+    reseller_id ResellerId
+    domain String
+
+    example default
+        reseller_id="RESELLER_1"
+        domain="it-solutions.com"
+
+union ResellerCreationError
+    invalid_data
+        "Data passed in didn't pass validation."
+
+route manage/domain_lookup (DomainResellerLookupArg, DomainResellerLookupResult, Void)
+    attrs
+        auth="app"
+
+route manage/create (ResellerCreationArg, ResellerCreationResult, ResellerCreationError)
+    attrs
+        auth="app"

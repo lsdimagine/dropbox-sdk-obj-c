@@ -9,6 +9,10 @@ union LinkAudience
         "Link is accessible only by team members."
     members
         "Link is accessible only by members of the content."
+    default_on
+        "Link is accessible by anyone if there is no team policy that applies to this content. If
+        there is a team policy that applies to this content, the LinkAudience will be set to
+        whatever LinkAudience the team admin set as the default shared link audience."
 
 union LinkAction
     "Actions that can be performed on a link."
@@ -70,7 +74,8 @@ struct SharedContentLinkMetadata
     audience_options List(LinkAudience)
         "The audience options that are available for the content. Some audience options may be
         unavailable. For example, team_only may be unavailable if the content is not owned by a
-        user on a team."
+        user on a team. The 'default' audience option is always available if the user can modify
+        link settings."
     current_audience LinkAudience
         "The current audience of the link."
     expiry common.DropboxTimestamp?
@@ -101,16 +106,20 @@ union SetLinkSettingsError
     access_denied
         "The user does not have permission to set settings on this link."
 
-route alpha/get_link_metadata(GetLinkMetadataArg, SharedContentLinkMetadata, GetLinkMetadataError)
-    "Retrieves the link metadata of the link."
+route alpha/get_link_metadata(GetLinkMetadataArg, SharedContentLinkMetadata, GetLinkMetadataError) deprecated
+    "DEPRECATED: talk to davy@, use alpha/get_file_metadata and alpha/get_folder_metadata instead
+
+    Retrieves the link metadata of the link."
 
     attrs
         api_group="sharing"
         is_preview = true
         owner = "sharing"
 
-route alpha/set_link_settings(SetLinkSettingsArg, SharedContentLinkMetadata, SetLinkSettingsError)
-    "Modifies the link settings of the link."
+route alpha/set_link_settings(SetLinkSettingsArg, SharedContentLinkMetadata, SetLinkSettingsError) deprecated
+    "DEPRECATED: talk to davy@, use alpha/update_file_policy and alpha/update_folder_policy instead
+
+    Modifies the link settings of the link."
 
     attrs
         api_group="sharing"

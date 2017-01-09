@@ -80,7 +80,7 @@ struct TeamStatusResponse
     plan_id UInt64
     billing_schedule_id UInt64
     num_licenses UInt64(min_value=1)
-    num_provisioned_users UInt64(min_value=1)
+    num_provisioned_users UInt64
 
     example default
         "Sample response"

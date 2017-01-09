@@ -1,5 +1,8 @@
 namespace team_common
 
+alias TeamMemberId = String
+alias MemberExternalId = String(max_length=64)
+
 alias GroupId = String
 
 struct GroupSummary
