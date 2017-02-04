@@ -105,6 +105,29 @@ struct TeamFolderAllSyncSettingsArg
 # Team folder metadata endpoints (private)
 #
 
+route team_folder/get_tsd_writable_setting(Void, TeamSharedDropboxWritableSetting, Void)
+    "Returns whether CDM Team's Shared Dropbox is writable by users or read-only."
+
+    attrs
+        owner = "company-dropbox-team"
+        auth = "team"
+
+route team_folder/set_tsd_writable_setting(TeamSharedDropboxWritableSetting, Void, TeamSharedDropboxWritableError)
+    "Sets the CDM Team's Shared Dropbox writable or read-only for team members."
+
+    attrs
+        owner = "company-dropbox-team"
+        auth = "team"
+
+struct TeamSharedDropboxWritableSetting
+    is_writable Boolean
+
+    example default
+        is_writable = true
+
+union TeamSharedDropboxWritableError
+    access_error TeamFolderAccessError
+
 #
 # Routes for alpha or unimplemented features
 #

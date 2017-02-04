@@ -53,17 +53,17 @@ struct SeenStateUser
 struct SeenStateLastSeen
     "Seen State object consists of a timestamp of when the user last viewed as well as
     a SeenStateUser object holding user information. If when_last_seen is null, then it means
-    that the user has not seen the object."
+    that the user has not seen the object. Typically, this would happen only for
+    the SeenStateLastSeen which corresponds to the actor themselves."
 
     when_last_seen UInt64?
     seen_state_user SeenStateUser
 
 struct SeenStateInfo
     "Holds a list of seen states representing a list of views that unique users have on
-    the object as well as the total number of accessors on the file."
+    the object."
 
     seen_states List(SeenStateLastSeen)
-    num_accessors Int32?
 
 struct SeenStateInfoResult
     "Seen state info appended with file info. We return a list of these in fetching seen

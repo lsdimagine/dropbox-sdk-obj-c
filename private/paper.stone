@@ -1,0 +1,62 @@
+namespace paper
+
+union ImportFormat
+    "The import format of the incoming document."
+
+    html
+        "The provided data is HTML."
+    markdown
+        "The provided data is markdown.
+        Note: The first line of the provided document will be used as the doc title."
+
+# TODO(jenda):
+# 1. Add revision in case of update
+# 2. Maybe split create/update into two EPs
+# 3. Maybe add "Title" as argument instead
+# 4. Add containingFolderId
+struct PaperDocImport
+    doc_id PaperDocId?
+        "Specify Paper doc id if you want to override the existing document.
+        Your account has to have edit permissions on this document.
+
+        Leave empty for to create a new document."
+    containing_folder_id String?
+        "The Paper folder id where the Paper document should be created. The API user has to have
+        wite access to this folder or error is thrown.
+
+        This value can be specified only if the doc is being created,
+        i. e. :field:`doc_id` is left empty."
+    import_format ImportFormat
+
+    example default
+        import_format = markdown
+
+    example updateDoc
+        import_format = markdown
+        doc_id = "uaSvRuxvnkFa12PTkBv5q"
+
+    example createDocInFolder
+        import_format = html
+        containing_folder_id = "e.gGYT6HSafpMej9bUv306GarglI7GGeAM3yvfZvXHO9u4mV"
+
+struct PaperDocImportResult
+    doc_id String
+        "Doc id of the newly created doc."
+
+    example default
+        doc_id = "uaSvRuxvnkFa12PTkBv5q"
+
+union DocImportError extends DocLookupError
+    content_malformed
+        "The provided content was malformed and cannot be imported to Paper."
+
+route docs/upload (PaperDocImport, PaperDocImportResult, DocImportError)
+    "Creates or updates a Paper doc with the provided content.
+
+    In the case of update (the Paper doc id is provided), the document will be completely
+    overwritten."
+    attrs
+        style="upload"
+        owner="paper-eng"
+        is_preview = true
+        api_group="paper-api-alpha"

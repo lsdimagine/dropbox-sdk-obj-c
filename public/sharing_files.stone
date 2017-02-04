@@ -46,8 +46,12 @@ union FileErrorResult
 union FileAction
     "Sharing actions that may be taken on files."
 
+    disable_viewer_info
+        "Disable viewer information on the file."
     edit_contents
         "Change or edit contents of the file."
+    enable_viewer_info
+        "Enable viewer information on the file."
     invite_viewer
         "Add a member with view permissions."
     invite_viewer_no_comment
@@ -83,6 +87,8 @@ struct FilePermission
 struct SharedFileMetadata
     "Properties of the shared file."
 
+    link_metadata SharedContentLinkMetadata?
+        "The metadata of the link associated for the file."
     policy FolderPolicy
         "Policies governing this shared file."
     permissions List(FilePermission)?
@@ -124,6 +130,12 @@ struct SharedFileMetadata
         name = "file.txt"
         id = "id:3kmLmQFnf1AAAAAAAAAAAw"
         time_invited = "2016-01-20T00:00:00Z"
+
+union ViewerInfoPolicy
+    enabled
+        "Viewer information is available on this file."
+    disabled
+        "Viewer information is disabled on this file."
 
 ##################################
 # File membership mutation types #
@@ -261,6 +273,7 @@ route get_file_metadata(GetFileMetadataArg, SharedFileMetadata, GetFileMetadataE
 
     attrs
         owner = "sharing"
+        api_group = "truelink-alpha"
 
 struct GetFileMetadataArg
     "Arguments of :route:`get_file_metadata`."
@@ -598,6 +611,7 @@ route unshare_file(UnshareFileArg, Void, UnshareFileError)
 
     attrs
         owner = "sharing"
+        api_group = "truelink-alpha"
 
 struct UnshareFileArg
     "Arguments for :route:`unshare_file`."

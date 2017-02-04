@@ -1,0 +1,106 @@
+namespace team
+
+import team_administration
+import team_policies
+
+#
+# route emm/configure_settings
+#
+union ConfigureSettingsError extends team_administration.AdministrationError
+    missing_input
+    duplicate_entries String
+
+struct EmmSettingsArgs
+    "EMM configuration parameters.
+    Includes EMM team policy and exclusion list."
+    emm_policy team_policies.EmmState?
+    exclusion_list UpdateExcludedUsersArg?
+
+    example disabled
+        emm_policy = disabled
+
+struct EmmSettingsResult
+    "Current EMM settings."
+    emm_policy team_policies.EmmState
+    exclusion_list GetExcludedUsersResult
+
+    example default
+        emm_policy = required
+        exclusion_list = default
+
+route emm/configure_settings(EmmSettingsArgs, EmmSettingsResult, ConfigureSettingsError)
+    "Configure EMM Policy and a list of members excluded from this policy
+
+    Permission : Team member management."
+
+    attrs
+        auth="team"
+        owner="adminx"
+
+
+#
+# route emm/refresh_token
+#
+union RefreshTokenError extends team_administration.AdministrationError
+    conflict String
+
+struct RefreshEmmTokenResult
+    "Newly generated EMM token."
+    emm_token String
+    example new_token
+        emm_token = "newToken@@##!!"
+
+route emm/refresh_token(Void, RefreshEmmTokenResult, RefreshTokenError)
+    "Generate a new token and invalidate the old one,
+    Only available when EMM policy is set to Required/Optional.
+    Warning: this will revoke all currently connected mobile devices.
+
+    Permission : Team member management."
+
+    attrs
+        auth="team"
+        owner="adminx"
+
+#
+# route emm/generate_report
+#
+
+union EmmReportType
+    mobile_app_usage
+        "Mobile app usage report."
+    excluded_users_list
+        "Excluded users list report."
+
+union ReportOutputFormat
+    tsv
+        "Tab separated value."
+    csv
+        "Comma separated value."
+
+# Minutes from UTC, ( -12UTC to +14UTC )
+alias TimezoneOffset = Int32(min_value=-720, max_value=840)
+
+struct GenerateReportArgs
+    "Select the report type, its timezone offset and output format."
+    report_type EmmReportType
+    timezone_offset TimezoneOffset = 0
+        "Specify desired timezone offset from UTC, in minutes.
+        The value is NEGATIVE if the desired timezone is
+        ahead of UTC (ex: Australia), and POSITIVE for California."
+    output_format ReportOutputFormat = csv
+
+    example tsv_israel_timezone
+        report_type = mobile_app_usage
+        timezone_offset = -120
+        output_format = tsv
+
+
+route emm/generate_report(GenerateReportArgs, Void, AdministrationError)
+    "Generate Mobile App Usage Report or Excluded Users List report.
+    This is an async request and the report will be sent via email.
+
+    Permission : Team member management."
+
+    attrs
+        auth="team"
+        owner="adminx"

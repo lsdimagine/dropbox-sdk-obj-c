@@ -7,13 +7,20 @@ import async
 import common
 import team_common
 import users
+import files
 
 alias AppId = String
+alias IpAddress = String(pattern="^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$")
+alias RequestId = String
 
 
 ########################################
 # Union types that are used by events.
 ########################################
+
+union AppType
+    USER_LINKED_APP
+    TEAM_LINKED_APP
 
 union DeviceType
     desktop
@@ -23,78 +30,102 @@ union GroupJoinPolicy
     request_to_join
     open
 
-union SessionType
-    web
-    mobile
-    desktop
-
 ##################
 # Built-in types
 ##################
 
-struct AppLogInfo
+struct ApiSessionLogInfo 
+    "Api session."
+
+    request_id RequestId
+        "Api request ID."
+
+struct AppLogInfo 
     "Application\u2019s logged information."
 
-    display_name String?
-        "Application display name."
     app_id AppId?
         "Application unique ID."
+    app_type AppType?
+        "Application type, user-linked or team-linked."
+    display_name String?
+        "Application display name."
 
-struct DeviceLogInfo
-    "Device\u2019s logged information."
+struct DesktopSessionLogInfo extends SessionLogInfo
+    "Desktop session."
+
+
+struct SessionLogInfo 
+    "Session\u2019s logged information."
+
+    session_id String?
+        "Session ID."
+
+struct UserLogInfo 
+    "User\u2019s logged information."
+    union
+        non_team_member NonTeamMemberLogInfo
+        team_member TeamMemberLogInfo
+
+    display_name common.DisplayName?
+        "User display name."
+    email common.EmailAddress?
+        "User email address."
+    account_id users.AccountId?
+        "User unique ID."
+
+struct TeamMemberLogInfo extends UserLogInfo
+    "Team member\u2019s logged information."
+
+    member_external_id team_common.MemberExternalId?
+        "Team member external ID."
+    team_member_id team_common.TeamMemberId?
+        "Team member ID."
+
+struct FileOrFolderLogInfo 
+    "Generic information relevant both for files and folders"
 
     display_name String?
-        "Device display name."
-    os_version String?
-        "Device OS version."
-    ip String?
-        "Ip address."
-    last_activity String?
-        "Last activity."
-    platform String?
-        "Device platform name."
-    device_type String?
-        "Device type."
-    mac_address String?
-        "Device mac address."
-    is_emm_managed Boolean?
-        "True if this device is emm managed, false otherwise."
-    device_id String?
-        "Device unique id."
+        "Display name."
+    file_id String?
+        "Unique ID."
+    path PathLogInfo?
+        "Path relative to event context."
 
-struct FileLogInfo
+struct FileLogInfo extends FileOrFolderLogInfo
     "File\u2019s logged information."
 
-    display_name String?
-        "File display name."
-    sjid Int64?
-        "Server filejournal ID."
-    file_id String?
-        "Unique file ID."
-    is_folder Boolean?
-        "Is folder?."
-    path String?
-        "Relative file path."
-    ns_id Int64?
-        "Namespace ID."
 
-struct GroupLogInfo
+struct FolderLogInfo extends FileOrFolderLogInfo
+    "Folder\u2019s logged information."
+
+
+struct GroupLogInfo 
     "Group\u2019s logged information."
 
-    group_id team_common.GroupId?
-        "The unique id of this group."
     display_name String
         "The name of this group."
+    external_id team_common.GroupExternalId?
+        "External group ID."
+    group_id team_common.GroupId?
+        "The unique id of this group."
 
-struct PaperDocumentLogInfo
+struct PathLogInfo 
+    "Path\u2019s details."
+
+    contextual files.Path?
+        "Fully qualified path relative to event\u2019s context."
+    namespace_relative NamespaceRelativePathLogInfo
+        "Path relative to the namespace containing the content."
+
+struct PaperDocumentLogInfo 
     "Paper document\u2019s logged information."
 
-    doc_title String
-        "Paper document title."
     doc_id String
         "Papers document Id."
+    doc_title String
+        "Paper document title."
 
-struct PaperFolderLogInfo
+struct PaperFolderLogInfo 
     "Paper folder\u2019s logged information."
 
     folder_id String
@@ -102,51 +133,161 @@ struct PaperFolderLogInfo
     folder_name String
         "Paper folder name."
 
-struct PaperTaggedValue
+struct NonTeamMemberLogInfo extends UserLogInfo
+    "Non team member\u2019s logged information."
+
+
+struct NamespaceRelativePathLogInfo 
+    "Namespace relative path details."
+
+    ns_id common.NamespaceId?
+        "Namespace ID."
+    relative_path files.Path?
+        "A path relative to the specified namespace ID."
+
+struct WebSessionLogInfo extends SessionLogInfo
+    "Web session."
+
+
+struct MobileSessionLogInfo extends SessionLogInfo
+    "Mobile session."
+
+
+struct ResellerLogInfo 
+    "Reseller information."
+
+    reseller_id team_common.ResellerId
+        "Reseller ID."
+    reseller_name String
+        "Reseller name."
+
+struct OriginLogInfo 
+    "The origin from which the actor performed the action."
+
+    access_method AccessMethodLogInfo
+        "The method that was used to perform the action."
+    geo_location GeoLocationInfo?
+        "Geographic location details."
+    host HostLogInfo?
+        "Host details."
+
+struct MissingDetails 
+    "An indication that an event was returned with missing details"
+
+
+struct SharedFolderLogInfo 
+    "SharedFolder\u2019s logged information."
+
+    display_name String
+        "Shared folder display name."
+    ns_id common.NamespaceId?
+        "Namespace ID."
+
+struct DeviceLogInfo 
+    "Device\u2019s logged information."
+
+    device_id String?
+        "Device unique id."
+    device_type String?
+        "Device type."
+    display_name String?
+        "Device display name."
+    ip_address IpAddress?
+        "IP address."
+    is_emm_managed Boolean?
+        "True if this device is emm managed, false otherwise."
+    last_activity String?
+        "Last activity."
+    mac_address String?
+        "Device mac address."
+    os_version String?
+        "Device OS version."
+    platform String?
+        "Device platform name."
+
+struct PaperTaggedValue 
     "Paper tagged value."
 
     tag String
         "Tag."
 
-struct SessionLogInfo
-    "Session\u2019s logged information."
+struct GeoLocationInfo 
+    "Geographic location details."
 
-    host_id Int64?
+    city String?
+        "City name."
+    country String?
+        "Country code."
+    ip_address IpAddress
+        "IP address."
+    region String?
+        "Region name."
+
+struct HostLogInfo 
+    "Host details."
+
+    host_id UInt64?
         "Host ID."
     host_name String?
         "Host name."
-    session_id String?
-        "Session ID."
-    session_type SessionType?
-        "Session type."
 
-struct SharedFolderLogInfo
-    "SharedFolder\u2019s logged information."
+union AccessMethodLogInfo
+    "Indicates the method in which the action was performed."
 
-    display_name String
-        "Shared folder display name."
-    ns_id Int64?
-        "Namespace ID."
-
-struct UserLogInfo
-    "User\u2019s logged information."
-
-    display_name String?
-        "User display name."
-    account_id users.AccountId?
-        "User unique ID."
-    email String?
-        "User email address."
-    member_id team_common.TeamMemberId?
-        "If this user is a team member this field will hold his team member ID."
+    admin_console WebSessionLogInfo
+        "Admin console session details."
+    api ApiSessionLogInfo
+        "Api session details."
+    content_manager WebSessionLogInfo
+        "Content manager session details."
+    end_user SessionLogInfo
+        "End user session details."
+    sign_in_as WebSessionLogInfo
+        "Sign in as session details."
 
 union ActorLogInfo
     "The entity who performed the action."
 
+    admin UserLogInfo
+        "The admin who did the action."
     app AppLogInfo
-        "The Application who did the action."
+        "The application who did the action."
+    dropbox 
+        "Action done by Dropbox."
+    reseller ResellerLogInfo
+        "Action done by reseller."
     user UserLogInfo
-        "The User who did the action."
+        "The user who did the action."
+
+union AssetLogInfo
+    "Asset details."
+
+    file FileLogInfo
+        "File\u2019s details."
+    folder FolderLogInfo
+        "Folder\u2019s details."
+    paper_document PaperDocumentLogInfo
+        "Paper docuement\u2019s details."
+    paper_folder PaperFolderLogInfo
+        "Paper folder\u2019s details."
+
+union ContextLogInfo
+    "The primary entity on which the action was done."
+
+    non_team_member NonTeamMemberLogInfo
+        "Action was done on behalf of a non team member."
+    team 
+        "Action was done on behalf of the team."
+    team_member TeamMemberLogInfo
+        "Action was done on behalf of a team member."
+
+union ParticipantLogInfo
+    "A user or group"
+
+    group GroupLogInfo
+        "Group details."
+    user UserLogInfo
+        "User details."
 
 union EventCategory
     "Category of events in event audit log."
@@ -166,7 +307,7 @@ union EventCategory
 #############################
 
 struct DeviceManagementUserApprovalBlockedDetails
-    "Unable to login due to Device Approvals limit."
+    "Failed to sign in because of device approvals limit."
 
     device_type DeviceType
         "A description of the device used while user approval blocked."
@@ -180,8 +321,8 @@ struct EmmLoginErrorDetails
 struct LoginFailDetails
     "Failed to sign in."
 
-    failure_reason String
-        "The reason that the login failed."
+    failure_reason String?
+        "Login failure reason. Might be missing due to historical data gaps."
 
 struct LoginSuccessDetails
     "Signed in."
@@ -207,6 +348,34 @@ struct WebIpChangedDetails
     user_agent String
         "Web browser name."
 
+struct AddTfaBackupPhoneDetails
+    "Added two-step verification backup phone."
+
+
+struct AddTfaSecurityKeyDetails
+    "Added a security key for two-step verification."
+
+
+struct EditTfaBackupPhoneDetails
+    "Edited two-step verification backup phone."
+
+
+struct PasswordChangeDetails
+    "Changed password."
+
+
+struct RemoveTfaBackupPhoneDetails
+    "Removed two-step verification backup phone."
+
+
+struct RemoveTfaSecurityKeyDetails
+    "Disabled a security key for two-step verification."
+
+
+struct ResetAllPasswordsDetails
+    "Reset all passwords."
+
+
 struct ResetPasswordDetails
     "Reset password."
 
@@ -216,6 +385,18 @@ struct TfaDisableDetails
 
     used_rescue_code Boolean
         "Used two factor authentication code."
+
+struct TfaEditAuthenticatorDetails
+    "Set two-step verification to use mobile app."
+
+
+struct TfaEditSmsDetails
+    "Set two-step verification to use SMS."
+
+
+struct TfaEnableDetails
+    "Enabled two-step verification."
+
 
 struct TfaResetDetails
     "Reset two-step verification."
@@ -287,6 +468,10 @@ struct DomainInvitesEmailExistingUsersDetails
     num_recipients Int64
         "Number of recipients."
 
+struct DomainInvitesRequestToJoinTeamDetails
+    "Asked to join the team."
+
+
 struct MemberInviteDetails
     "Invited a member."
 
@@ -337,6 +522,12 @@ struct DeleteOnUnlinkSuccessDetails
     device_info DeviceLogInfo
         "Device information."
 
+struct DesktopIpChangedDetails
+    "Desktop client IP changed."
+
+    device_info DeviceLogInfo
+        "Device information."
+
 struct DeviceLinkDetails
     "Linked a device."
 
@@ -353,13 +544,561 @@ struct DeviceUnlinkDetails
     delete_data Boolean
         "True if the user requested to delete data after device unlink, false otherwise."
 
+struct MobileIpChangedDetails
+    "Mobile device IP changed."
+
+    device_info DeviceLogInfo
+        "Device information."
+
+struct AdminFailedDomainVerificationDetails
+    "Failed domain verification."
+
+    verification_method String
+        "Domain name verification method."
+    domain_name String
+        "Domain name."
+
+struct AdminRemovedADomainDetails
+    "Removed a verified domain."
+
+    domain_name String
+        "Domain name."
+
+struct AdminSetAccountCaptureModeDetails
+    "Changed account capture mode."
+
+    new_account_capture_mode Int64
+        "New account capture mode."
+
+struct AdminVerifiedADomainDetails
+    "Verified a domain."
+
+    verification_method String
+        "Domain name verification method."
+    domain_name String
+        "Domain name."
+
+struct AllowDownloadDisabledDetails
+    "Disabled allow downloads."
+
+
+struct AllowDownloadEnabledDetails
+    "Enabled allow downloads."
+
+
+struct AllowEmmDetails
+    "Enabled EMM."
+
+
+struct AllowSsoDetails
+    "Allowed use of single sign-on."
+
+
+struct ChangeAdminRoleDetails
+    "Changed admin role."
+
+    new_admin_role String
+        "New admin role."
+    prev_admin_role String
+        "Previous admin role."
+
+struct ChangeLogoutUrlDetails
+    "Changed single sign-on logout URL."
+
+    prev_sso_logout_url String
+        "Previous single sign-on logout URL."
+    new_sso_logout_url String?
+        "New single sign-on logout URL."
+
+struct ChangeMembershipTypeDetails
+    "Changed member type."
+
+    prev_membership_type Int64
+        "Previous membership type."
+    new_membership_type Int64
+        "New membership type."
+
+struct ChangeSamlIdentityModeDetails
+    "Changed single sign-on identity mode."
+
+    prev_saml_identity_mode Int64
+        "Previous single sign-on identity mode."
+    new_saml_identity_mode Int64
+        "New single sign-on identity mode."
+
+struct ChangeSsoUrlDetails
+    "Changed single sign-on URL."
+
+    prev_sso_url String
+        "Previous SSO Url."
+    new_sso_url String
+        "New SSO Url."
+
+struct ChangeTeamMemberEmailDetails
+    "Changed a member's email."
+
+    prev_email String
+        "Previous email."
+    new_email String
+        "New email."
+
+struct CommentingDisabledDetails
+    "Disabled comments."
+
+
+struct CommentingEnabledDetails
+    "Enabled comments."
+
+
+struct CsvDownloadDetails
+    "Created a team activity report."
+
+    start_date String
+        "Report start date."
+    end_date String
+        "Report end date."
+
+struct DbxSupportGrantedAccountCaptureDetails
+    "Enabled account capture."
+
+
+struct DbxSupportRemovedDomainsDetails
+    "Removed domains."
+
+    domain_names List(String)
+        "Domain names."
+
+struct DbxSupportRevokedAccountCaptureDetails
+    "Disabled account capture."
+
+
+struct DbxSupportVerifiedDomainsDetails
+    "Verified domains."
+
+    domain_names List(String)
+        "Domain names."
+
+struct DeviceManagementDesktopsLimitChangedDetails
+    "Changed the number of allowed computers."
+
+
+struct DeviceManagementDisabledDetails
+    "Disable Device Management."
+
+
+struct DeviceManagementEnabledDetails
+    "Enable Device Management."
+
+
+struct DeviceManagementMobilesLimitChangedDetails
+    "Changed the number of allowed mobile devices."
+
+
+struct DeviceManagementRolloutChangedDetails
+    "Changed the device approvals setting for members who are over the limits."
+
+
+struct DeviceManagementUserCanNotUnapproveDetails
+    "Changed the device approvals setting for disconnected devices."
+
+
+struct DeviceManagementUserCanUnapproveDetails
+    "Changed Device Management user can unapprove method."
+
+
+struct DisabledDomainInvitesDetails
+    "Disabled domain invites."
+
+
+struct DisableEmmDetails
+    "Disabled EMM."
+
+
+struct DisableSsoDetails
+    "Disabled single sign-on."
+
+
+struct EmmExclusionUsersReportCreatedDetails
+    "EMM excluded users report created."
+
+
+struct EmmTokenRefreshedDetails
+    "EMM token refreshed."
+
+
+struct EmmUsageReportCreatedDetails
+    "EMM mobile app usage report created."
+
+
+struct EmmUserExcludedDetails
+    "EMM user added to excluded users list."
+
+
+struct EmmUserUnexcludedDetails
+    "EMM user removed from excluded users list."
+
+
+struct EnabledDomainInvitesDetails
+    "Enabled domain invites."
+
+
+struct FileRequestsDisabledDetails
+    "Disabled file requests."
+
+
+struct FileRequestsEmailsEnabledDetails
+    "Enabled file request emails for everyone."
+
+
+struct FileRequestsEmailsRestrictedToTeamOnlyDetails
+    "Allowed file request emails for the team."
+
+
+struct FileRequestsEnabledDetails
+    "Enabled file requests."
+
+
+struct ForceTfaDisableDetails
+    "Allowed two-step verification to be disabled."
+
+
+struct ForceTfaEnableDetails
+    "Required two-step verification."
+
+
+struct GoogleLoginDisabledDetails
+    "Disallowed team members from logging in with Google."
+
+
+struct GoogleLoginEnabledDetails
+    "Allowed team members to log in with Google."
+
+
+struct GroupsAllUsersCanCreateDetails
+    "Allowed all team members to create groups."
+
+
+struct GroupsOnlyAdminsCanCreateDetails
+    "Allowed only team admins to create groups."
+
+
+struct MakeAdminDetails
+    "Gave admin permissions."
+
+    new_admin_role String
+        "New admin role."
+
+struct MemberSpaceLimitsExclusionListUsersAdditionDetails
+    "Member added to space limit exclusion list."
+
+
+struct MemberSpaceLimitsExclusionListUsersRemovalDetails
+    "Member removed from space limit exclusion list."
+
+
+struct MemberSpaceLimitsLevelChangeDetails
+    "Space limit: allowed usage level changed."
+
+    prev_limits_level String
+        "Previous member space limits level."
+    new_limits_level String
+        "New member space limits level."
+
+struct MemberSpaceUserUsageStateChangeDetails
+    "Space limit: member usage state changed."
+
+    prev_user_usage_state String?
+        "Previous space limits user usage state."
+    new_user_usage_state String?
+        "New space limits user usage state."
+
+struct NotesDisabledDetails
+    "Dropbox Paper disabled."
+
+
+struct NotesEnabledDetails
+    "Dropbox Paper enabled."
+
+
+struct NotesLinkPolicyPublicDetails
+    "Paper links accessible by anyone with the link."
+
+
+struct NotesLinkPolicyTeamDetails
+    "Paper links accessible by team members."
+
+
+struct NotesSharePolicyAnyoneWithLinkDetails
+    "Paper documents accessible by anyone with the link."
+
+
+struct NotesSharePolicyOnlyTeamDetails
+    "Paper documents accessible by only team members."
+
+
+struct NotesSharePolicyTeamAndExplicitlySharedDetails
+    "Paper documents accessible by team members and shared external users."
+
+
+struct NtsDisabledDetails
+    "Disabled network control."
+
+
+struct NtsEnabledDetails
+    "Enabled network control."
+
+
+struct PaperDeploymentPolicyFullDetails
+    "Enabled Paper to all team members."
+
+
+struct PaperDeploymentPolicyPartialDetails
+    "Enabled Paper to a specific list of team members only."
+
+
+struct PaperDisabledDetails
+    "Paper disabled."
+
+
+struct PaperEnabledDetails
+    "Paper enabled."
+
+
+struct PaperEnabledUsersGroupAdditionDetails
+    "Users added to Paper enabled users list."
+
+
+struct PaperEnabledUsersGroupRemovalDetails
+    "Users removed from Paper enabled users list."
+
+
+struct PermanentlyDeleteAccountContentsDetails
+    "Permanently deleted account contents."
+
+
+struct PermanentDeleteDisabledDetails
+    "Disabled permanent delete for all team members."
+
+
+struct PermanentDeleteEnabledDetails
+    "Enabled permanent delete for all team members."
+
+
+struct PlacementRestrictionChangedDetails
+    "Team placement restriction changed."
+
+    prev_value String
+        "Previous placement restriction."
+    new_value String
+        "New placement restriction."
+
+struct PlacementRestrictionFulfilledDetails
+    "Team placement restriction fulfilled."
+
+    placement_restriction String
+        "Placement restriction."
+
+struct RemoveAdminDetails
+    "Removed admin permissions."
+
+    prev_admin_role String
+        "Previous admin role."
+
+struct RemoveLogoutUrlDetails
+    "Removed single sign-on logout URL."
+
+    prev_sso_logout_url String
+        "Previous single sign-on logout URL."
+    new_sso_logout_url String?
+        "New single sign-on logout URL."
+
+struct RemoveSsoUrlDetails
+    "Removed single sign-on URL."
+
+    prev_sso_url String
+        "Previous SSO Url."
+
+struct RequestMembershipAutoAcceptDetails
+    "Allowed members to join without approval."
+
+
+struct RequestMembershipDisabledDetails
+    "Prevented users from requesting membership."
+
+
+struct RequestMembershipRequireApprovalDetails
+    "Required approval for new members."
+
+
+struct RequireEmmDetails
+    "Required use of EMM."
+
+
+struct RequireSsoDetails
+    "Required use of single sign-on."
+
+
+struct ResellerSupportSessionEndDetails
+    "Ended support session."
+
+
+struct ResellerSupportSessionStartDetails
+    "Started support session."
+
+
+struct SfExternalAcceptAllowDetails
+    "Allowed team members to join shared folders outside the team."
+
+
+struct SfExternalAcceptForbidDetails
+    "Prevented team members from joining shared folders outside the team."
+
+
+struct SfExternalInviteAllowDetails
+    "Allowed folders to be shared outside the team."
+
+
+struct SfExternalInviteForbidDetails
+    "Prevented folders from being shared outside the team."
+
+
+struct ShmodelExternalViewAllowDetails
+    "Allowed links to be viewed outside the team."
+
+
+struct ShmodelExternalViewDefaultPrivateDetails
+    "Prevented new links from being viewed outside the team by default."
+
+
+struct ShmodelExternalViewForbidDetails
+    "Prevented links from being viewed outside the team."
+
+
+struct SmartSyncDefaultChangedToLocalDetails
+    "Changed Smart Sync default to synced locally."
+
+
+struct SmartSyncDefaultChangedToOnDemandDetails
+    "Changed Smart Sync default to online-only."
+
+
+struct SuggestMembersPolicyDisabledDetails
+    "Disabled team member suggestions."
+
+
+struct SuggestMembersPolicyEnabledDetails
+    "Enabled team member suggestions."
+
+
+struct TeamAssumeUserEndDetails
+    "Signed out as a member."
+
+
+struct TeamAssumeUserStartDetails
+    "Signed in as a member."
+
+
+struct TeamFolderArchiveDetails
+    "Archived a team folder."
+
+
+struct TeamFolderCreateDetails
+    "Created a team folder."
+
+
+struct TeamFolderPermanentlyDeleteDetails
+    "Permanently deleted a team folder."
+
+
+struct TeamFolderRenameDetails
+    "Renamed a team folder."
+
+    src_index Int64?
+        "Source asset index."
+    dest_index Int64?
+        "Destination asset index."
+
+struct TeamFolderUnarchiveDetails
+    "Unarchived a team folder."
+
+
+struct TeamLogoAddedDetails
+    "Added a logo."
+
+
+struct TeamLogoChangedDetails
+    "Updated a logo."
+
+
+struct TeamLogoRemovedDetails
+    "Removed a logo."
+
+
+struct TeamMergedDetails
+    "Merged teams."
+
+    merged_from_team_name String?
+        "Merged from team name."
+    merged_to_team_name String?
+        "Merged to team name."
+
+struct TeamNameChangeDetails
+    "Changed team name."
+
+    team_display_name String
+        "Team\u2019s display name."
+    team_legal_name String
+        "Team\u2019s legal name."
+
+struct TransferAccountContentsDetails
+    "Transferred account contents."
+
+    src_index Int64?
+        "Source asset index."
+    dest_index Int64?
+        "Destination asset index."
+
+struct TwoaccountDesktopDisabledDetails
+    "Disabled multiple accounts for desktop computers."
+
+
+struct TwoaccountDesktopEnabledDetails
+    "Enabled multiple accounts for desktop computers."
+
+
+struct UpdateSsoCertDetails
+    "Updated single sign-on certificate."
+
+    subject String
+        "Certificate subject."
+    issuer String
+        "Certificate issuer."
+    issue_date String
+        "Certificate issue date."
+    expiration_date String
+        "Certificate expiration date."
+    serial_number String
+        "Certificate serial number."
+    sha1_fingerprint String
+        "Certificate sha1 fingerprint."
+    common_name String
+        "Certificate common name."
+
+struct VersionHistoryExtendedDetails
+    "Opted out of extended version history change."
+
+
+struct VersionHistoryLimitedDetails
+    "Accepted version history change."
+
+
 struct AddCommentDetails
     "Commented on a file."
 
     comment_text String?
         "Comment text."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct AddFileRequestDeadlineDetails
     "Added a deadline to a file request."
@@ -403,7 +1142,7 @@ struct DeleteCommentDetails
     comment_text String?
         "Comment text."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct FileRequestCreatedDetails
     "Created a new file request."
@@ -429,7 +1168,7 @@ struct GroupSfAccessChangedDetails
     group_info GroupLogInfo
         "Group details."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct GroupSfAddedDetails
     "Added a group to a shared folder."
@@ -441,7 +1180,7 @@ struct GroupSfAddedDetails
     group_info GroupLogInfo
         "Group details."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct GroupSfRemovedDetails
     "Removed a group from a shared folder."
@@ -451,7 +1190,7 @@ struct GroupSfRemovedDetails
     group_info GroupLogInfo
         "Group details."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct LikeCommentDetails
     "Liked a file comment."
@@ -459,7 +1198,7 @@ struct LikeCommentDetails
     comment_text String?
         "Comment text."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct PaperDocAccessChangedDetails
     "Paper doc access permission level changed."
@@ -468,8 +1207,6 @@ struct PaperDocAccessChangedDetails
         "Sharing policy with external users."
     team_sharing_policy String?
         "Sharing policy with team."
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
@@ -478,8 +1215,6 @@ struct PaperDocDeleteCommentDetails
 
     comment_text String?
         "Comment text."
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
@@ -488,56 +1223,42 @@ struct PaperDocEditCommentDetails
 
     comment_text String?
         "Comment text."
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperDocNonteamAddMemberDetails
     "Paper doc shared with non-team member."
 
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperDocNonteamInviteDetails
     "Paper doc shared with non-team member."
 
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperDocNonteamMentionDetails
     "Non-team member mentioned on Paper doc."
 
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperDocNonteamRequestDetails
     "Paper doc access requested from non-team member."
 
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperDocNonteamUnshareDetails
     "Paper doc unshared with non-team member."
 
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperDocNonteamViewDetails
     "Paper doc viewed by non-team member."
 
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
@@ -546,8 +1267,6 @@ struct PaperDocPostCommentDetails
 
     comment_text String?
         "Comment text."
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
@@ -556,56 +1275,42 @@ struct PaperDocResolveCommentDetails
 
     comment_text String?
         "Comment text."
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperDocTeamAddMemberDetails
     "Paper doc shared with team member."
 
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperDocTeamInviteDetails
     "Paper doc shared with team member."
 
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperDocTeamMentionDetails
     "Team member mentioned on Paper doc."
 
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperDocTeamRequestDetails
     "Paper doc access requested from team member."
 
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperDocTeamUnshareDetails
     "Paper doc unshared with team member."
 
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperDocTeamViewDetails
     "Paper doc viewed by team member."
 
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
@@ -614,64 +1319,48 @@ struct PaperDocUnresolveCommentDetails
 
     comment_text String?
         "Comment text."
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperFolderNonteamAddMemberDetails
     "Paper folder shared with non-team member."
 
-    folder_info PaperFolderLogInfo
-        "Paper folder details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperFolderNonteamInviteDetails
     "Paper folder shared with non-team member."
 
-    folder_info PaperFolderLogInfo
-        "Paper folder details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperFolderTeamAddMemberDetails
     "Paper folder shared with team member."
 
-    folder_info PaperFolderLogInfo
-        "Paper folder details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperFolderTeamInviteDetails
     "Paper folder shared with team member."
 
-    folder_info PaperFolderLogInfo
-        "Paper folder details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperPermissionCommentDetails
     "Paper doc member permission changed: comment only."
 
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperPermissionEditDetails
     "Paper doc member permission changed: can edit."
 
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperPermissionViewDetails
     "Paper doc member permission changed: view only."
 
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
@@ -687,7 +1376,7 @@ struct ResolveCommentDetails
     comment_text String?
         "Comment text."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfAddGroupDetails
     "Added the team to a shared folder."
@@ -699,7 +1388,7 @@ struct SfAddGroupDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfAllowInviterOwnerDetails
     "Prevented anyone but the owner from inviting people to a folder."
@@ -709,7 +1398,7 @@ struct SfAllowInviterOwnerDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfAllowInviterTeamDetails
     "Allowed any team member to invite people to a folder."
@@ -719,7 +1408,7 @@ struct SfAllowInviterTeamDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfAllowInviteAnyoneDetails
     "Allowed non-team members to be invited to a folder."
@@ -729,7 +1418,7 @@ struct SfAllowInviteAnyoneDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfAllowInviteTeamDetails
     "Prevented non-team members from being invited to a folder."
@@ -739,7 +1428,7 @@ struct SfAllowInviteTeamDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfAllowNonMembersToViewSharedLinksDetails
     "Allowed non collaborators to view                     links to files in a shared folder."
@@ -749,7 +1438,7 @@ struct SfAllowNonMembersToViewSharedLinksDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfBlockNonMembersFromViewingSharedLinksDetails
     "Prevented non-team members from viewing links to files in a shared folder."
@@ -759,33 +1448,33 @@ struct SfBlockNonMembersFromViewingSharedLinksDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfCreateDetails
     "Created a shared folder."
 
-    parent_index Int64
-        "Parent shared folder index."
+    parent_ns_id common.NamespaceId?
+        "Parent namespace ID."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfFbInviteDetails
     "Invited Facebook users to a shared folder."
 
-    sharing_recipients List(UserLogInfo)
-        "Sharing recipients."
+    sharing_non_member_recipients List(NonTeamMemberLogInfo)
+        "Sharing non member recipients."
     sharing_permission String?
         "Sharing permission."
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfFbInviteChangeRoleDetails
     "Changed a Facebook user's role in a shared folder."
 
-    sharing_recipients List(UserLogInfo)
-        "Sharing recipients."
+    sharing_non_member_recipients List(NonTeamMemberLogInfo)
+        "Sharing non member recipients."
     prev_sharing_permission String?
         "Previous sharing permission."
     sharing_permission String?
@@ -793,39 +1482,41 @@ struct SfFbInviteChangeRoleDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfFbUninviteDetails
     "Uninvited a Facebook user from a shared folder."
 
-    sharing_recipients List(UserLogInfo)
-        "Sharing recipients."
+    sharing_non_member_recipients List(NonTeamMemberLogInfo)
+        "Sharing non member recipients."
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfNestDetails
     "Changed parent of shared folder."
 
-    src_index Int64?
-        "Source file/folder index."
-    dest_index Int64?
-        "Destination file/folder index."
+    prev_parent_ns_id common.NamespaceId?
+        "Previous parent namespace ID."
+    new_parent_ns_id common.NamespaceId?
+        "New parent namespace ID."
+    original_folder_name String
+        "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfNonteamAddMembersDetails
     "Added non-team members to a shared folder."
 
-    sharing_recipients List(UserLogInfo)
-        "Sharing recipients."
+    sharing_non_member_recipients List(NonTeamMemberLogInfo)
+        "Sharing non member recipients."
     sharing_permission String?
         "Sharing permission."
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfNonteamClaimMembershipDetails
     "Claimed a membership to a shared folder (non-team member)."
@@ -833,7 +1524,7 @@ struct SfNonteamClaimMembershipDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfNonteamDeclineDetails
     "Declined an invitation to a shared folder (non-team member)."
@@ -841,7 +1532,7 @@ struct SfNonteamDeclineDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfNonteamGrantAccessDetails
     "Granted access to a shared folder (non-team member)."
@@ -849,25 +1540,25 @@ struct SfNonteamGrantAccessDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfNonteamInviteDetails
     "Invited non-team members to a shared folder."
 
-    sharing_recipients List(UserLogInfo)
-        "Sharing recipients."
+    sharing_non_member_recipients List(NonTeamMemberLogInfo)
+        "Sharing non member recipients."
     sharing_permission String?
         "Sharing permission."
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfNonteamInviteChangeRoleDetails
     "Changed a non-team member's role in a shared folder."
 
-    sharing_recipients List(UserLogInfo)
-        "Sharing recipients."
+    sharing_non_member_recipients List(NonTeamMemberLogInfo)
+        "Sharing non member recipients."
     prev_sharing_permission String?
         "Previous sharing permission."
     sharing_permission String?
@@ -875,7 +1566,7 @@ struct SfNonteamInviteChangeRoleDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfNonteamJoinDetails
     "Joined a shared folder (non-team member)."
@@ -883,7 +1574,7 @@ struct SfNonteamJoinDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfNonteamJoinFromOobLinkDetails
     "Joined a shared folder from a link (non-team member)."
@@ -895,7 +1586,7 @@ struct SfNonteamJoinFromOobLinkDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfNonteamKickDetails
     "Removed a non-team member from a shared folder."
@@ -903,7 +1594,7 @@ struct SfNonteamKickDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfNonteamLeaveDetails
     "Left a shared folder (non-team member)."
@@ -911,7 +1602,7 @@ struct SfNonteamLeaveDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfNonteamMemberChangeRoleDetails
     "Changed a non-team member's role in a shared folder."
@@ -923,7 +1614,7 @@ struct SfNonteamMemberChangeRoleDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfNonteamMountDetails
     "Added a shared folder to their Dropbox (non-team member)."
@@ -931,7 +1622,7 @@ struct SfNonteamMountDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfNonteamTransferDetails
     "Transferred folder ownership to a non-team member."
@@ -939,17 +1630,17 @@ struct SfNonteamTransferDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfNonteamUninviteDetails
     "Unshared a folder with a non-team member."
 
-    sharing_recipients List(UserLogInfo)
-        "Sharing recipients."
+    sharing_non_member_recipients List(NonTeamMemberLogInfo)
+        "Sharing non member recipients."
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfNonteamUnmountDetails
     "Removed a shared folder from their Dropbox (non-team member)."
@@ -957,7 +1648,7 @@ struct SfNonteamUnmountDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfRequestAccessDetails
     "Requested access to a shared folder."
@@ -965,7 +1656,7 @@ struct SfRequestAccessDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfSetConfidentialDetails
     "Made a shared folder invite only."
@@ -973,7 +1664,7 @@ struct SfSetConfidentialDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfTeamAddMembersDetails
     "Added team members to a shared folder."
@@ -983,7 +1674,7 @@ struct SfTeamAddMembersDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfTeamClaimMembershipDetails
     "Claimed membership to a team member's shared folder."
@@ -991,7 +1682,7 @@ struct SfTeamClaimMembershipDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfTeamDeclineDetails
     "Declined a team member's invitation to a shared folder."
@@ -999,7 +1690,7 @@ struct SfTeamDeclineDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfTeamGrantAccessDetails
     "Granted access to a shared folder."
@@ -1007,7 +1698,7 @@ struct SfTeamGrantAccessDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfTeamInviteDetails
     "Invited team members to a shared folder."
@@ -1017,7 +1708,7 @@ struct SfTeamInviteDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfTeamInviteChangeRoleDetails
     "Changed a team member's role in a shared folder."
@@ -1029,7 +1720,7 @@ struct SfTeamInviteChangeRoleDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfTeamJoinDetails
     "Joined a team member's shared folder."
@@ -1037,7 +1728,7 @@ struct SfTeamJoinDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfTeamJoinFromOobLinkDetails
     "Joined a team member's shared folder from a link."
@@ -1049,7 +1740,7 @@ struct SfTeamJoinFromOobLinkDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfTeamKickDetails
     "Removed a team member from a shared folder."
@@ -1057,7 +1748,7 @@ struct SfTeamKickDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfTeamLeaveDetails
     "Left a team member's shared folder."
@@ -1065,7 +1756,7 @@ struct SfTeamLeaveDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfTeamMemberChangeRoleDetails
     "Changed a team member's role in a shared folder."
@@ -1077,7 +1768,7 @@ struct SfTeamMemberChangeRoleDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfTeamMountDetails
     "Added a team member's shared folder to their Dropbox."
@@ -1085,7 +1776,7 @@ struct SfTeamMountDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfTeamTransferDetails
     "Transferred folder ownership to a team member."
@@ -1093,7 +1784,7 @@ struct SfTeamTransferDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfTeamUninviteDetails
     "Unshared a folder with a team member."
@@ -1101,7 +1792,7 @@ struct SfTeamUninviteDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfTeamUnmountDetails
     "Removed a team member's shared folder from their Dropbox."
@@ -1109,7 +1800,7 @@ struct SfTeamUnmountDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfUnsetConfidentialDetails
     "Removed the invite only restriction from a shared folder."
@@ -1117,25 +1808,25 @@ struct SfUnsetConfidentialDetails
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SfUnshareDetails
     "Unshared a folder."
 
-    sharing_recipients List(UserLogInfo)
-        "Sharing recipients."
+    sharing_non_member_recipients List(NonTeamMemberLogInfo)
+        "Sharing non member recipients."
     original_folder_name String
         "Original shared folder name."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct SharedContentNonteamCopyDetails
     "Copied the contents of a link to their Dropbox (non-team member)."
 
     src_index Int64?
-        "Source file/folder index."
+        "Source asset index."
     dest_index Int64?
-        "Destination file/folder index."
+        "Destination asset index."
     sharing_permission String?
         "Sharing permission."
     shared_content_link String
@@ -1161,9 +1852,9 @@ struct SharedContentTeamCopyDetails
     "Copied the contents of a link to their Dropbox (team member)."
 
     src_index Int64?
-        "Source file/folder index."
+        "Source asset index."
     dest_index Int64?
-        "Destination file/folder index."
+        "Destination asset index."
     sharing_permission String?
         "Sharing permission."
     shared_content_link String
@@ -1204,8 +1895,8 @@ struct SharedFileGroupRemovedDetails
 struct SharedFileNonteamAddMemberDetails
     "Added non-team members to a file."
 
-    sharing_recipients List(UserLogInfo)
-        "Sharing recipients."
+    sharing_non_member_recipients List(NonTeamMemberLogInfo)
+        "Sharing non member recipients."
     sharing_permission String?
         "Sharing permission."
 
@@ -1228,16 +1919,16 @@ struct SharedFileNonteamClaimDetails
 struct SharedFileNonteamInviteMemberDetails
     "Added non-team members to a file."
 
-    sharing_recipients List(UserLogInfo)
-        "Sharing recipients."
+    sharing_non_member_recipients List(NonTeamMemberLogInfo)
+        "Sharing non member recipients."
     sharing_permission String?
         "Sharing permission."
 
 struct SharedFileNonteamRemoveMemberDetails
     "Removed non-team members from a file."
 
-    sharing_recipients List(UserLogInfo)
-        "Sharing recipients."
+    sharing_non_member_recipients List(NonTeamMemberLogInfo)
+        "Sharing non member recipients."
     sharing_permission String?
         "Sharing permission."
 
@@ -1312,8 +2003,8 @@ struct ShmodelDisableDetails
 struct ShmodelFbShareDetails
     "Shared a link with Facebook users."
 
-    sharing_recipients List(UserLogInfo)
-        "Sharing recipients."
+    sharing_non_member_recipients List(NonTeamMemberLogInfo)
+        "Sharing non member recipients."
 
 struct ShmodelNonteamCopyDetails
     "Added a file/folder to their Dropbox from a link (non-team member)."
@@ -1334,8 +2025,8 @@ struct ShmodelNonteamDownloadDetails
 struct ShmodelNonteamShareDetails
     "Shared a link with non-team members."
 
-    sharing_recipients List(UserLogInfo)
-        "Sharing recipients."
+    sharing_non_member_recipients List(NonTeamMemberLogInfo)
+        "Sharing non member recipients."
 
 struct ShmodelNonteamViewDetails
     "Opened a link (non-team member)."
@@ -1385,13 +2076,13 @@ struct SubscribeToCommentNotificationsDetails
     "Subscribed to file comment notifications."
 
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct TeamFolderDowngradedDetails
     "Converted a team folder into a shared folder."
 
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct UnlikeCommentDetails
     "Unliked a file comment."
@@ -1399,7 +2090,7 @@ struct UnlikeCommentDetails
     comment_text String?
         "Comment text."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct UnresolveCommentDetails
     "Restored a resolved file comment."
@@ -1407,13 +2098,13 @@ struct UnresolveCommentDetails
     comment_text String?
         "Comment text."
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct UnsubscribeFromCommentNotificationsDetails
     "Unsubscribed from file comment notifications."
 
     target_index Int64
-        "Target shared folder index."
+        "Target asset index."
 
 struct GroupChangedToAdminManagedDetails
     "Changed group type to company-managed."
@@ -1456,9 +2147,9 @@ struct GroupExternalIdChangedDetails
 
     group_info GroupLogInfo
         "Group details."
-    external_id String
+    external_id team_common.GroupExternalId
         "Current external id."
-    old_external_id String
+    old_external_id team_common.GroupExternalId
         "Old external id."
 
 struct GroupJoinPolicyUpdatedDetails
@@ -1515,9 +2206,9 @@ struct CopyFilesDetails
     "Copied files."
 
     src_index Int64?
-        "Source file/folder index."
+        "Source asset index."
     dest_index Int64?
-        "Destination file/folder index."
+        "Destination asset index."
 
 struct CopyReferenceGetDetails
     "Get reference to a file."
@@ -1527,9 +2218,9 @@ struct CopyReferenceSaveDetails
     "Save reference to a file."
 
     src_index Int64?
-        "Source file/folder index."
+        "Source asset index."
     dest_index Int64?
-        "Destination file/folder index."
+        "Destination asset index."
 
 struct CreateFolderDetails
     "Created folders."
@@ -1555,131 +2246,97 @@ struct MoveFilesDetails
     "Moved files."
 
     src_index Int64?
-        "Source file/folder index."
+        "Source asset index."
     dest_index Int64?
-        "Destination file/folder index."
+        "Destination asset index."
 
 struct PaperDocAddedToFolderDetails
     "Paper doc added to folder."
 
-    folder_info PaperFolderLogInfo
-        "Paper folder details."
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperDocArchivedDetails
     "Paper doc archived."
 
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperDocCreatedDetails
     "Paper doc created."
 
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperDocDeletedDetails
     "Paper doc archived."
 
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperDocDocxExportDetails
     "Paper doc exported as docx."
 
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperDocEditedDetails
     "Paper doc edited."
 
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperDocFollowedDetails
     "Paper doc followed."
 
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperDocHtmlExportDetails
     "Paper doc exported as html."
 
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperDocMdExportDetails
     "Paper doc exported as md."
 
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperDocPermanentlyDeletedDetails
     "Paper doc permanently deleted."
 
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperDocRemovedFromFolderDetails
     "Paper doc removed from folder."
 
-    folder_info PaperFolderLogInfo
-        "Paper folder details."
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperDocRenamedDetails
     "Paper doc renamed."
 
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperDocRestoredDetails
     "Paper doc restored."
 
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperDocRevisionRestoredDetails
     "Paper doc revision restored."
 
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperDocSlackShareDetails
     "Paper doc link shared via slack."
 
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
@@ -1688,74 +2345,58 @@ struct PaperDocSubscriptionLevelChangedDetails
 
     doc_subscription_level PaperTaggedValue
         "Document subscription level."
-    doc_info PaperDocumentLogInfo
-        "Paper document details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperFolderAddedToFolderDetails
     "Paper subfolder added to folder."
 
-    subfolder_info PaperFolderLogInfo
-        "Paper subfolder details."
-    folder_info PaperFolderLogInfo
-        "Paper folder details."
+    target_index Int64
+        "Target asset index."
+    parent_index Int64
+        "Parent asset index."
     event_uuid String
         "Event unique identifier."
 
 struct PaperFolderArchivedDetails
     "Paper folder archived."
 
-    folder_info PaperFolderLogInfo
-        "Paper folder details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperFolderCreatedDetails
     "Paper folder created."
 
-    folder_info PaperFolderLogInfo
-        "Paper folder details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperFolderDeletedDetails
     "Paper folder archived."
 
-    folder_info PaperFolderLogInfo
-        "Paper folder details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperFolderFollowedDetails
     "Paper folder followed."
 
-    folder_info PaperFolderLogInfo
-        "Paper folder details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperFolderPermanentlyDeletedDetails
     "Paper folder permanently deleted."
 
-    folder_info PaperFolderLogInfo
-        "Paper folder details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperFolderRenamedDetails
     "Paper folder renamed."
 
-    folder_info PaperFolderLogInfo
-        "Paper folder details."
     event_uuid String
         "Event unique identifier."
 
 struct PaperFolderRestoredDetails
     "Paper folder restored."
 
-    folder_info PaperFolderLogInfo
-        "Paper folder details."
     event_uuid String
         "Event unique identifier."
 
@@ -1764,8 +2405,6 @@ struct PaperFolderSubscriptionLevelChangedDetails
 
     folder_subscription_level PaperTaggedValue
         "Folder subscription level."
-    folder_info PaperFolderLogInfo
-        "Paper folder details."
     event_uuid String
         "Event unique identifier."
 
@@ -1777,9 +2416,9 @@ struct RenameFilesOrFoldersDetails
     "Renamed files."
 
     src_index Int64?
-        "Source file/folder index."
+        "Source asset index."
     dest_index Int64?
-        "Destination file/folder index."
+        "Destination asset index."
 
 struct RestoreFilesDetails
     "Restored files."
@@ -1801,7 +2440,7 @@ union EventDetails
     "Additional fields depending on the event type."
 
     device_management_user_approval_blocked_details DeviceManagementUserApprovalBlockedDetails
-        "Unable to login due to Device Approvals limit."
+        "Failed to sign in because of device approvals limit."
     emm_login_error_details EmmLoginErrorDetails
         "Failed to sign in via EMM."
     login_fail_details LoginFailDetails
@@ -1814,10 +2453,30 @@ union EventDetails
         "Failed to sign in via SSO."
     web_ip_changed_details WebIpChangedDetails
         "Web session IP changed."
+    add_tfa_backup_phone_details AddTfaBackupPhoneDetails
+        "Added two-step verification backup phone."
+    add_tfa_security_key_details AddTfaSecurityKeyDetails
+        "Added a security key for two-step verification."
+    edit_tfa_backup_phone_details EditTfaBackupPhoneDetails
+        "Edited two-step verification backup phone."
+    password_change_details PasswordChangeDetails
+        "Changed password."
+    remove_tfa_backup_phone_details RemoveTfaBackupPhoneDetails
+        "Removed two-step verification backup phone."
+    remove_tfa_security_key_details RemoveTfaSecurityKeyDetails
+        "Disabled a security key for two-step verification."
+    reset_all_passwords_details ResetAllPasswordsDetails
+        "Reset all passwords."
     reset_password_details ResetPasswordDetails
         "Reset password."
     tfa_disable_details TfaDisableDetails
         "Disabled two-step verification."
+    tfa_edit_authenticator_details TfaEditAuthenticatorDetails
+        "Set two-step verification to use mobile app."
+    tfa_edit_sms_details TfaEditSmsDetails
+        "Set two-step verification to use SMS."
+    tfa_enable_details TfaEnableDetails
+        "Enabled two-step verification."
     tfa_reset_details TfaResetDetails
         "Reset two-step verification."
     app_allow_details AppAllowDetails
@@ -1840,6 +2499,8 @@ union EventDetails
         "Declined a user's request to join the team."
     domain_invites_email_existing_users_details DomainInvitesEmailExistingUsersDetails
         "Sent domain invites to existing domain accounts."
+    domain_invites_request_to_join_team_details DomainInvitesRequestToJoinTeamDetails
+        "Asked to join the team."
     member_invite_details MemberInviteDetails
         "Invited a member."
     member_join_details MemberJoinDetails
@@ -1858,10 +2519,236 @@ union EventDetails
         "Failed to delete some files remotely."
     delete_on_unlink_success_details DeleteOnUnlinkSuccessDetails
         "Successfully deleted some files remotely."
+    desktop_ip_changed_details DesktopIpChangedDetails
+        "Desktop client IP changed."
     device_link_details DeviceLinkDetails
         "Linked a device."
     device_unlink_details DeviceUnlinkDetails
         "Disconnected a device."
+    mobile_ip_changed_details MobileIpChangedDetails
+        "Mobile device IP changed."
+    admin_failed_domain_verification_details AdminFailedDomainVerificationDetails
+        "Failed domain verification."
+    admin_removed_a_domain_details AdminRemovedADomainDetails
+        "Removed a verified domain."
+    admin_set_account_capture_mode_details AdminSetAccountCaptureModeDetails
+        "Changed account capture mode."
+    admin_verified_a_domain_details AdminVerifiedADomainDetails
+        "Verified a domain."
+    allow_download_disabled_details AllowDownloadDisabledDetails
+        "Disabled allow downloads."
+    allow_download_enabled_details AllowDownloadEnabledDetails
+        "Enabled allow downloads."
+    allow_emm_details AllowEmmDetails
+        "Enabled EMM."
+    allow_sso_details AllowSsoDetails
+        "Allowed use of single sign-on."
+    change_admin_role_details ChangeAdminRoleDetails
+        "Changed admin role."
+    change_logout_url_details ChangeLogoutUrlDetails
+        "Changed single sign-on logout URL."
+    change_membership_type_details ChangeMembershipTypeDetails
+        "Changed member type."
+    change_saml_identity_mode_details ChangeSamlIdentityModeDetails
+        "Changed single sign-on identity mode."
+    change_sso_url_details ChangeSsoUrlDetails
+        "Changed single sign-on URL."
+    change_team_member_email_details ChangeTeamMemberEmailDetails
+        "Changed a member's email."
+    commenting_disabled_details CommentingDisabledDetails
+        "Disabled comments."
+    commenting_enabled_details CommentingEnabledDetails
+        "Enabled comments."
+    csv_download_details CsvDownloadDetails
+        "Created a team activity report."
+    dbx_support_granted_account_capture_details DbxSupportGrantedAccountCaptureDetails
+        "Enabled account capture."
+    dbx_support_removed_domains_details DbxSupportRemovedDomainsDetails
+        "Removed domains."
+    dbx_support_revoked_account_capture_details DbxSupportRevokedAccountCaptureDetails
+        "Disabled account capture."
+    dbx_support_verified_domains_details DbxSupportVerifiedDomainsDetails
+        "Verified domains."
+    device_management_desktops_limit_changed_details DeviceManagementDesktopsLimitChangedDetails
+        "Changed the number of allowed computers."
+    device_management_disabled_details DeviceManagementDisabledDetails
+        "Disable Device Management."
+    device_management_enabled_details DeviceManagementEnabledDetails
+        "Enable Device Management."
+    device_management_mobiles_limit_changed_details DeviceManagementMobilesLimitChangedDetails
+        "Changed the number of allowed mobile devices."
+    device_management_rollout_changed_details DeviceManagementRolloutChangedDetails
+        "Changed the device approvals setting for members who are over the limits."
+    device_management_user_can_not_unapprove_details DeviceManagementUserCanNotUnapproveDetails
+        "Changed the device approvals setting for disconnected devices."
+    device_management_user_can_unapprove_details DeviceManagementUserCanUnapproveDetails
+        "Changed Device Management user can unapprove method."
+    disabled_domain_invites_details DisabledDomainInvitesDetails
+        "Disabled domain invites."
+    disable_emm_details DisableEmmDetails
+        "Disabled EMM."
+    disable_sso_details DisableSsoDetails
+        "Disabled single sign-on."
+    emm_exclusion_users_report_created_details EmmExclusionUsersReportCreatedDetails
+        "EMM excluded users report created."
+    emm_token_refreshed_details EmmTokenRefreshedDetails
+        "EMM token refreshed."
+    emm_usage_report_created_details EmmUsageReportCreatedDetails
+        "EMM mobile app usage report created."
+    emm_user_excluded_details EmmUserExcludedDetails
+        "EMM user added to excluded users list."
+    emm_user_unexcluded_details EmmUserUnexcludedDetails
+        "EMM user removed from excluded users list."
+    enabled_domain_invites_details EnabledDomainInvitesDetails
+        "Enabled domain invites."
+    file_requests_disabled_details FileRequestsDisabledDetails
+        "Disabled file requests."
+    file_requests_emails_enabled_details FileRequestsEmailsEnabledDetails
+        "Enabled file request emails for everyone."
+    file_requests_emails_restricted_to_team_only_details FileRequestsEmailsRestrictedToTeamOnlyDetails
+        "Allowed file request emails for the team."
+    file_requests_enabled_details FileRequestsEnabledDetails
+        "Enabled file requests."
+    force_tfa_disable_details ForceTfaDisableDetails
+        "Allowed two-step verification to be disabled."
+    force_tfa_enable_details ForceTfaEnableDetails
+        "Required two-step verification."
+    google_login_disabled_details GoogleLoginDisabledDetails
+        "Disallowed team members from logging in with Google."
+    google_login_enabled_details GoogleLoginEnabledDetails
+        "Allowed team members to log in with Google."
+    groups_all_users_can_create_details GroupsAllUsersCanCreateDetails
+        "Allowed all team members to create groups."
+    groups_only_admins_can_create_details GroupsOnlyAdminsCanCreateDetails
+        "Allowed only team admins to create groups."
+    make_admin_details MakeAdminDetails
+        "Gave admin permissions."
+    member_space_limits_exclusion_list_users_addition_details MemberSpaceLimitsExclusionListUsersAdditionDetails
+        "Member added to space limit exclusion list."
+    member_space_limits_exclusion_list_users_removal_details MemberSpaceLimitsExclusionListUsersRemovalDetails
+        "Member removed from space limit exclusion list."
+    member_space_limits_level_change_details MemberSpaceLimitsLevelChangeDetails
+        "Space limit: allowed usage level changed."
+    member_space_user_usage_state_change_details MemberSpaceUserUsageStateChangeDetails
+        "Space limit: member usage state changed."
+    notes_disabled_details NotesDisabledDetails
+        "Dropbox Paper disabled."
+    notes_enabled_details NotesEnabledDetails
+        "Dropbox Paper enabled."
+    notes_link_policy_public_details NotesLinkPolicyPublicDetails
+        "Paper links accessible by anyone with the link."
+    notes_link_policy_team_details NotesLinkPolicyTeamDetails
+        "Paper links accessible by team members."
+    notes_share_policy_anyone_with_link_details NotesSharePolicyAnyoneWithLinkDetails
+        "Paper documents accessible by anyone with the link."
+    notes_share_policy_only_team_details NotesSharePolicyOnlyTeamDetails
+        "Paper documents accessible by only team members."
+    notes_share_policy_team_and_explicitly_shared_details NotesSharePolicyTeamAndExplicitlySharedDetails
+        "Paper documents accessible by team members and shared external users."
+    nts_disabled_details NtsDisabledDetails
+        "Disabled network control."
+    nts_enabled_details NtsEnabledDetails
+        "Enabled network control."
+    paper_deployment_policy_full_details PaperDeploymentPolicyFullDetails
+        "Enabled Paper to all team members."
+    paper_deployment_policy_partial_details PaperDeploymentPolicyPartialDetails
+        "Enabled Paper to a specific list of team members only."
+    paper_disabled_details PaperDisabledDetails
+        "Paper disabled."
+    paper_enabled_details PaperEnabledDetails
+        "Paper enabled."
+    paper_enabled_users_group_addition_details PaperEnabledUsersGroupAdditionDetails
+        "Users added to Paper enabled users list."
+    paper_enabled_users_group_removal_details PaperEnabledUsersGroupRemovalDetails
+        "Users removed from Paper enabled users list."
+    permanently_delete_account_contents_details PermanentlyDeleteAccountContentsDetails
+        "Permanently deleted account contents."
+    permanent_delete_disabled_details PermanentDeleteDisabledDetails
+        "Disabled permanent delete for all team members."
+    permanent_delete_enabled_details PermanentDeleteEnabledDetails
+        "Enabled permanent delete for all team members."
+    placement_restriction_changed_details PlacementRestrictionChangedDetails
+        "Team placement restriction changed."
+    placement_restriction_fulfilled_details PlacementRestrictionFulfilledDetails
+        "Team placement restriction fulfilled."
+    remove_admin_details RemoveAdminDetails
+        "Removed admin permissions."
+    remove_logout_url_details RemoveLogoutUrlDetails
+        "Removed single sign-on logout URL."
+    remove_sso_url_details RemoveSsoUrlDetails
+        "Removed single sign-on URL."
+    request_membership_auto_accept_details RequestMembershipAutoAcceptDetails
+        "Allowed members to join without approval."
+    request_membership_disabled_details RequestMembershipDisabledDetails
+        "Prevented users from requesting membership."
+    request_membership_require_approval_details RequestMembershipRequireApprovalDetails
+        "Required approval for new members."
+    require_emm_details RequireEmmDetails
+        "Required use of EMM."
+    require_sso_details RequireSsoDetails
+        "Required use of single sign-on."
+    reseller_support_session_end_details ResellerSupportSessionEndDetails
+        "Ended support session."
+    reseller_support_session_start_details ResellerSupportSessionStartDetails
+        "Started support session."
+    sf_external_accept_allow_details SfExternalAcceptAllowDetails
+        "Allowed team members to join shared folders outside the team."
+    sf_external_accept_forbid_details SfExternalAcceptForbidDetails
+        "Prevented team members from joining shared folders outside the team."
+    sf_external_invite_allow_details SfExternalInviteAllowDetails
+        "Allowed folders to be shared outside the team."
+    sf_external_invite_forbid_details SfExternalInviteForbidDetails
+        "Prevented folders from being shared outside the team."
+    shmodel_external_view_allow_details ShmodelExternalViewAllowDetails
+        "Allowed links to be viewed outside the team."
+    shmodel_external_view_default_private_details ShmodelExternalViewDefaultPrivateDetails
+        "Prevented new links from being viewed outside the team by default."
+    shmodel_external_view_forbid_details ShmodelExternalViewForbidDetails
+        "Prevented links from being viewed outside the team."
+    smart_sync_default_changed_to_local_details SmartSyncDefaultChangedToLocalDetails
+        "Changed Smart Sync default to synced locally."
+    smart_sync_default_changed_to_on_demand_details SmartSyncDefaultChangedToOnDemandDetails
+        "Changed Smart Sync default to online-only."
+    suggest_members_policy_disabled_details SuggestMembersPolicyDisabledDetails
+        "Disabled team member suggestions."
+    suggest_members_policy_enabled_details SuggestMembersPolicyEnabledDetails
+        "Enabled team member suggestions."
+    team_assume_user_end_details TeamAssumeUserEndDetails
+        "Signed out as a member."
+    team_assume_user_start_details TeamAssumeUserStartDetails
+        "Signed in as a member."
+    team_folder_archive_details TeamFolderArchiveDetails
+        "Archived a team folder."
+    team_folder_create_details TeamFolderCreateDetails
+        "Created a team folder."
+    team_folder_permanently_delete_details TeamFolderPermanentlyDeleteDetails
+        "Permanently deleted a team folder."
+    team_folder_rename_details TeamFolderRenameDetails
+        "Renamed a team folder."
+    team_folder_unarchive_details TeamFolderUnarchiveDetails
+        "Unarchived a team folder."
+    team_logo_added_details TeamLogoAddedDetails
+        "Added a logo."
+    team_logo_changed_details TeamLogoChangedDetails
+        "Updated a logo."
+    team_logo_removed_details TeamLogoRemovedDetails
+        "Removed a logo."
+    team_merged_details TeamMergedDetails
+        "Merged teams."
+    team_name_change_details TeamNameChangeDetails
+        "Changed team name."
+    transfer_account_contents_details TransferAccountContentsDetails
+        "Transferred account contents."
+    twoaccount_desktop_disabled_details TwoaccountDesktopDisabledDetails
+        "Disabled multiple accounts for desktop computers."
+    twoaccount_desktop_enabled_details TwoaccountDesktopEnabledDetails
+        "Enabled multiple accounts for desktop computers."
+    update_sso_cert_details UpdateSsoCertDetails
+        "Updated single sign-on certificate."
+    version_history_extended_details VersionHistoryExtendedDetails
+        "Opted out of extended version history change."
+    version_history_limited_details VersionHistoryLimitedDetails
+        "Accepted version history change."
     add_comment_details AddCommentDetails
         "Commented on a file."
     add_file_request_deadline_details AddFileRequestDeadlineDetails
@@ -2226,6 +3113,8 @@ union EventDetails
         "Reverted files to a previous version."
     rollback_changes_in_files_details RollbackChangesInFilesDetails
         "Rolled back file changes."
+    missing_details MissingDetails
+        "Hints that this event was returned with missing details due to an internal error."
 
 ##############
 # Event Type
@@ -2235,7 +3124,7 @@ union EventType
     "The type of the event."
 
     device_management_user_approval_blocked
-        "Unable to login due to Device Approvals limit."
+        "Failed to sign in because of device approvals limit."
     emm_login_error
         "Failed to sign in via EMM."
     login_fail
@@ -2248,10 +3137,30 @@ union EventType
         "Failed to sign in via SSO."
     web_ip_changed
         "Web session IP changed."
+    add_tfa_backup_phone
+        "Added two-step verification backup phone."
+    add_tfa_security_key
+        "Added a security key for two-step verification."
+    edit_tfa_backup_phone
+        "Edited two-step verification backup phone."
+    password_change
+        "Changed password."
+    remove_tfa_backup_phone
+        "Removed two-step verification backup phone."
+    remove_tfa_security_key
+        "Disabled a security key for two-step verification."
+    reset_all_passwords
+        "Reset all passwords."
     reset_password
         "Reset password."
     tfa_disable
         "Disabled two-step verification."
+    tfa_edit_authenticator
+        "Set two-step verification to use mobile app."
+    tfa_edit_sms
+        "Set two-step verification to use SMS."
+    tfa_enable
+        "Enabled two-step verification."
     tfa_reset
         "Reset two-step verification."
     app_allow
@@ -2274,6 +3183,8 @@ union EventType
         "Declined a user's request to join the team."
     domain_invites_email_existing_users
         "Sent domain invites to existing domain accounts."
+    domain_invites_request_to_join_team
+        "Asked to join the team."
     member_invite
         "Invited a member."
     member_join
@@ -2292,10 +3203,236 @@ union EventType
         "Failed to delete some files remotely."
     delete_on_unlink_success
         "Successfully deleted some files remotely."
+    desktop_ip_changed
+        "Desktop client IP changed."
     device_link
         "Linked a device."
     device_unlink
         "Disconnected a device."
+    mobile_ip_changed
+        "Mobile device IP changed."
+    admin_failed_domain_verification
+        "Failed domain verification."
+    admin_removed_a_domain
+        "Removed a verified domain."
+    admin_set_account_capture_mode
+        "Changed account capture mode."
+    admin_verified_a_domain
+        "Verified a domain."
+    allow_download_disabled
+        "Disabled allow downloads."
+    allow_download_enabled
+        "Enabled allow downloads."
+    allow_emm
+        "Enabled EMM."
+    allow_sso
+        "Allowed use of single sign-on."
+    change_admin_role
+        "Changed admin role."
+    change_logout_url
+        "Changed single sign-on logout URL."
+    change_membership_type
+        "Changed member type."
+    change_saml_identity_mode
+        "Changed single sign-on identity mode."
+    change_sso_url
+        "Changed single sign-on URL."
+    change_team_member_email
+        "Changed a member's email."
+    commenting_disabled
+        "Disabled comments."
+    commenting_enabled
+        "Enabled comments."
+    csv_download
+        "Created a team activity report."
+    dbx_support_granted_account_capture
+        "Enabled account capture."
+    dbx_support_removed_domains
+        "Removed domains."
+    dbx_support_revoked_account_capture
+        "Disabled account capture."
+    dbx_support_verified_domains
+        "Verified domains."
+    device_management_desktops_limit_changed
+        "Changed the number of allowed computers."
+    device_management_disabled
+        "Disable Device Management."
+    device_management_enabled
+        "Enable Device Management."
+    device_management_mobiles_limit_changed
+        "Changed the number of allowed mobile devices."
+    device_management_rollout_changed
+        "Changed the device approvals setting for members who are over the limits."
+    device_management_user_can_not_unapprove
+        "Changed the device approvals setting for disconnected devices."
+    device_management_user_can_unapprove
+        "Changed Device Management user can unapprove method."
+    disabled_domain_invites
+        "Disabled domain invites."
+    disable_emm
+        "Disabled EMM."
+    disable_sso
+        "Disabled single sign-on."
+    emm_exclusion_users_report_created
+        "EMM excluded users report created."
+    emm_token_refreshed
+        "EMM token refreshed."
+    emm_usage_report_created
+        "EMM mobile app usage report created."
+    emm_user_excluded
+        "EMM user added to excluded users list."
+    emm_user_unexcluded
+        "EMM user removed from excluded users list."
+    enabled_domain_invites
+        "Enabled domain invites."
+    file_requests_disabled
+        "Disabled file requests."
+    file_requests_emails_enabled
+        "Enabled file request emails for everyone."
+    file_requests_emails_restricted_to_team_only
+        "Allowed file request emails for the team."
+    file_requests_enabled
+        "Enabled file requests."
+    force_tfa_disable
+        "Allowed two-step verification to be disabled."
+    force_tfa_enable
+        "Required two-step verification."
+    google_login_disabled
+        "Disallowed team members from logging in with Google."
+    google_login_enabled
+        "Allowed team members to log in with Google."
+    groups_all_users_can_create
+        "Allowed all team members to create groups."
+    groups_only_admins_can_create
+        "Allowed only team admins to create groups."
+    make_admin
+        "Gave admin permissions."
+    member_space_limits_exclusion_list_users_addition
+        "Member added to space limit exclusion list."
+    member_space_limits_exclusion_list_users_removal
+        "Member removed from space limit exclusion list."
+    member_space_limits_level_change
+        "Space limit: allowed usage level changed."
+    member_space_user_usage_state_change
+        "Space limit: member usage state changed."
+    notes_disabled
+        "Dropbox Paper disabled."
+    notes_enabled
+        "Dropbox Paper enabled."
+    notes_link_policy_public
+        "Paper links accessible by anyone with the link."
+    notes_link_policy_team
+        "Paper links accessible by team members."
+    notes_share_policy_anyone_with_link
+        "Paper documents accessible by anyone with the link."
+    notes_share_policy_only_team
+        "Paper documents accessible by only team members."
+    notes_share_policy_team_and_explicitly_shared
+        "Paper documents accessible by team members and shared external users."
+    nts_disabled
+        "Disabled network control."
+    nts_enabled
+        "Enabled network control."
+    paper_deployment_policy_full
+        "Enabled Paper to all team members."
+    paper_deployment_policy_partial
+        "Enabled Paper to a specific list of team members only."
+    paper_disabled
+        "Paper disabled."
+    paper_enabled
+        "Paper enabled."
+    paper_enabled_users_group_addition
+        "Users added to Paper enabled users list."
+    paper_enabled_users_group_removal
+        "Users removed from Paper enabled users list."
+    permanently_delete_account_contents
+        "Permanently deleted account contents."
+    permanent_delete_disabled
+        "Disabled permanent delete for all team members."
+    permanent_delete_enabled
+        "Enabled permanent delete for all team members."
+    placement_restriction_changed
+        "Team placement restriction changed."
+    placement_restriction_fulfilled
+        "Team placement restriction fulfilled."
+    remove_admin
+        "Removed admin permissions."
+    remove_logout_url
+        "Removed single sign-on logout URL."
+    remove_sso_url
+        "Removed single sign-on URL."
+    request_membership_auto_accept
+        "Allowed members to join without approval."
+    request_membership_disabled
+        "Prevented users from requesting membership."
+    request_membership_require_approval
+        "Required approval for new members."
+    require_emm
+        "Required use of EMM."
+    require_sso
+        "Required use of single sign-on."
+    reseller_support_session_end
+        "Ended support session."
+    reseller_support_session_start
+        "Started support session."
+    sf_external_accept_allow
+        "Allowed team members to join shared folders outside the team."
+    sf_external_accept_forbid
+        "Prevented team members from joining shared folders outside the team."
+    sf_external_invite_allow
+        "Allowed folders to be shared outside the team."
+    sf_external_invite_forbid
+        "Prevented folders from being shared outside the team."
+    shmodel_external_view_allow
+        "Allowed links to be viewed outside the team."
+    shmodel_external_view_default_private
+        "Prevented new links from being viewed outside the team by default."
+    shmodel_external_view_forbid
+        "Prevented links from being viewed outside the team."
+    smart_sync_default_changed_to_local
+        "Changed Smart Sync default to synced locally."
+    smart_sync_default_changed_to_on_demand
+        "Changed Smart Sync default to online-only."
+    suggest_members_policy_disabled
+        "Disabled team member suggestions."
+    suggest_members_policy_enabled
+        "Enabled team member suggestions."
+    team_assume_user_end
+        "Signed out as a member."
+    team_assume_user_start
+        "Signed in as a member."
+    team_folder_archive
+        "Archived a team folder."
+    team_folder_create
+        "Created a team folder."
+    team_folder_permanently_delete
+        "Permanently deleted a team folder."
+    team_folder_rename
+        "Renamed a team folder."
+    team_folder_unarchive
+        "Unarchived a team folder."
+    team_logo_added
+        "Added a logo."
+    team_logo_changed
+        "Updated a logo."
+    team_logo_removed
+        "Removed a logo."
+    team_merged
+        "Merged teams."
+    team_name_change
+        "Changed team name."
+    transfer_account_contents
+        "Transferred account contents."
+    twoaccount_desktop_disabled
+        "Disabled multiple accounts for desktop computers."
+    twoaccount_desktop_enabled
+        "Enabled multiple accounts for desktop computers."
+    update_sso_cert
+        "Updated single sign-on certificate."
+    version_history_extended
+        "Opted out of extended version history change."
+    version_history_limited
+        "Accepted version history change."
     add_comment
         "Commented on a file."
     add_file_request_deadline
@@ -2664,24 +3801,23 @@ union EventType
 struct TeamEvent
     "An audit log event."
 
-    event_type EventType
-        "The type of the event."
     details EventDetails
-        "Associated data specific to that event."
-    time common.DropboxTimestamp
-        "The time that the event occurred."
-    ip_address String
-    event_categories List(EventCategory)
-        "List of categories associated with event. Each event has at least one category."
-    actor ActorLogInfo?
-        "The user who did the action. Not exists if the same as user."
-    user UserLogInfo?
-        "The user who was the subject of the action."
-    session SessionLogInfo?
-        "Session."
-    target_users List(UserLogInfo)?
-        "Other users who have been affected by the event, besides the user."
-    files List(FileLogInfo)?
-        "All files which have been affected by the event."
+        "The variable event schema applicable to this type of action,         instantiated with respect to this particular action."
+    event_type EventType
+        "The particular type of action taken."
+    origin OriginLogInfo
+        "The origin from which the actor performed the action including information about host, ip address, location, session, etc. If the action was performed programmatically via the API the origin represents the API client."
+    context ContextLogInfo
+        "The user or team on whose behalf the actor performed the action."
+    event_categories List(EventCategory, min_items=1)
+        "One or more categories that this type of action belongs to."
     involve_external_user Boolean
-        "Action affect non team member."
+        "Team/external flag"
+    timestamp common.DropboxTimestamp
+        "The Dropbox timestamp representing when the action was taken."
+    participants List(ParticipantLogInfo)?
+        "Zero or more users and/or groups that are affected by the action.Note that this list doesn\u2019t include any actors or users in context."
+    actor ActorLogInfo
+        "The entity who actually performed the action."
+    assets List(AssetLogInfo)?
+        "Zero or more content assets involved in the action. Currently these include Dropbox files and folders but in the future we might add other asset types such as Paper documents, folders, projects, etc."

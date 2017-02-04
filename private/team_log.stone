@@ -13,13 +13,12 @@ struct GetTeamEventsArg
     limit UInt32(min_value=1, max_value=1000) = 1000
         "Number of results to return per call."
     account_id users.AccountId?
-        "Filter the events by user account ID."
-    date team.DateRange?
+        "Filter the events by account ID. Return ony events with this account_id as either
+        Actor, Context, or Participants."
+    time team_common.TimeRange?
         "Filter by time range."
     category EventCategory?
         "Filter the returned events to a single category."
-    event_type EventType?
-        "Filter the returned events to a single event type."
 
     example default
         limit=50
@@ -43,9 +42,9 @@ struct GetTeamEventsResult
 union GetTeamEventsError
     "Errors that can be raised when calling :route:`get_events`."
 
-    user_not_found
-        "No matching user found. The provided team_member_id, email, or external_id does not exist on this team."
-    empty_date_range
+    account_id_not_found
+        "No user found matching the provided account_id."
+    start_time_bigger_than_end_time
         "Start timestamp must be before end timestamp."
 
 route get_events(GetTeamEventsArg, GetTeamEventsResult, GetTeamEventsError)
@@ -59,7 +58,7 @@ route get_events(GetTeamEventsArg, GetTeamEventsResult, GetTeamEventsError)
 
 struct GetTeamEventsContinueArg
     cursor String
-        "Indicates from what point to get the next set of members."
+        "Indicates from what point to get the next set of events."
 
     example default
         cursor = "ZtkX9_EHj3x7PMkVuFIhwKYXEpwpLwyxp9vMKomUhllil9q7eWiAu"

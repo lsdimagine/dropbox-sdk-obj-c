@@ -30,3 +30,50 @@ route fetch_incoming (FetchIncomingArg, FetchIncomingResult, FetchIncomingError)
     attrs
         owner="home"
         is_preview=true
+
+# --
+
+struct UpdateIncomingReadStatusArg
+    "Argument for marking Incoming entries as read/unread."
+
+    entries List(UpdateIncomingReadStatusArgEntry)
+        "List of entry IDs + how the corresponding entries should be updated."
+
+    example default
+        entries = [default]
+
+struct UpdateIncomingReadStatusArgEntry
+    "Argument for marking an Incoming entry as read/unread."
+
+    entry_id String
+        "Encoded ID about a single Incoming entry."
+
+    entry_id_type IncomingEntryIDType
+        "Type describing what the entry_id is referring to."
+
+    read_status Boolean
+        "Whether the entry should be marked as read (true) or unread (false)."
+
+    example default
+        "The paper notification with ID paper-noti-1 should be marked as read"
+        entry_id = "paper-noti-1"
+        entry_id_type = paper_notification_id
+        read_status = true
+
+union IncomingEntryIDType
+    "Describes the type of Incoming entry an entry_id is referring to."
+
+    incoming_entry_id
+        "The ID identifies an entry as fetched from the fetch_incoming route."
+    paper_notification_id
+        "The ID identifies a Paper notification."
+
+union UpdateIncomingReadStatusError
+    unused
+
+route update_incoming_read_status (UpdateIncomingReadStatusArg, Void, UpdateIncomingReadStatusError)
+    "Marks Incoming events as read/unread."
+
+    attrs
+        owner="home"
+        is_preview=true

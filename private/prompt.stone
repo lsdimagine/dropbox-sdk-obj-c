@@ -17,6 +17,7 @@ route log_impression(CampaignArg, Void, CampaignErr)
 
 
 alias CampaignId = Int64
+alias PromptTimestamp = UInt64
 
 union_closed TopNotificationStyle
     info
@@ -95,11 +96,13 @@ union_closed CampaignContent
 
 struct CampaignResult
     campaign_id CampaignId
+    prompt_queried_at_ms PromptTimestamp
     campaign_name String
     content CampaignContent
 
     example default
         campaign_id = 499
+        prompt_queried_at_ms = 1484012717394
         campaign_name = "over-quota-top-notification"
         content = default
 
@@ -108,6 +111,10 @@ union_closed RefAction
     files_work
     recents_personal
     recents_work
+    offline_personal
+    offline_work
+    photos_personal
+    photos_work
 
 struct GetBestCampaignsArg
     action RefAction
@@ -125,6 +132,8 @@ struct CampaignsResult
 
 struct CampaignArg
     campaign_id CampaignId
+    prompt_queried_at_ms PromptTimestamp?
+        "Optional for backward compatibility."
 
     example default
         campaign_id = 499

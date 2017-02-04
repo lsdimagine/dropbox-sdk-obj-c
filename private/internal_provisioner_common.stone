@@ -25,9 +25,8 @@ union_closed ExternalInvoiceSource
     tails_task
         "This request was generated from a tails.corp task. Please use the form Txxxxxx."
 
-    legacy_admin_no_guarantees
-        "This is some legacy External Invoice from /admin and we really have no idea where it's from. If you're
-        developing new code as of Dec 2016, this should not be used, no matter what, under any circumstances."
+    unspecified
+        "This is some External Invoice from /admin and we really have no idea where it's from."
 
 struct ExternalInvoiceId
     "Defines some external ID representing a payment. For instance, every upsell should have a different ExternalInvoiceId.

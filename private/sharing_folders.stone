@@ -3,26 +3,13 @@ namespace sharing
 import common
 import files
 
-# NOTE(davy): this ideally should extend SharedFolderMetadataBase, but we can't do that since we
-# need to override the policy field with an AlphaFolderPolicy.
-struct ExpectedSharedFolderMetadata
+struct ExpectedSharedFolderMetadata extends SharedFolderMetadataBase
     "Properties the shared folder will have upon creation."
 
-    access_type AccessLevel
-        "The current user's access level for this shared folder."
-    is_team_folder Boolean
-        "Whether this folder is a
-        :link:`team folder https://www.dropbox.com/en/help/986`."
-    policy AlphaFolderPolicy
+    link_metadata ExpectedSharedContentLinkMetadata
+        "The link metadata for this shared folder."
+    policy FolderPolicy
         "Policies governing this shared folder."
-    owner_team users.Team?
-        "The team that owns the folder. This field is not present if the folder
-        is not owned by a team."
-    parent_shared_folder_id common.SharedFolderId?
-        "The ID of the parent shared folder. This field is present only if the
-        folder is contained within another shared folder."
-    path_lower String?
-        "The lower-cased full path of this shared folder. Absent for unmounted folders."
     permissions List(InternalFolderPermission)?
         "Actions the current user may perform on the folder and its contents.
         The set of permissions corresponds to the :type:InternalFolderActions in the request."
@@ -36,59 +23,22 @@ struct ExpectedSharedFolderMetadata
     example default
         path_lower = "/dir"
         access_type = owner
+        is_inside_team_folder = false
         is_team_folder = false
+        link_metadata = default
         policy = default
         permissions = []
         members_cursor = "ZtkX9_EHj3x7PMkVuFIhwKYXEpwpLwyxp9vMKomUhllil9q7eWiAu"
 
-union AlphaShareFolderErrorBase
-    email_unverified
-        "The current user's e-mail address is unverified."
-    bad_path AlphaSharePathError
-        ":field:`AlphaShareFolderArg.path` is invalid."
-    team_policy_disallows_member_policy
-        "Team policy is more restrictive than :field:`AlphaShareFolderArg.member_policy`."
-    disallowed_shared_link_policy
-        "The current user's account is not allowed to select the specified
-        :field:`AlphaShareFolderArg.shared_link_policy`."
-
-union AlphaSharePathError
-    is_file
-        "A file is at the specified path."
-    inside_shared_folder
-        "We do not support sharing a folder inside a shared folder."
-    contains_shared_folder
-        "We do not support shared folders that contain shared folders."
-    contains_app_folder
-        "We do not support shared folders that contain app folders."
-    contains_team_folder
-        "We do not support shared folders that contain team folders."
-    is_app_folder
-        "We do not support sharing an app folder."
-    inside_app_folder
-        "We do not support sharing a folder inside an app folder."
-    is_public_folder
-        "A public folder can't be shared this way. Use a public link instead."
-    inside_public_folder
-        "A folder inside a public folder can't be shared this way. Use a public
-        link instead."
-    already_shared AlphaSharedFolderMetadata
-        "Folder is already shared. Contains metadata about the existing shared folder."
-    invalid_path
-        "Path is not valid."
-    is_osx_package
-        "We do not support sharing a Mac OS X package."
-    inside_osx_package
-        "We do not support sharing a folder inside a Mac OS X package."
-    invalid_path_root files.PathRootError
-        "The path root parameter provided is invalid."
-
-union ValidateFolderPathError extends AlphaShareFolderErrorBase
+union ValidateFolderPathError extends ShareFolderErrorBase
     no_permission ExpectedSharedFolderMetadata?
         "The current user does not have permission to perform this action. If they don't have
         permission because it would create a nested shared folder, this contains metadata about
         the shared folder that would be created at this path if the user had the permissions to
         share it."
+    no_access
+        "The current user don't have access to sharing related information of this path. This can
+        happen when the user is not in the membership of the containing shared folder of this path."
 
 route validate_folder_path(ValidateFolderPathArg, ExpectedSharedFolderMetadata, ValidateFolderPathError)
     "Determine whether a shared folder can be created at a given path.
@@ -97,8 +47,8 @@ route validate_folder_path(ValidateFolderPathArg, ExpectedSharedFolderMetadata, 
 
     Apps must have full Dropbox access to use this endpoint.
 
-    Warning: This endpoint is in beta and is subject to minor but possibly
-    backwards-incompatible changes."
+    Warning: Do not make backwards-incompatible changes to this endpoint without talking to mobile
+    - currently many mobile clients are using this endpoint"
 
     attrs
         owner = "sfi"
@@ -261,55 +211,6 @@ union SharedFolderTreeAccessPoint
 
 # --
 
-route downgrade_team_folder(DowngradeTeamFolderArg, async.LaunchResultBase, DowngradeTeamFolderError)
-    "Downgrades a team folder to a regular shared folder. All non-admins lose access to the folder.
-    Any shared folders inside the team folder are unshared.
-
-    You'll need to call :route:`check_job_status` to determine if the action has
-    completed successfully.
-
-    Apps must have full Dropbox access to use this endpoint.
-
-    Warning: This endpoint is in beta and is subject to minor but possibly
-    backwards-incompatible changes."
-
-    attrs
-        owner = "company-dropbox-team"
-
-struct DowngradeTeamFolderArg
-    shared_folder_id common.SharedFolderId
-        "The ID for the team folder."
-
-    example default
-        shared_folder_id = "84528192421"
-
-union DowngradeTeamFolderError
-    access_error SharedFolderAccessError
-    no_permission
-        "The current user does not have permission to perform this action."
-
-union_closed DowngradeTeamFolderJobStatus extends async.PollResultBase
-    complete SharedFolderMetadata
-        "The downgrade job has finished. The value is the metadata for the resulting shared folder."
-    failed DowngradeTeamFolderError
-        "Error occurred while performing an asynchronous job from :route:`downgrade_team_folder`."
-
-    example default
-        complete = default
-
-route check_downgrade_team_folder_job_status(async.PollArg, DowngradeTeamFolderJobStatus, async.PollError)
-    "Returns the status of an asynchronous job for downgrading a team folder.
-
-    Apps must have full Dropbox access to use this endpoint.
-
-    Warning: This endpoint is in beta and is subject to minor but possibly
-    backwards-incompatible changes."
-
-    attrs
-        owner = "company-dropbox-team"
-
-# --
-
 route get_folder_metadata_2(InternalGetMetadataArgs, InternalSharedFolderMetadata, SharedFolderAccessError)
     "Returns internal shared folder metadata by its folder ID."
 
@@ -326,7 +227,7 @@ struct InternalGetMetadataArgs
         shared_folder_id = "84528192421"
         actions = []
 
-union InternalFolderAction extends AlphaFolderAction
+union InternalFolderAction extends FolderAction
     "Internal-only actions that may be taken on a shared folder."
 
     upgrade_to_team_folder
@@ -354,31 +255,36 @@ struct InternalFolderPermission
 struct InternalSharedFolderMetadata extends SharedFolderMetadataBase
     "The metadata which includes internal information about the shared folder."
 
-    path_lower String?
-        "The lower-cased full path of this shared folder. Absent for unmounted folders."
+    is_confidential Boolean = false
+        "Specifies that the folder is invite only."
+    link_metadata SharedContentLinkMetadata?
+        "The metadata of the shared content link to this shared folder. Absent if there is no
+        link on the folder."
     name String
         "The name of the this shared folder."
-    shared_folder_id common.SharedFolderId
-        "The ID of the shared folder."
-    permissions List(InternalFolderPermission)?
-        "Actions the current user may perform on the folder and its contents.
-        The set of permissions corresponds to the InternalFolderActions in the request."
     managed_by String?
         "A human-readable string telling the user how to manage the folder or who can manage
         it if they don't have permission."
-    time_invited common.DropboxTimestamp
-        "Timestamp indicating when the current user was invited to this shared folder."
+    permissions List(InternalFolderPermission)?
+        "Actions the current user may perform on the folder and its contents.
+        The set of permissions corresponds to the InternalFolderActions in the request."
+    policy FolderPolicy
+        "Policies governing this shared folder."
     preview_url String
         "URL for displaying a web preview of the shared folder."
-    is_confidential Boolean = false
-        "Specifies that the folder is invite only."
+    shared_folder_id common.SharedFolderId
+        "The ID of the shared folder."
+    time_invited common.DropboxTimestamp
+        "Timestamp indicating when the current user was invited to this shared folder."
 
     example default
         path_lower = "/dir"
+        link_metadata = default
         name = "dir"
         shared_folder_id = "84528192421"
         permissions = []
         access_type = owner
+        is_inside_team_folder = false
         is_team_folder = false
         policy = default
         time_invited = "2016-01-20T00:00:00Z"
@@ -592,7 +498,9 @@ struct AlphaFolderPolicy
         "Who can add and remove members from this shared folder."
     download_policy DownloadPolicy
     pass_policy PassPolicy
-    shared_link_policy AlphaSharedLinkPolicy
+        "DEPRECATED: use viewer_info_policy instead"
+    viewer_info_policy ViewerInfoPolicy
+    shared_link_policy SharedLinkPolicy
 
     example default
         member_policy = anyone
@@ -601,14 +509,13 @@ struct AlphaFolderPolicy
         shared_link_policy = anyone
         download_policy = disallow
         pass_policy = enabled
+        viewer_info_policy = enabled
 
 union AlphaFolderAction extends FolderAction
     disable_pass
-        "Whether the user has permission to disable the presence and seen state information on the
-        folder."
+        "Whether the user has permission to disable the viewer list information on the folder."
     enable_pass
-        "Whether the user has permission to enable presence and seen state information on the
-        folder."
+        "Whether the user has permission to enable viewer list information on the folder."
     remove_download_policy
         "Whether the user has permission to remove the download policy and allow downloads on the
         folder.
@@ -635,24 +542,11 @@ struct AlphaFolderPermission
         allow = false
         reason = user_not_same_team_as_owner
 
-struct AlphaSharedFolderMetadata
+struct AlphaSharedFolderMetadata extends SharedFolderMetadataBase
     "Extended version of SharedFolderMetadata with link metadata and extended folder policy"
-    access_type AccessLevel
-        "The current user's access level for this shared folder."
-    is_team_folder Boolean
-        "Whether this folder is a
-        :link:`team folder https://www.dropbox.com/en/help/986`."
     link_metadata SharedContentLinkMetadata
     name String
         "The name of the this shared folder."
-    owner_team users.Team?
-        "The team that owns the folder. This field is not present if the folder
-        is not owned by a team."
-    parent_shared_folder_id common.SharedFolderId?
-        "The ID of the parent shared folder. This field is present only if the
-        folder is contained within another shared folder."
-    path_lower String?
-        "The lower-cased full path of this shared folder. Absent for unmounted folders."
     permissions List(AlphaFolderPermission)?
         "Actions the current user may perform on the folder and its contents.
         The set of permissions corresponds to the FolderActions in the request."
@@ -688,10 +582,11 @@ struct AlphaUpdateFolderPolicyArg
         current user is on a team."
     acl_update_policy AclUpdatePolicy?
         "Who can add and remove members of this shared folder."
+    actions List(AlphaFolderAction)?
     download_policy DownloadPolicy?
     pass_policy PassPolicy?
-    shared_link_policy AlphaSharedLinkPolicy?
-    link_settings LinkSettings?
+    shared_link_policy SharedLinkPolicy?
+    link_settings AlphaLinkSettings?
 
     example default
         shared_folder_id = "84528192421"
@@ -706,33 +601,36 @@ route alpha/update_folder_policy(AlphaUpdateFolderPolicyArg, AlphaSharedFolderMe
 
     attrs
         owner = "sfi"
+        is_preview = true
 
 union_closed AlphaShareFolderLaunch extends async.LaunchResultBase
     complete AlphaSharedFolderMetadata
 
-route alpha/share_folder(ShareFolderArg, AlphaShareFolderLaunch, ShareFolderError)
-
-
-union AlphaSharedLinkPolicy extends SharedLinkPolicy
-    team
-        "Links can only be shared among members of the team or shared folder."
+route alpha/share_folder(AlphaShareFolderArg, AlphaShareFolderLaunch, ShareFolderError)
+    attrs
+        is_preview = true
 
 struct AlphaShareFolderArg
     path files.WritePath
         "The path to the folder to share. If it does not exist, then a new one
         is created."
-    member_policy MemberPolicy = anyone
+    member_policy MemberPolicy?
         "Who can be a member of this shared folder. Only applicable if the
         current user is on a team."
-    acl_update_policy AclUpdatePolicy = owner
+    acl_update_policy AclUpdatePolicy?
         "Who can add and remove members of this shared folder."
-    shared_link_policy AlphaSharedLinkPolicy = anyone
+    shared_link_policy SharedLinkPolicy?
         "The policy to apply to shared links created for content inside this
         shared folder.  The current user must be on a team to set this policy to
         :field:`SharedLinkPolicy.members` or
-        :field:`AlphaSharedLinkPolicy.team`."
+        :field:`SharedLinkPolicy.team`."
     force_async Boolean = false
         "Whether to force the share to happen asynchronously."
+    actions List(AlphaFolderAction)?
+    download_policy DownloadPolicy?
+    link_settings AlphaLinkSettings?
+    pass_policy PassPolicy?
+    viewer_info_policy ViewerInfoPolicy?
 
 
 # --
@@ -745,6 +643,7 @@ route alpha/list_folders(AlphaListFoldersArgs, AlphaListFoldersResult, Void)
 
     attrs
         owner = "sfi"
+        is_preview = true
 
 struct AlphaListFoldersResult
     "Result for :route:`list_folders` or :route:`list_mountable_folders`, depending on which
@@ -785,6 +684,7 @@ route alpha/list_folders/continue(ListFoldersContinueArg, AlphaListFoldersResult
 
     attrs
         owner = "sfi"
+        is_preview = true
 
 
 # --
@@ -797,6 +697,7 @@ route alpha/list_mountable_folders(AlphaListFoldersArgs, AlphaListFoldersResult,
 
     attrs
         owner = "sfi"
+        is_preview = true
 
 
 # --
@@ -811,3 +712,4 @@ route alpha/list_mountable_folders/continue(ListFoldersContinueArg, AlphaListFol
 
     attrs
         owner = "sfi"
+        is_preview = true

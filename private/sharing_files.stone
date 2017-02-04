@@ -102,15 +102,51 @@ struct TempPathBasedFileMetadata
 
 # --
 
+route get_file_member_counts(GetFileMemberCountsArg, FileMemberCounts, GetFileMemberCountsError)
+    "Returns the number of users who have access to the given file. Includes File ACL members
+    and inherited members from shared folders."
+
+    attrs
+        owner = "sharing"
+
+struct GetFileMemberCountsArg
+    "Arguments of :route:`get_file_member_counts`."
+
+    file PathOrId
+        "The file of interest."
+    limit UInt32(max_value=300) = 100
+        "The maximum count to return."
+    url String?
+        "The shared link URL that the user is viewing the content on when the file is not in their dropbox."
+
+struct FileMemberCounts
+    count UInt32
+        "Total number of unique users with access to the file."
+    exceeds_limit Boolean
+        "A boolean indicating if the total file number count is greater than the passed in limit."
+
+    example default
+        count = 2
+        exceeds_limit = false
+
+union GetFileMemberCountsError
+    "Error result for :route:`get_file_member_counts`."
+
+    user_error SharingUserError
+    access_error SharingFileAccessError
+
+# --
+
 union AlphaFileAction extends FileAction
     change_options
         "Change file options, such as whether presence and seen state is enabled for the file.
-        DEPRECATED: Use enable_pass and disable_pass instead."
+        DEPRECATED: Use enable_viewer_info and disable_viewer_info instead."
     disable_pass
         "Whether the user has permission to disable the presence and seen state information on the
-        file."
+        file. DEPRECATED: Use disable_viewer_info instead."
     enable_pass
-        "Whether the user has permission to enable presence and seen state information on the file."
+        "Whether the user has permission to enable presence and seen state information on the file.
+        DEPRECATED: Use enable_viewer-info instead."
     remove_download_policy
         "Whether the user has permission to remove the download policy and allow downloads on the
         file.
@@ -187,10 +223,18 @@ route alpha/get_file_metadata(AlphaGetFileMetadataArg, AlphaSharedFileMetadata, 
 
     This also returns the link metadata of the file."
 
+    attrs
+        is_preview = true
+
 route alpha/get_file_metadata/batch(AlphaGetFileMetadataBatchArg, List(AlphaGetFileMetadataBatchResult), SharingUserError)
+    attrs
+        is_preview = true
 
 route update_file_policy(UpdateFilePolicyArg, AlphaSharedFileMetadata, UpdateFilePolicyError)
     "Update the policies of a file. This includes both PASS settings and link settings associated with the file."
+
+    attrs
+        api_group = "truelink-alpha"
 
 route internal_test_only/get_file_shared_content_link(GetFileSharedContentLinkArg, List(String), AddFileMemberError)
     "Get the file shared content link for the given file and member information. Note: This is used ONLY for mobile integration test.
@@ -210,6 +254,8 @@ route internal_test_only/get_file_shared_content_link(GetFileSharedContentLinkAr
         owner = "sharing"
 
 route alpha/list_file_members(AlphaListFileMembersArg, AlphaSharedFileMembers, ListFileMembersError)
+    attrs
+        is_preview = true
 
 route alpha/list_file_members/continue(AlphaListFileMembersContinueArg, AlphaSharedFileMembers, ListFileMembersContinueError)
     "Once a cursor has been retrieved from :route:`alpha/list_file_members` or
@@ -218,6 +264,7 @@ route alpha/list_file_members/continue(AlphaListFileMembersContinueArg, AlphaSha
 
     attrs
         owner = "sharing"
+        is_preview = true
 
 struct AlphaListFileMembersArg extends ListFileMembersArg
     url String?
@@ -243,10 +290,11 @@ struct GetFileSharedContentLinkArg
         gen_email_link = false
 
 union PassPolicy
+    "DEPRECATED: use ViewerInfoPolicy instead."
     enabled
-        "Presence and seen state information is available on this file"
+        "Presence and seen state information is available on this file."
     disabled
-        "Presence and seen state information is disabled on this file"
+        "Presence and seen state information is disabled on this file."
 
 union DownloadPolicy
     "This policy is probably subject to removal sometime soon. Talk to davy@ before using it."
@@ -256,7 +304,7 @@ union DownloadPolicy
         "Downloads are disallowed on this file."
 
 struct AlphaGetFileMetadataArg
-    "Arguments of :route:`alpha/get_file_metadata`"
+    "Arguments of :route:`alpha/get_file_metadata`."
 
     file PathOrId
         "The file to query."
@@ -270,7 +318,7 @@ struct AlphaGetFileMetadataArg
         actions = []
 
 struct AlphaGetFileMetadataBatchArg
-    "Arguments of :route:`get_file_metadata/batch`"
+    "Arguments of :route:`get_file_metadata/batch`."
 
     files List(PathOrId, max_items=100)
         "The files to query."
@@ -288,7 +336,7 @@ struct AlphaGetFileMetadataBatchResult
         "This is the input file identifier corresponding to one of
         :field:`GetFileMetadataBatchArg.files`."
     result AlphaGetFileMetadataIndividualResult
-        "The result for this particular file"
+        "The result for this particular file."
 
 union AlphaGetFileMetadataIndividualResult
     metadata AlphaSharedFileMetadata
@@ -314,6 +362,9 @@ struct UpdateFilePolicyArg
     download_policy DownloadPolicy?
         "The download policy on the file."
     pass_policy PassPolicy?
+        "The presence and seen state policy on the file. DEPRECATED: use viewer_info_policy
+        instead."
+    viewer_info_policy ViewerInfoPolicy?
         "The presence and seen state policy on the file."
 
 union UpdateFilePolicyError

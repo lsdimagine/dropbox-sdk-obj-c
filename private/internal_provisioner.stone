@@ -197,6 +197,8 @@ struct ChangeTeamPlanArgs
         "Defines the price."
     external_invoice_id ExternalInvoiceId
         "Some external ID representing a payment that didn't happen through Cash-Team's systems."
+    force_immediate Boolean = false
+        "Forces the downgrade transitions to occur immediately instead of being scheduled."
 
     example default
         team_id = 12345

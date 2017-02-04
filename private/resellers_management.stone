@@ -65,6 +65,23 @@ struct ResellerCreationArg
 
     address Address
 
+    # Extra Fields that end up on the .extra_info of the reseller entity
+    company_contact_number String
+    services_contact ResellerContactInfo
+    marketing_contact ResellerContactInfo
+    channel_sales_employees UInt32
+    geo_coverage String
+    industries_covered String
+    revenue_split String
+    service_delivery_size UInt32
+    services_type String
+    vertical_focus String
+    technical_offering_types String
+    seperate_services_group Boolean
+    previous_relationship Boolean
+    existing_integration String
+
+
     example default
         biz_contact=default
         tech_contact=default
@@ -77,6 +94,21 @@ struct ResellerCreationArg
         customer_size=1
 
         address=default
+
+        company_contact_number="555 555-5555"
+        services_contact=default
+        marketing_contact=default
+        channel_sales_employees=100
+        geo_coverage="EMEA"
+        industries_covered="All"
+        revenue_split="90/10"
+        service_delivery_size=10000
+        services_type="Some"
+        vertical_focus="Photos"
+        technical_offering_types="Some"
+        seperate_services_group=true
+        previous_relationship=false
+        existing_integration=""
 
 
 struct ResellerCreationResult

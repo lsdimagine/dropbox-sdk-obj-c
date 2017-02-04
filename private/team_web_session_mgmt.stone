@@ -1,0 +1,29 @@
+namespace team
+
+struct WebSessionManagementConfiguration
+    remember_session_expires Int64?
+        "Num of seconds elapsed from sign in with 'remember me' until session is expired."
+    idle_session_timeout Int64?
+        "Num of seconds elapsed from last user operation until session is expired."
+
+    example default
+        remember_session_expires = 12000
+        idle_session_timeout = 3600
+
+union WebSessionManagementError
+    "Error returned by web session management routes."
+
+    invalid_input
+        "Configure settings invalid input."
+
+alias WebSessionManagementArg = WebSessionManagementConfiguration
+
+route web_session_management/configure_settings(WebSessionManagementArg, Void, WebSessionManagementError)
+
+    "Configure web session management admin's settings.
+
+    Permission : Team admin"
+
+    attrs
+        auth="team"
+        owner="adminx"

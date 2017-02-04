@@ -26,6 +26,26 @@ route upload_session/check_finish_batch_job_status(async.PollArg, UploadSessionF
 route upload_session/finish_batch_sync (UploadSessionFinishBatchArg, UploadSessionFinishBatchResult, Void)
     "sync version of :route:`upload_session/finish_batch`."
 
+union UploadSessionFinishProcessedError extends UploadSessionFinishError
+    processing_failed
+        "Unable to apply the additional processing."
+
+struct UploadSessionFinishProcessedArg extends UploadSessionFinishArg
+    processing_type String?
+        "The string that specifies the processing type."
+
+    example ocr_pdf
+        processing_type = "ocr_pdf"
+        cursor = default
+        commit = default
+
+route upload_session/finish_processed (UploadSessionFinishProcessedArg, FileMetadata, UploadSessionFinishProcessedError)
+    "A variant of :route:`upload_session/finish` that performs additional mutation on the uploaded file."
+    attrs
+        host = "content"
+        style = "upload"
+        is_preview = true
+
 route delete_batch_with_changeset_sync (DeleteBatchArg, InternalFileOpBatchResult, DeleteError)
     "This route helps you to delete multiple files/folders at once.
 

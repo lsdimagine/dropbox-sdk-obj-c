@@ -173,12 +173,6 @@ struct SetSharedFolderInitialSyncSettingArg
 # Policy types for infinite
 #
 
-union InfinitePolicy
-    initial_root_policy
-        "The policy that determines the infinite status of files on first link"
-    locked_root_policy
-        "An optional policy that locks existing devices root folder to a given policy"
-
 union InfinitePolicySetting
     local
         "The specified content will be synced as local files by default."
@@ -199,15 +193,11 @@ route set_infinite_policy(SetInfinitePolicyArg, Void, AdministrationError)
         owner="adminx" # TODO: switch to infinite, after finding where we can add infinite to the owner enum
 
 struct SetInfinitePolicyArg
-    policy InfinitePolicy
-        "The policy which we are setting"
-
     setting InfinitePolicySetting
         "Whether new shared folders should sync by default for members."
 
     example default
-        policy = initial_root_policy
-        setting = on_demand
+        setting = default
 
 #
 # route change_reseller_support
