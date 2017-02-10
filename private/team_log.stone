@@ -44,8 +44,8 @@ union GetTeamEventsError
 
     account_id_not_found
         "No user found matching the provided account_id."
-    start_time_bigger_than_end_time
-        "Start timestamp must be before end timestamp."
+    invalid_time_range
+        "Invalid time range."
 
 route get_events(GetTeamEventsArg, GetTeamEventsResult, GetTeamEventsError)
     "Retrieves team events.
@@ -55,6 +55,8 @@ route get_events(GetTeamEventsArg, GetTeamEventsResult, GetTeamEventsError)
     attrs
         auth = "team"
         owner = "adminx"
+        api_group = "get-events-alpha"
+        is_preview = true
 
 struct GetTeamEventsContinueArg
     cursor String
@@ -78,3 +80,6 @@ route get_events/continue(GetTeamEventsContinueArg, GetTeamEventsResult, GetTeam
 
     attrs
         auth = "team"
+        owner = "adminx"
+        api_group = "get-events-alpha"
+        is_preview = true

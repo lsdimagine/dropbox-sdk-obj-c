@@ -8,19 +8,20 @@ union ImportFormat
     markdown
         "The provided data is markdown.
         Note: The first line of the provided document will be used as the doc title."
+    plain_text
+        "The uploaded content is interpretted as plain text."
 
 # TODO(jenda):
 # 1. Add revision in case of update
 # 2. Maybe split create/update into two EPs
 # 3. Maybe add "Title" as argument instead
-# 4. Add containingFolderId
 struct PaperDocImport
     doc_id PaperDocId?
         "Specify Paper doc id if you want to override the existing document.
         Your account has to have edit permissions on this document.
 
         Leave empty for to create a new document."
-    containing_folder_id String?
+    parent_folder_id String?
         "The Paper folder id where the Paper document should be created. The API user has to have
         wite access to this folder or error is thrown.
 
@@ -29,15 +30,18 @@ struct PaperDocImport
     import_format ImportFormat
 
     example default
+        "Create new Paper doc."
         import_format = markdown
 
     example updateDoc
+        "Update Paper doc."
         import_format = markdown
         doc_id = "uaSvRuxvnkFa12PTkBv5q"
 
     example createDocInFolder
+        "Create new Paper doc inside Paper folder."
         import_format = html
-        containing_folder_id = "e.gGYT6HSafpMej9bUv306GarglI7GGeAM3yvfZvXHO9u4mV"
+        parent_folder_id = "e.gGYT6HSafpMej9bUv306GarglI7GGeAM3yvfZvXHO9u4mV"
 
 struct PaperDocImportResult
     doc_id String

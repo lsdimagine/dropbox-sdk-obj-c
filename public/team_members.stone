@@ -198,6 +198,8 @@ struct MemberAddArg
         "Member's last name."
     member_external_id team_common.MemberExternalId?
         "External ID for member."
+    member_persistent_id String?
+        "Persistent ID for member. This field is only available to teams using persistent ID SAML configuration."
     send_welcome_email Boolean = true
         "Whether to send a welcome email to the member.
         If send_welcome_email is false, no email invitation will be sent to the user.
@@ -246,6 +248,10 @@ union_closed MemberAddResult
         "User migration has failed."
     duplicate_external_member_id common.EmailAddress
         "A user with the given external member ID already exists on the team (including in recoverable state)."
+    duplicate_member_persistent_id common.EmailAddress
+        "A user with the given persistent ID already exists on the team (including in recoverable state)."
+    persistent_id_disabled common.EmailAddress
+        "Persistent ID is only available to teams with persistent ID SAML configuration. Please contact Dropbox for more information."
     user_creation_failed common.EmailAddress
         "User creation has failed."
 
@@ -326,6 +332,8 @@ struct MembersSetProfileArg
         "New given name for member."
     new_surname common.NamePart?
         "New surname for member."
+    new_persistent_id String?
+        "New persistent ID. This field only available to teams using persistent ID SAML configuration."
 
     example default
         user = default
@@ -345,6 +353,10 @@ union MembersSetProfileError extends MemberSelectorError
         "Pending team member's email cannot be modified."
     param_cannot_be_empty
         "Parameter new_email cannot be empty."
+    persistent_id_disabled
+        "Persistent ID is only available to teams with persistent ID SAML configuration. Please contact Dropbox for more information."
+    persistent_id_used_by_other_user
+        "The persistent ID is already in use by another team member."
 
 
 route members/set_profile(MembersSetProfileArg, TeamMemberInfo, MembersSetProfileError)

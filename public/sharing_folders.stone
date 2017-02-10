@@ -164,6 +164,8 @@ union PermissionDeniedReason
         "The user's account type does not support this action."
     user_not_on_team
         "The user needs to be on a Dropbox team to perform this action."
+    folder_is_inside_shared_folder
+        "Folder is inside of another shared folder."
 
 union AclUpdatePolicy
     "Who can change a shared folder's access control list (ACL). In other words, who can add,

@@ -23,12 +23,12 @@ union AppType
     TEAM_LINKED_APP
 
 union DeviceType
-    desktop
     mobile
+    desktop
 
 union GroupJoinPolicy
-    request_to_join
     open
+    request_to_join
 
 ##################
 # Built-in types
@@ -41,84 +41,88 @@ struct ApiSessionLogInfo
         "Api request ID."
 
 struct AppLogInfo 
-    "Application\u2019s logged information."
+    "Application's logged information."
 
     app_id AppId?
         "Application unique ID."
-    app_type AppType?
-        "Application type, user-linked or team-linked."
     display_name String?
         "Application display name."
+    app_type AppType?
+        "Application type, user-linked or team-linked."
 
 struct DesktopSessionLogInfo extends SessionLogInfo
     "Desktop session."
 
 
 struct SessionLogInfo 
-    "Session\u2019s logged information."
+    "Session's logged information."
+    union
+        web WebSessionLogInfo
+        desktop DesktopSessionLogInfo
+        mobile MobileSessionLogInfo
 
     session_id String?
         "Session ID."
 
 struct UserLogInfo 
-    "User\u2019s logged information."
+    "User's logged information."
     union
-        non_team_member NonTeamMemberLogInfo
         team_member TeamMemberLogInfo
+        non_team_member NonTeamMemberLogInfo
 
+    account_id users.AccountId?
+        "User unique ID."
     display_name common.DisplayName?
         "User display name."
     email common.EmailAddress?
         "User email address."
-    account_id users.AccountId?
-        "User unique ID."
 
 struct TeamMemberLogInfo extends UserLogInfo
-    "Team member\u2019s logged information."
+    "Team member's logged information."
 
-    member_external_id team_common.MemberExternalId?
-        "Team member external ID."
     team_member_id team_common.TeamMemberId?
         "Team member ID."
+    member_external_id team_common.MemberExternalId?
+        "Team member external ID."
 
 struct FileOrFolderLogInfo 
     "Generic information relevant both for files and folders"
 
+    path PathLogInfo?
+        "Path relative to event context."
     display_name String?
         "Display name."
     file_id String?
         "Unique ID."
-    path PathLogInfo?
-        "Path relative to event context."
 
 struct FileLogInfo extends FileOrFolderLogInfo
-    "File\u2019s logged information."
+    "File's logged information."
 
 
 struct FolderLogInfo extends FileOrFolderLogInfo
-    "Folder\u2019s logged information."
+    "Folder's logged information."
 
 
 struct GroupLogInfo 
-    "Group\u2019s logged information."
+    "Group's logged information."
 
+    group_id team_common.GroupId?
+        "The unique id of this group."
     display_name String
         "The name of this group."
     external_id team_common.GroupExternalId?
         "External group ID."
-    group_id team_common.GroupId?
-        "The unique id of this group."
 
 struct PathLogInfo 
-    "Path\u2019s details."
+    "Path's details."
 
     contextual files.Path?
-        "Fully qualified path relative to event\u2019s context."
+        "Fully qualified path relative to event's context."
     namespace_relative NamespaceRelativePathLogInfo
         "Path relative to the namespace containing the content."
 
 struct PaperDocumentLogInfo 
-    "Paper document\u2019s logged information."
+    "Paper document's logged information."
 
     doc_id String
         "Papers document Id."
@@ -126,7 +130,7 @@ struct PaperDocumentLogInfo
         "Paper document title."
 
 struct PaperFolderLogInfo 
-    "Paper folder\u2019s logged information."
+    "Paper folder's logged information."
 
     folder_id String
         "Papers folder Id."
@@ -134,7 +138,7 @@ struct PaperFolderLogInfo
         "Paper folder name."
 
 struct NonTeamMemberLogInfo extends UserLogInfo
-    "Non team member\u2019s logged information."
+    "Non team member's logged information."
 
 
 struct NamespaceRelativePathLogInfo 
@@ -156,54 +160,54 @@ struct MobileSessionLogInfo extends SessionLogInfo
 struct ResellerLogInfo 
     "Reseller information."
 
-    reseller_id team_common.ResellerId
-        "Reseller ID."
     reseller_name String
         "Reseller name."
+    reseller_id team_common.ResellerId
+        "Reseller ID."
 
 struct OriginLogInfo 
     "The origin from which the actor performed the action."
 
-    access_method AccessMethodLogInfo
-        "The method that was used to perform the action."
     geo_location GeoLocationInfo?
         "Geographic location details."
     host HostLogInfo?
         "Host details."
+    access_method AccessMethodLogInfo
+        "The method that was used to perform the action."
 
 struct MissingDetails 
     "An indication that an event was returned with missing details"
 
 
 struct SharedFolderLogInfo 
-    "SharedFolder\u2019s logged information."
+    "SharedFolder's logged information."
 
-    display_name String
-        "Shared folder display name."
     ns_id common.NamespaceId?
         "Namespace ID."
+    display_name String
+        "Shared folder display name."
 
 struct DeviceLogInfo 
-    "Device\u2019s logged information."
+    "Device's logged information."
 
     device_id String?
         "Device unique id."
-    device_type String?
-        "Device type."
     display_name String?
         "Device display name."
-    ip_address IpAddress?
-        "IP address."
     is_emm_managed Boolean?
         "True if this device is emm managed, false otherwise."
-    last_activity String?
-        "Last activity."
+    platform String?
+        "Device platform name."
     mac_address String?
         "Device mac address."
     os_version String?
         "Device OS version."
-    platform String?
-        "Device platform name."
+    device_type String?
+        "Device type."
+    ip_address IpAddress?
+        "IP address."
+    last_activity String?
+        "Last activity."
 
 struct PaperTaggedValue 
     "Paper tagged value."
@@ -216,12 +220,12 @@ struct GeoLocationInfo
 
     city String?
         "City name."
+    region String?
+        "Region name."
     country String?
         "Country code."
     ip_address IpAddress
         "IP address."
-    region String?
-        "Region name."
 
 struct HostLogInfo 
     "Host details."
@@ -231,63 +235,63 @@ struct HostLogInfo
     host_name String?
         "Host name."
 
-union AccessMethodLogInfo
-    "Indicates the method in which the action was performed."
-
-    admin_console WebSessionLogInfo
-        "Admin console session details."
-    api ApiSessionLogInfo
-        "Api session details."
-    content_manager WebSessionLogInfo
-        "Content manager session details."
-    end_user SessionLogInfo
-        "End user session details."
-    sign_in_as WebSessionLogInfo
-        "Sign in as session details."
-
 union ActorLogInfo
     "The entity who performed the action."
 
+    user UserLogInfo
+        "The user who did the action."
     admin UserLogInfo
         "The admin who did the action."
     app AppLogInfo
         "The application who did the action."
-    dropbox 
-        "Action done by Dropbox."
     reseller ResellerLogInfo
         "Action done by reseller."
-    user UserLogInfo
-        "The user who did the action."
+    dropbox 
+        "Action done by Dropbox."
 
 union AssetLogInfo
     "Asset details."
 
     file FileLogInfo
-        "File\u2019s details."
+        "File's details."
     folder FolderLogInfo
-        "Folder\u2019s details."
+        "Folder's details."
     paper_document PaperDocumentLogInfo
-        "Paper docuement\u2019s details."
+        "Paper docuement's details."
     paper_folder PaperFolderLogInfo
-        "Paper folder\u2019s details."
+        "Paper folder's details."
 
 union ContextLogInfo
     "The primary entity on which the action was done."
 
+    team_member TeamMemberLogInfo
+        "Action was done on behalf of a team member."
     non_team_member NonTeamMemberLogInfo
         "Action was done on behalf of a non team member."
     team 
         "Action was done on behalf of the team."
-    team_member TeamMemberLogInfo
-        "Action was done on behalf of a team member."
 
 union ParticipantLogInfo
     "A user or group"
 
-    group GroupLogInfo
-        "Group details."
     user UserLogInfo
         "User details."
+    group GroupLogInfo
+        "Group details."
+
+union AccessMethodLogInfo
+    "Indicates the method in which the action was performed."
+
+    end_user SessionLogInfo
+        "End user session details."
+    sign_in_as WebSessionLogInfo
+        "Sign in as session details."
+    content_manager WebSessionLogInfo
+        "Content manager session details."
+    admin_console WebSessionLogInfo
+        "Admin console session details."
+    api ApiSessionLogInfo
+        "Api session details."
 
 union EventCategory
     "Category of events in event audit log."
@@ -1046,9 +1050,9 @@ struct TeamNameChangeDetails
     "Changed team name."
 
     team_display_name String
-        "Team\u2019s display name."
+        "Team's display name."
     team_legal_name String
-        "Team\u2019s legal name."
+        "Team's legal name."
 
 struct TransferAccountContentsDetails
     "Transferred account contents."
@@ -1378,6 +1382,20 @@ struct ResolveCommentDetails
     target_index Int64
         "Target asset index."
 
+struct SfAddExpirationDetails
+    "Added an expiration date to a link."
+
+    expiration_start_date String
+        "Expiration starting date."
+    expiration_days Int64
+        "The number of days from the starting expiration date after which the link will expire."
+    shared_folder_type String?
+        "Shared folder type."
+    original_folder_name String
+        "Original shared folder name."
+    target_index Int64
+        "Target asset index."
+
 struct SfAddGroupDetails
     "Added the team to a shared folder."
 
@@ -1385,6 +1403,26 @@ struct SfAddGroupDetails
         "Team name."
     sharing_permission String?
         "Sharing permission."
+    original_folder_name String
+        "Original shared folder name."
+    target_index Int64
+        "Target asset index."
+
+struct SfAddPasswordDetails
+    "Added a password to a link."
+
+    shared_folder_type String?
+        "Shared folder type."
+    original_folder_name String
+        "Original shared folder name."
+    target_index Int64
+        "Target asset index."
+
+struct SfAllowAnyoneToViewSharedLinksDetails
+    "Allowed anyone to view links to files in a shared folder."
+
+    shared_folder_type String?
+        "Shared folder type."
     original_folder_name String
         "Original shared folder name."
     target_index Int64
@@ -1440,8 +1478,42 @@ struct SfAllowNonMembersToViewSharedLinksDetails
     target_index Int64
         "Target asset index."
 
+struct SfAllowTeamToViewSharedLinksDetails
+    "Allowed only team members to view links to files in a shared folder."
+
+    shared_folder_type String?
+        "Shared folder type."
+    original_folder_name String
+        "Original shared folder name."
+    target_index Int64
+        "Target asset index."
+
 struct SfBlockNonMembersFromViewingSharedLinksDetails
     "Prevented non-team members from viewing links to files in a shared folder."
+
+    shared_folder_type String?
+        "Shared folder type."
+    original_folder_name String
+        "Original shared folder name."
+    target_index Int64
+        "Target asset index."
+
+struct SfChangeExpirationDetails
+    "Changed the expiration date for a link."
+
+    expiration_start_date String
+        "Expiration starting date."
+    expiration_days Int64
+        "The number of days from the starting expiration date after which the link will expire."
+    shared_folder_type String?
+        "Shared folder type."
+    original_folder_name String
+        "Original shared folder name."
+    target_index Int64
+        "Target asset index."
+
+struct SfChangePasswordDetails
+    "Changed the password for a link."
 
     shared_folder_type String?
         "Shared folder type."
@@ -1455,6 +1527,26 @@ struct SfCreateDetails
 
     parent_ns_id common.NamespaceId?
         "Parent namespace ID."
+    target_index Int64
+        "Target asset index."
+
+struct SfDownloadsOffDetails
+    "Turned off downloads."
+
+    shared_folder_type String?
+        "Shared folder type."
+    original_folder_name String
+        "Original shared folder name."
+    target_index Int64
+        "Target asset index."
+
+struct SfDownloadsOnDetails
+    "Turned on downloads."
+
+    shared_folder_type String?
+        "Shared folder type."
+    original_folder_name String
+        "Original shared folder name."
     target_index Int64
         "Target asset index."
 
@@ -1489,6 +1581,16 @@ struct SfFbUninviteDetails
 
     sharing_non_member_recipients List(NonTeamMemberLogInfo)
         "Sharing non member recipients."
+    original_folder_name String
+        "Original shared folder name."
+    target_index Int64
+        "Target asset index."
+
+struct SfMemberOnlyLinkDetails
+    "Made a folder viewable only to members of the folder."
+
+    shared_folder_type String?
+        "Shared folder type."
     original_folder_name String
         "Original shared folder name."
     target_index Int64
@@ -1650,6 +1752,36 @@ struct SfNonteamUnmountDetails
     target_index Int64
         "Target asset index."
 
+struct SfPublicLinkDetails
+    "Made a folder viewable to anyone with the link."
+
+    shared_folder_type String?
+        "Shared folder type."
+    original_folder_name String
+        "Original shared folder name."
+    target_index Int64
+        "Target asset index."
+
+struct SfRemoveExpirationDetails
+    "Removed the expiration date from a link."
+
+    shared_folder_type String?
+        "Shared folder type."
+    original_folder_name String
+        "Original shared folder name."
+    target_index Int64
+        "Target asset index."
+
+struct SfRemovePasswordDetails
+    "Removed the password from a link."
+
+    shared_folder_type String?
+        "Shared folder type."
+    original_folder_name String
+        "Original shared folder name."
+    target_index Int64
+        "Target asset index."
+
 struct SfRequestAccessDetails
     "Requested access to a shared folder."
 
@@ -1778,6 +1910,16 @@ struct SfTeamMountDetails
     target_index Int64
         "Target asset index."
 
+struct SfTeamOnlyLinkDetails
+    "Made a folder viewable only to team members with the link."
+
+    shared_folder_type String?
+        "Shared folder type."
+    original_folder_name String
+        "Original shared folder name."
+    target_index Int64
+        "Target asset index."
+
 struct SfTeamTransferDetails
     "Transferred folder ownership to a team member."
 
@@ -1815,6 +1957,26 @@ struct SfUnshareDetails
 
     sharing_non_member_recipients List(NonTeamMemberLogInfo)
         "Sharing non member recipients."
+    original_folder_name String
+        "Original shared folder name."
+    target_index Int64
+        "Target asset index."
+
+struct SfViewerInfoOffDetails
+    "Turned off viewer info."
+
+    shared_folder_type String?
+        "Shared folder type."
+    original_folder_name String
+        "Original shared folder name."
+    target_index Int64
+        "Target asset index."
+
+struct SfViewerInfoOnDetails
+    "Turned on viewer info."
+
+    shared_folder_type String?
+        "Shared folder type."
     original_folder_name String
         "Original shared folder name."
     target_index Int64
@@ -1876,6 +2038,38 @@ struct SharedContentTeamViewDetails
     shared_content_link String
         "Shared content link."
 
+struct SharedFileAddExpirationDetails
+    "Added an expiration date to a link."
+
+    expiration_start_date String
+        "Expiration starting date."
+    expiration_days Int64
+        "The number of days from the starting expiration date after which the link will expire."
+
+struct SharedFileAddPasswordDetails
+    "Added a password to a link."
+
+
+struct SharedFileChangeExpirationDetails
+    "Changed the expiration date for a link."
+
+    expiration_start_date String
+        "Expiration starting date."
+    expiration_days Int64
+        "The number of days from the starting expiration date after which the link will expire."
+
+struct SharedFileChangePasswordDetails
+    "Changed the password for a link."
+
+
+struct SharedFileDownloadsOffDetails
+    "Turned off downloads."
+
+
+struct SharedFileDownloadsOnDetails
+    "Turned on downloads."
+
+
 struct SharedFileGroupAddedDetails
     "Added groups to a file."
 
@@ -1891,6 +2085,10 @@ struct SharedFileGroupRemovedDetails
         "Sharing permission."
     sharing_groups List(GroupLogInfo)?
         "Sharing groups details."
+
+struct SharedFileMemberOnlyLinkDetails
+    "Made a file viewable only to members of the file."
+
 
 struct SharedFileNonteamAddMemberDetails
     "Added non-team members to a file."
@@ -1938,6 +2136,18 @@ struct SharedFileNonteamRequestAccessDetails
     shared_content_link String
         "Shared content link."
 
+struct SharedFilePublicLinkDetails
+    "Made a file viewable to anyone with the link."
+
+
+struct SharedFileRemoveExpirationDetails
+    "Removed the expiration date from a link."
+
+
+struct SharedFileRemovePasswordDetails
+    "Removed the password from a link."
+
+
 struct SharedFileTeamAddMemberDetails
     "Added team members to a file."
 
@@ -1960,6 +2170,10 @@ struct SharedFileTeamClaimDetails
     shared_content_link String
         "Shared content link."
 
+struct SharedFileTeamOnlyLinkDetails
+    "Made a file viewable only to team members with the link."
+
+
 struct SharedFileTeamRemoveMemberDetails
     "Removed team members from a file."
 
@@ -1974,6 +2188,14 @@ struct SharedFileTeamRequestAccessDetails
 
 struct SharedFileUnshareDetails
     "Unshared a file."
+
+
+struct SharedFileViewerInfoOffDetails
+    "Turned off viewer info."
+
+
+struct SharedFileViewerInfoOnDetails
+    "Turned on viewer info."
 
 
 struct ShmodelAppCreateDetails
@@ -2429,24 +2651,24 @@ struct RevertFilesToPreviousVersionDetails
 
 
 struct RollbackChangesInFilesDetails
-    "Rolled back file changes."  
+    "Rolled back file changes."
 
 struct TeamEvent
     "An audit log event."
 
-    origin OriginLogInfo
-        "The origin from which the actor performed the action including information about host, ip address, location, session, etc. If the action was performed programmatically via the API the origin represents the API client."
-    context ContextLogInfo
-        "The user or team on whose behalf the actor performed the action."
-    event_categories List(EventCategory, min_items=1)
-        "One or more categories that this type of action belongs to."
-    involve_external_user Boolean
-        "Team/external flag"
     timestamp common.DropboxTimestamp
         "The Dropbox timestamp representing when the action was taken."
-    participants List(ParticipantLogInfo)?
-        "Zero or more users and/or groups that are affected by the action.Note that this list doesn\u2019t include any actors or users in context."
+    event_categories List(EventCategory, min_items=1)
+        "One or more categories that this type of action belongs to."
     actor ActorLogInfo
         "The entity who actually performed the action."
+    origin OriginLogInfo
+        "The origin from which the actor performed the action including information about host, ip address, location, session, etc. If the action was performed programmatically via the API the origin represents the API client."
+    participants List(ParticipantLogInfo)?
+        "Zero or more users and/or groups that are affected by the action. Note that this list doesn't include any actors or users in context."
     assets List(AssetLogInfo)?
         "Zero or more content assets involved in the action. Currently these include Dropbox files and folders but in the future we might add other asset types such as Paper documents, folders, projects, etc."
+    involve_non_team_member Boolean
+        "True if the action involved a non team member either as the actor or as one of the affected users."
+    context ContextLogInfo
+        "The user or team on whose behalf the actor performed the action."

@@ -115,12 +115,15 @@ struct LoginArg
         "Detailed information about the client device."
     captcha ReCaptchaResponse?
         "CAPTCHA response if CAPTCHA was required."
+    skybridge_output String?
+        "Skybridge Output (for Client Intelligence)."
 
     example default
         email = "david@example.com"
         password = "asdfasdf"
         require_role = business
         device_info = default
+        skybridge_output = "some-output-here"
 
     example captcha
         email = "sara@example.com"
@@ -301,6 +304,8 @@ struct CreateAccountArg
         source."
     captcha ReCaptchaResponse?
         "CAPTCHA response if CAPTCHA was required."
+    skybridge_output String?
+        "Skybridge Output (for Client Intelligence)."
 
     example default
         email = "bbitdiddle@dropbox.com"

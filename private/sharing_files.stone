@@ -236,6 +236,12 @@ route update_file_policy(UpdateFilePolicyArg, AlphaSharedFileMetadata, UpdateFil
     attrs
         api_group = "truelink-alpha"
 
+route alpha/update_file_policy(UpdateFilePolicyArg, AlphaSharedFileMetadata, UpdateFilePolicyError)
+    "Update the policies of a file. This includes both PASS settings and link settings associated with the file."
+
+    attrs
+        is_preview = true
+
 route internal_test_only/get_file_shared_content_link(GetFileSharedContentLinkArg, List(String), AddFileMemberError)
     "Get the file shared content link for the given file and member information. Note: This is used ONLY for mobile integration test.
 

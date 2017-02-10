@@ -29,6 +29,8 @@ route upload_session/finish_batch_sync (UploadSessionFinishBatchArg, UploadSessi
 union UploadSessionFinishProcessedError extends UploadSessionFinishError
     processing_failed
         "Unable to apply the additional processing."
+    processing_pending
+        "Processing has been triggered, but is not complete."
 
 struct UploadSessionFinishProcessedArg extends UploadSessionFinishArg
     processing_type String?
