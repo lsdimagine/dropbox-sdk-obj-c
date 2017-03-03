@@ -200,14 +200,8 @@ struct FileMetadata extends Metadata
          in the case where a file has explicit members but is not contained within
          a shared folder."
     content_hash Sha256HexHash?
-        "The hash code generated from the file content. It can be computed as follows. Firstly,
-        split the file into blocks of 4 MB (4,194,304 or 4 * 1024 * 1024 bytes). The last block may
-        be smaller than 4 MB. Secondly, compute the hash code of each block using SHA-256. Thirdly,
-        concatenate the hash code of all blocks to form a single string. Fourthly, compute the hash
-        code of the concatenated string using SHA-256. And lastly, output the hash code in
-        hexadecimal format. This field is marked optional, but should always be available, except in
-        the unlikely case where we decide to change the representation in the future. If we do so,
-        we will provide advanced notice to developers with transition process in detail."
+        "A hash of the file content. This field can be used to verify data integrity. For more
+        information see our :link:`Content hash /developers/reference/content-hash` page."
 
     example default
         id = "id:a4ayc_80_OEAAAAAAAAAXw"
@@ -885,6 +879,8 @@ union WriteError
         "The user doesn't have enough available space (bytes) to write more data."
     disallowed_name
         "Dropbox will not save the file or folder because of its name."
+    team_folder
+        "This endpoint cannot modify or delete team folders."
 
 union WriteConflictError
     file

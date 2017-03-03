@@ -29,8 +29,6 @@ route upload_session/finish_batch_sync (UploadSessionFinishBatchArg, UploadSessi
 union UploadSessionFinishProcessedError extends UploadSessionFinishError
     processing_failed
         "Unable to apply the additional processing."
-    processing_pending
-        "Processing has been triggered, but is not complete."
 
 struct UploadSessionFinishProcessedArg extends UploadSessionFinishArg
     processing_type String?
@@ -41,11 +39,48 @@ struct UploadSessionFinishProcessedArg extends UploadSessionFinishArg
         cursor = default
         commit = default
 
-route upload_session/finish_processed (UploadSessionFinishProcessedArg, FileMetadata, UploadSessionFinishProcessedError)
-    "A variant of :route:`upload_session/finish` that performs additional mutation on the uploaded file."
+union_closed UploadSessionFinishProcessedResult
+    success FileMetadata
+        "File committed after the requested processing."
+    failure UploadSessionFinishProcessedError
+        "Unable to commit the file with the requested processing."
+
+    example default
+        success = default
+
+union_closed UploadSessionFinishProcessedLaunch extends async.LaunchResultBase
+    "Result returned by :route:`upload_session/finish_processed` that may either launch an
+    asynchronous job or complete synchronously."
+
+    complete UploadSessionFinishProcessedResult
+        "The :route:`upload_session/finish_processed` has finished synchronously."
+
+    example async_job_id
+        async_job_id = "033a20f28cc4912e37756599f00782a4"
+
+union_closed UploadSessionFinishProcessedJobStatus extends async.PollResultBase
+    "Result returned by :route:`upload_session/finish_processed/check`."
+
+    complete UploadSessionFinishProcessedResult
+        "The :route:`upload_session/finish_processed` has finished asynchronously."
+
+    example default
+        complete = default
+
+route upload_session/finish_processed (UploadSessionFinishProcessedArg, UploadSessionFinishProcessedLaunch, Void)
+    "A variant of :route:`upload_session/finish` that performs additional mutation on the uploaded
+    file asynchronously. The caller should check the status with
+    :route:`upload_session/finish_processed/check`."
+
     attrs
         host = "content"
         style = "upload"
+        is_preview = true
+
+route upload_session/finish_processed/check(async.PollArg, UploadSessionFinishProcessedJobStatus, async.PollError)
+    "Returns the status of an asynchronous job for :route:`upload_session/finish_processed`."
+
+    attrs
         is_preview = true
 
 route delete_batch_with_changeset_sync (DeleteBatchArg, InternalFileOpBatchResult, DeleteError)

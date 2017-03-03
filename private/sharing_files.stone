@@ -211,7 +211,7 @@ struct AlphaSharedFileMetadata
         "DEPRECATED, use file_policy instead"
     download_policy DownloadPolicy
         "DEPRECATED, use file_policy instead"
-    link_metadata SharedContentLinkMetadata
+    link_metadata SharedContentLinkMetadata?
 
 route alpha/get_file_metadata(AlphaGetFileMetadataArg, AlphaSharedFileMetadata, GetFileMetadataError)
     "Similar to get_file_metadata, except for a few additional features.
@@ -230,13 +230,13 @@ route alpha/get_file_metadata/batch(AlphaGetFileMetadataBatchArg, List(AlphaGetF
     attrs
         is_preview = true
 
-route update_file_policy(UpdateFilePolicyArg, AlphaSharedFileMetadata, UpdateFilePolicyError)
+route update_file_policy(UpdateFilePolicyArg, SharedFileMetadata, UpdateFilePolicyError)
     "Update the policies of a file. This includes both PASS settings and link settings associated with the file."
 
     attrs
         api_group = "truelink-alpha"
 
-route alpha/update_file_policy(UpdateFilePolicyArg, AlphaSharedFileMetadata, UpdateFilePolicyError)
+route alpha/update_file_policy(AlphaUpdateFilePolicyArg, AlphaSharedFileMetadata, UpdateFilePolicyError)
     "Update the policies of a file. This includes both PASS settings and link settings associated with the file."
 
     attrs
@@ -357,6 +357,16 @@ struct FileSettings
         "The presence and seen state policy on the file."
 
 struct UpdateFilePolicyArg
+    file PathOrId
+        "File that we are changing the policy for."
+    actions List(FileAction)?
+        "File actions to query."
+    link_settings LinkSettings?
+        "Settings on the link for the file."
+    viewer_info_policy ViewerInfoPolicy?
+        "The presence and seen state policy on the file."
+
+struct AlphaUpdateFilePolicyArg
     file PathOrId
         "File that we are changing the policy for."
     actions List(AlphaFileAction)?

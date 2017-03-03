@@ -1,21 +1,23 @@
 namespace paper
 
 union ImportFormat
-    "The import format of the incoming document."
+    "The import format of the incoming data."
 
     html
-        "The provided data is HTML."
+        "The provided data is interpreted as standard HTML."
     markdown
-        "The provided data is markdown.
+        "The provided data is interpreted as markdown.
+
         Note: The first line of the provided document will be used as the doc title."
     plain_text
-        "The uploaded content is interpretted as plain text."
+        "The provided data is interpreted as plain text.
 
-# TODO(jenda):
-# 1. Add revision in case of update
-# 2. Maybe split create/update into two EPs
-# 3. Maybe add "Title" as argument instead
-struct PaperDocImport
+        Note: The first line of the provided document will be used as the doc title."
+
+# --
+
+# TODO(jenda): Remove this struct.
+struct PaperDocImportOld
     doc_id PaperDocId?
         "Specify Paper doc id if you want to override the existing document.
         Your account has to have edit permissions on this document.
@@ -43,24 +45,123 @@ struct PaperDocImport
         import_format = html
         parent_folder_id = "e.gGYT6HSafpMej9bUv306GarglI7GGeAM3yvfZvXHO9u4mV"
 
-struct PaperDocImportResult
+# TODO(jenda): Remove this struct.
+struct PaperDocImportResultOld
     doc_id String
         "Doc id of the newly created doc."
 
     example default
         doc_id = "uaSvRuxvnkFa12PTkBv5q"
 
-union DocImportError extends DocLookupError
+# TODO(jenda): Remove this struct.
+union DocImportErrorOld extends DocLookupError
     content_malformed
         "The provided content was malformed and cannot be imported to Paper."
 
-route docs/upload (PaperDocImport, PaperDocImportResult, DocImportError)
+route docs/upload (PaperDocImportOld, PaperDocImportResultOld, DocImportErrorOld)
     "Creates or updates a Paper doc with the provided content.
 
     In the case of update (the Paper doc id is provided), the document will be completely
-    overwritten."
+    overwritten.
+
+    NOTE: DO NOT USE! (I will remove this soon)
+    "
     attrs
         style="upload"
         owner="paper-eng"
         is_preview = true
         api_group="paper-api-alpha"
+
+# --
+
+route docs/create (PaperDocCreateArgs, PaperDocCreateUpdateResult, PaperDocCreateError)
+    "Creates a new Paper doc with the provided content."
+    attrs
+        style="upload"
+        owner="paper-eng"
+        is_preview = true
+        api_group="paper-api-alpha"
+
+struct PaperDocCreateArgs
+    parent_folder_id String?
+        "The Paper folder id where the Paper document should be created. The API user has to have
+        write access to this folder or error is thrown."
+    import_format ImportFormat
+        "The format of provided data."
+
+    example default
+        "Create new Paper doc (unfiled)."
+        import_format = markdown
+
+    example createDocInFolder
+        "Create new Paper doc inside Paper folder."
+        import_format = html
+        parent_folder_id = "e.gGYT6HSafpMej9bUv306GarglI7GGeAM3yvfZvXHO9u4mV"
+
+struct PaperDocCreateUpdateResult
+    doc_id String
+        "Doc id of the newly created doc."
+    revision Int64
+        "The Paper doc revision. Simply an ever increasing number."
+    title String
+        "The Paper doc title."
+
+    example default
+        doc_id = "uaSvRuxvnkFa12PTkBv5q"
+        revision = 456736745
+        title = "Week one retention"
+
+union PaperDocCreateError extends PaperApiBaseError
+    content_malformed
+        "The provided content was malformed and cannot be imported to Paper."
+
+# --
+
+route docs/update (PaperDocUpdateArgs, PaperDocCreateUpdateResult, PaperDocUpdateError)
+    "Updates an existing Paper doc with the provided content."
+    attrs
+        style="upload"
+        owner="paper-eng"
+        is_preview = true
+        api_group="paper-api-alpha"
+
+union PaperDocUpdatePolicy
+    append
+        "The content will be appended to the doc."
+    prepend
+        "The content will be prepended to the doc.
+
+        Note: the doc title will not be affected."
+    overwrite_all
+        "The document will be overwitten at the head with the provided content"
+
+struct PaperDocUpdateArgs extends RefPaperDoc
+    doc_update_policy PaperDocUpdatePolicy
+        "The policy used for the current update call."
+    revision Int64
+        "The latest doc revision. This value must match the head revision or
+        an error code will be returned. This is to prevent colliding writes."
+    import_format ImportFormat
+        "The format of provided data."
+
+    example default
+        "Overwrite the doc content with provided content."
+        doc_update_policy = overwrite_all
+        import_format = html
+        doc_id = "uaSvRuxvnkFa12PTkBv5q"
+        revision = 12345
+
+    example prepend_example
+        "Prepend the content into the doc (the doc title will remain unchanged)."
+        doc_update_policy = prepend
+        import_format = plain_text
+        doc_id = "uaSvRuxvnkFa12PTkBv5q"
+        revision = 56556
+
+union PaperDocUpdateError extends DocLookupError
+    content_malformed
+        "The provided content was malformed and cannot be imported to Paper."
+    revision_mismatch
+        "The provided revision does not match the document head."
+
+# --

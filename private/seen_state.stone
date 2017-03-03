@@ -26,12 +26,12 @@ struct BeaconInfoList
     beacon_infos List(BeaconInfo, min_items=1)
 
 struct FileInfo
-    "Identifiers to uniquely identify a file. ns_id is required, and either the
-    sjid and ns_path is specified in file_identifier with a prefix."
+    "Identifiers to uniquely identify a file. Either ns_id paired with
+    sjid and ns_path is or sharing url is required."
 
     ns_id UInt64?
         "The ns_id of the file. Must be specified if the file_identifier corresponds to a ns_id or sjid."
-    file_identifier PathOrSjidOrFileId
+    file_identifier PathOrSjidOrFileId?
         "Either the ns_path, sjid, or file_id of the file with a prefix to identify which."
     url String?
         "If viewing the file on a shared link or shared content link, the url to the file."

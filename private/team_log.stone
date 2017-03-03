@@ -34,10 +34,10 @@ struct GetTeamEventsResult
         "Is true if there are additional events that have not been returned yet.
         An additional call to :route:`get_events/continue` can retrieve them."
 
-#    example default
-#        events = [TeamEvent]
-#        cursor = "ZtkX9_EHj3x7PMkVuFIhwKYXEpwpLwyxp9vMKomUhllil9q7eWiAu"
-#        has_more = true
+    example default
+        events = [default]
+        cursor = "ZtkX9_EHj3x7PMkVuFIhwKYXEpwpLwyxp9vMKomUhllil9q7eWiAu"
+        has_more = false
 
 union GetTeamEventsError
     "Errors that can be raised when calling :route:`get_events`."
@@ -46,6 +46,9 @@ union GetTeamEventsError
         "No user found matching the provided account_id."
     invalid_time_range
         "Invalid time range."
+
+    example default
+        account_id_not_found = null
 
 route get_events(GetTeamEventsArg, GetTeamEventsResult, GetTeamEventsError)
     "Retrieves team events.
@@ -72,6 +75,8 @@ union GetTeamEventsContinueError
     bad_cursor
         "Bad cursor."
 
+    example default
+        bad_cursor = null
 
 route get_events/continue(GetTeamEventsContinueArg, GetTeamEventsResult, GetTeamEventsContinueError)
     "Once a cursor has been retrieved from :route:`get_events`, use this to paginate through all events.

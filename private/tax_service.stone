@@ -1,0 +1,179 @@
+namespace tax_service
+
+alias SkuCode = String(pattern="([A-Za-z0-9]|\-)*")
+    "Any number of A-Z, a-z, 0-9, or -."
+
+alias CountryCode = String(pattern="[A-Z]{2}")
+    "2 capitalized letters."
+
+alias Currency = String(pattern="[A-Z]{3}")
+    "3 capitalized letters."
+
+alias PriceAmount = String(pattern="\\d+(\\.\\d{2})?", min_length=1)
+    "String containing >1 digit, optionally followed by a period and two digits."
+
+struct Price
+    "Equivalent to dropbox.money.cash.Cash. Contains an Amount and a Currency."
+
+    currency Currency
+    amount PriceAmount
+
+    example one_hundred_usd
+        currency = "USD"
+        amount = "100.00"
+
+    example zero_usd
+        currency = "USD"
+        amount = "0.00"
+
+    example zero_euro
+        currency = "EUR"
+        amount = "0.00"
+
+    example five_euro
+        currency = "EUR"
+        amount = "5.00"
+
+    example ten_yen
+        currency = "JPY"
+        amount = "10"
+
+union TaxType
+    "Equivalent to metaserver.model.payments.moneytree.tax.constants.TaxPlanTaxType."
+    jct
+        "Consumption tax."
+    vat
+        "VAT."
+    ust
+        "Sales tax."
+    gst
+        "GST."
+    tax
+        "Other taxes."
+
+struct SkuLineItem
+    "A line item with skus to calculate taxes for."
+    sku_id SkuCode
+        "Sku id."
+    quantity UInt32
+        "The amount of skus."
+    total_amount Price
+        "Total price for the given amount of skus."
+
+    example default
+        sku_id = "TEAM-1Y"
+        quantity = 10
+        total_amount = one_hundred_usd
+
+union TaxJurisdictionLevel
+    "Different jurisdictions collect different amounts of taxes. For example, country, state,
+    district, city can all collect their own taxes. So far, we only distinguish country and
+    state taxes."
+    country
+    state
+    other_taxes
+
+struct RegionalTaxInfo
+    "Tax amount collected per jurisdiction level."
+    jurisdiction_level TaxJurisdictionLevel
+    amount Price
+
+    example yen_country_taxes
+        jurisdiction_level = country
+        amount = ten_yen
+
+    example usd_country_taxes
+        jurisdiction_level = country
+        amount = one_hundred_usd
+
+    example eur_country_taxes
+        jurisdiction_level = country
+        amount = five_euro
+
+    example usd_state_taxes
+        jurisdiction_level = state
+        amount = one_hundred_usd
+
+    example usd_no_state_taxes
+        jurisdiction_level = state
+        amount = zero_usd
+
+    example eur_no_state_taxes
+        jurisdiction_level = state
+        amount = zero_euro
+
+struct SkuTaxInfo
+    "Information about the taxes collected for a sku line item."
+    sku_id SkuCode
+        "Sku id."
+    region_taxes List(RegionalTaxInfo, min_items=1)
+        "Breakdown of taxes per jurisdiction level."
+    extra_info String?
+        "Any info that could be useful for logging/investigation purposes. Is NOT intended to be parsed automatically."
+
+    example default
+        sku_id = "TEAM-1Y"
+        region_taxes = [usd_country_taxes, usd_state_taxes]
+
+    example no_state_taxes_in_europe
+        sku_id = "TEAM-1Y"
+        region_taxes = [eur_country_taxes, eur_no_state_taxes]
+
+struct CalculateTaxRequest
+    "Arguments for a request to calculate taxes. Country code is always required, postal code is optional depending on the country."
+    country_code CountryCode
+        "Two letters country code."
+    postal_code String?
+        "Postal code. Currently required in US and Canada only."
+    vat_id String?
+        "VAT ID, makes sense in Europe only."
+    team_id UInt64?
+        "Team id."
+    sku_line_items List(SkuLineItem, min_items=1)
+        "List of quantity and price information per each sku."
+
+    example default
+        country_code = "US"
+        postal_code = "98109"
+        team_id = 123
+        sku_line_items = [default]
+
+    example calculate_taxes_in_europe
+        country_code = "FR"
+        postal_code = "ABCD12"
+        vat_id = "FR123"
+        team_id = 123
+        sku_line_items = [default]
+
+struct CalculateTaxResponse
+    "A result of a request to calculate taxes."
+    jurisdiction_id String
+        "Jurisdiction id for the given (country_code, postal_code) pair.
+        Can also be US.UNKNOWN/CA.UNKNOWN if there was a communication problem with Vertex,
+        or US.INVALID/CA.INVALID if Vertex told us that the postal code is invalid."
+    exclusion_id String?
+        "Tax exclusion id."
+    tax_type TaxType
+        "The type of taxes collected."
+    sku_taxes List(SkuTaxInfo, min_items=1)
+        "Tax information per each requested sku."
+    extra_info String?
+        "Any info that could be useful for logging/investigation purposes. Is NOT intended to be parsed automatically."
+
+    example default
+        jurisdiction_id="US.WA"
+        tax_type=ust
+        sku_taxes=[default]
+
+union CalculateTaxError
+    postal_code_required_error
+        "A postal code is required for the given country, but is missing in the request."
+    unexpected_error
+        "Something unexpected occurred, but it likely wasn't your fault."
+    validation_error
+        "Your arguments were somehow invalid. We've attached a message about how, exactly, it failed."
+
+route calculate_taxes (CalculateTaxRequest, CalculateTaxResponse, CalculateTaxError)
+    "Calculate taxes for the given skus."
+    attrs
+        auth = "app"

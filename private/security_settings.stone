@@ -1,0 +1,25 @@
+namespace security_settings
+
+route send_verify_email (Void, Void, Void)
+    "Send a verification email to the currently authenticated user."
+    attrs
+        owner = "prodsec"
+        is_preview = true
+
+struct SendVerifyPendingEmailArg
+    unverified_new_email String
+        "The pending email the user intends to switch to."
+
+    example newEmail
+        "Send an email to rohan+new@dropbox.com"
+        unverified_new_email = "rohan+new@dropbox.com"
+
+union SendVerifyPendingEmailError
+    incorrect_email
+        "The user is not authorized to send a verification email to the input email."
+
+route send_verify_pending_email (SendVerifyPendingEmailArg, Void, SendVerifyPendingEmailError)
+    "Send a verification email that verifies and changes user's email to the pending email."
+    attrs
+        owner = "prodsec"
+        is_preview = true

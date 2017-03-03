@@ -125,6 +125,8 @@ struct ProvisionNewTeamArgs
         "Billing details."
     external_invoice_id ExternalInvoiceId
         "The Salesforce Opportunity ID associated with this request."
+    is_donated Boolean = false
+        "If the team has been donated through the Dropbox for Good program."
 
     example default
         team_name = "Vandelay Industries"
@@ -132,6 +134,7 @@ struct ProvisionNewTeamArgs
         admin_emails = ["newman@vandelay.com", "elaine@vandelay.com"]
         billing_details = default
         external_invoice_id = salesforce_example
+        is_donated = false
 
 ########
 # Universal output TeamStatusResponseOrion

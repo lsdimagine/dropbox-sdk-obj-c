@@ -2,6 +2,7 @@ namespace team
 
 import common
 import team_common
+
 import team_policies
 import users
 
@@ -26,7 +27,7 @@ union_closed TeamMemberStatus
 
 struct RemovedStatus
     is_recoverable Boolean
-        "True if the removed team member is recoverable"
+        "True if the removed team member is recoverable."
 
     example default
         is_recoverable = false
@@ -140,3 +141,39 @@ route get_info(Void, TeamGetInfoResult, Void)
     attrs
         auth = "team"
         owner = "adminx"
+
+
+#
+# Structs for token/get_authenticated_admin
+#
+
+struct TokenGetAuthenticatedAdminResult
+    "Results for :route:`token/get_authenticated_admin`."
+
+    admin_profile TeamMemberProfile
+        "The admin who authorized the token."
+
+    example default
+        admin_profile = default
+
+union TokenGetAuthenticatedAdminError
+    "Error returned by :route:`token/get_authenticated_admin`."
+
+    mapping_not_found
+        "The current token is not associated with a team admin, because mappings were not
+        recorded when the token was created. Consider re-authorizing a new access token
+        to record its authenticating admin."
+    admin_not_active
+        "Either the team admin that authorized this token is no longer an active member of the
+        team or no longer a team admin."
+
+#
+# Route: token/get_authenticated_admin
+#
+
+route token/get_authenticated_admin(Void, TokenGetAuthenticatedAdminResult, TokenGetAuthenticatedAdminError)
+    "Returns the member profile of the admin who generated the team access token used to make the call."
+
+    attrs
+        auth = "team"
+        owner = "dev-plat"

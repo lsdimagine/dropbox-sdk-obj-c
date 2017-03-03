@@ -1,0 +1,88 @@
+namespace starred
+
+#
+# generic types
+#
+
+union FileIdType
+    encoded_file_obj_id
+    fq_path
+
+struct FileQuery
+    "A file to query"
+
+    id String
+        "file_obj_id or fq_path of the file to operate on"
+
+    id_type FileIdType = encoded_file_obj_id
+        "What kind of identifier has been supplied, defaults to encoded_file_obj_id if none is specified"
+
+    example default
+        id = "12345"
+
+    example with_explicit_type
+        id = "12345"
+        id_type = fq_path
+
+struct FileStarredStatus extends FileQuery
+    "The starred status for a file"
+
+    is_starred Boolean
+        "Whether the file is starred"
+
+#
+# route update
+#
+route update (UpdateArgs, Void, UpdateError)
+    "Change the starred status of a file"
+
+    attrs
+        owner="home"
+        is_preview=true
+
+struct UpdateArgs extends FileStarredStatus
+    "Arguments for :route:`update`."
+
+    example default
+        id = "12345"
+        is_starred = true
+
+    example unstar
+        id = "12345"
+        is_starred = false
+
+    example with_explicit_type
+        id = "12345"
+        id_type = encoded_file_obj_id
+        is_starred = false
+
+    example fq_path
+        id = "/dir/file.txt"
+        id_type = fq_path
+        is_starred = true
+
+union UpdateError
+    unused
+
+#
+# route get_status
+#
+route get_status(GetStatusArgs, GetStatusResponse, GetStatusError)
+    "Determine the starred status of a list of files"
+
+    attrs
+        owner="home"
+        is_preview=true
+
+struct GetStatusArgs
+    "Arguments for :route:`get_status`."
+
+    files List(FileQuery)
+
+struct GetStatusResponse
+    "Response for :route:`get_status`."
+
+    starred_files List(FileStarredStatus)
+
+union GetStatusError
+    unused

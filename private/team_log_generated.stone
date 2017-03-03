@@ -19,8 +19,8 @@ alias RequestId = String
 ########################################
 
 union AppType
-    USER_LINKED_APP
-    TEAM_LINKED_APP
+    user_linked_app
+    team_linked_app
 
 union DeviceType
     mobile
@@ -40,6 +40,12 @@ struct ApiSessionLogInfo
     request_id RequestId
         "Api request ID."
 
+    example default
+        request_id = "r"
+
+    example default2
+        request_id = "e"
+
 struct AppLogInfo 
     "Application's logged information."
 
@@ -50,9 +56,24 @@ struct AppLogInfo
     app_type AppType?
         "Application type, user-linked or team-linked."
 
+    example default
+        app_id = "dbaid:AAFhvuxku2OYumUaV17x6ExFhr6OPrwjTKs"
+        display_name = "abc"
+        app_type = user_linked_app
+
+    example default2
+        app_id = "dbaid:AAG1NxJeBtby__IZENPAvDGeOssreFpPALE"
+        display_name = "xyz"
+        app_type = user_linked_app
+
 struct DesktopSessionLogInfo extends SessionLogInfo
     "Desktop session."
 
+    example default
+        session_id = "dbwsid:123456789012345678901234567890123456789"
+
+    example default2
+        session_id = "dbwsid:abcd5678901234567890123456789012345abcd"
 
 struct SessionLogInfo 
     "Session's logged information."
@@ -61,8 +82,14 @@ struct SessionLogInfo
         desktop DesktopSessionLogInfo
         mobile MobileSessionLogInfo
 
-    session_id String?
+    session_id common.SessionId?
         "Session ID."
+
+    example default
+        web = default
+
+    example default2
+        web = default2
 
 struct UserLogInfo 
     "User's logged information."
@@ -77,6 +104,12 @@ struct UserLogInfo
     email common.EmailAddress?
         "User email address."
 
+    example default
+        team_member = default
+
+    example default2
+        team_member = default2
+
 struct TeamMemberLogInfo extends UserLogInfo
     "Team member's logged information."
 
@@ -85,23 +118,65 @@ struct TeamMemberLogInfo extends UserLogInfo
     member_external_id team_common.MemberExternalId?
         "Team member external ID."
 
+    example default
+        team_member_id = "dbmid:AAFoi-tmvRuQR0jU-3fN4B-9nZo6nHcDO9Q"
+        member_external_id = "ADSYNC S-1-5-21-1004296348-1135238915-682003432-1224"
+        account_id = "dbid:AAHgR8xsQP48a5DQUGPo-Vxsrjd0OByVmho"
+        display_name = "John Smith"
+        email = "john_smith@acmecorp.com"
+
+    example default2
+        team_member_id = "dbmid:AAFoi-tmvRuQR0jU-3fN4B-9nZo6nHcDO9Q"
+        member_external_id = "ADSYNC S-1-5-21-1004296348-1135238915-682003432-1225"
+        account_id = "dbid:AAGx4oiLtHdvRdNxUpvvJBXYgR4BS19c9kw"
+        display_name = "Jane Smith"
+        email = "jane_smith@acmecorp.com"
+
 struct FileOrFolderLogInfo 
     "Generic information relevant both for files and folders"
 
-    path PathLogInfo?
+    path PathLogInfo
         "Path relative to event context."
     display_name String?
         "Display name."
     file_id String?
         "Unique ID."
 
+    example default
+        path = default
+        display_name = "reports.xls"
+        file_id = "id:jQKLsZFQImAAAAAAEZAAQt"
+
+    example default2
+        path = default2
+        display_name = "reports.xls"
+        file_id = "id:jQKLsZFQImAAAAAAEZAAQt"
+
 struct FileLogInfo extends FileOrFolderLogInfo
     "File's logged information."
 
+    example default
+        path = default
+        display_name = "reports.xls"
+        file_id = "id:jQKLsZFQImAAAAAAEZAAQt"
+
+    example default2
+        path = default2
+        display_name = "reports.xls"
+        file_id = "id:jQKLsZFQImAAAAAAEZAAQt"
 
 struct FolderLogInfo extends FileOrFolderLogInfo
     "Folder's logged information."
 
+    example default
+        path = default
+        display_name = "reports.xls"
+        file_id = "id:jQKLsZFQImAAAAAAEZAAQt"
+
+    example default2
+        path = default2
+        display_name = "reports.xls"
+        file_id = "id:jQKLsZFQImAAAAAAEZAAQt"
 
 struct GroupLogInfo 
     "Group's logged information."
@@ -113,6 +188,16 @@ struct GroupLogInfo
     external_id team_common.GroupExternalId?
         "External group ID."
 
+    example default
+        group_id = "g:e2db7665347abcd600000000001a2b3c"
+        display_name = "abc"
+        external_id = "some group id"
+
+    example default2
+        group_id = "g:hujn7665347abcd600000000001a2b3d"
+        display_name = "xyz"
+        external_id = "another group id"
+
 struct PathLogInfo 
     "Path's details."
 
@@ -120,6 +205,14 @@ struct PathLogInfo
         "Fully qualified path relative to event's context."
     namespace_relative NamespaceRelativePathLogInfo
         "Path relative to the namespace containing the content."
+
+    example default
+        contextual = "/Contract Work/Product Design"
+        namespace_relative = default
+
+    example default2
+        contextual = "/Contract Work/Draft"
+        namespace_relative = default2
 
 struct PaperDocumentLogInfo 
     "Paper document's logged information."
@@ -129,6 +222,14 @@ struct PaperDocumentLogInfo
     doc_title String
         "Paper document title."
 
+    example default
+        doc_id = "abc"
+        doc_title = "abc"
+
+    example default2
+        doc_id = "xyz"
+        doc_title = "xyz"
+
 struct PaperFolderLogInfo 
     "Paper folder's logged information."
 
@@ -137,9 +238,26 @@ struct PaperFolderLogInfo
     folder_name String
         "Paper folder name."
 
+    example default
+        folder_id = "abc"
+        folder_name = "abc"
+
+    example default2
+        folder_id = "xyz"
+        folder_name = "xyz"
+
 struct NonTeamMemberLogInfo extends UserLogInfo
     "Non team member's logged information."
 
+    example default
+        account_id = "dbid:AAHgR8xsQP48a5DQUGPo-Vxsrjd0OByVmho"
+        display_name = "John Smith"
+        email = "john_smith@acmecorp.com"
+
+    example default2
+        account_id = "dbid:AAGx4oiLtHdvRdNxUpvvJBXYgR4BS19c9kw"
+        display_name = "Jane Smith"
+        email = "jane_smith@acmecorp.com"
 
 struct NamespaceRelativePathLogInfo 
     "Namespace relative path details."
@@ -149,13 +267,31 @@ struct NamespaceRelativePathLogInfo
     relative_path files.Path?
         "A path relative to the specified namespace ID."
 
+    example default
+        ns_id = "1234"
+        relative_path = "/Contract Work/Product Design"
+
+    example default2
+        ns_id = "1234"
+        relative_path = "/Contract Work/Draft"
+
 struct WebSessionLogInfo extends SessionLogInfo
     "Web session."
 
+    example default
+        session_id = "dbwsid:123456789012345678901234567890123456789"
+
+    example default2
+        session_id = "dbwsid:abcd5678901234567890123456789012345abcd"
 
 struct MobileSessionLogInfo extends SessionLogInfo
     "Mobile session."
 
+    example default
+        session_id = "dbwsid:123456789012345678901234567890123456789"
+
+    example default2
+        session_id = "dbwsid:abcd5678901234567890123456789012345abcd"
 
 struct ResellerLogInfo 
     "Reseller information."
@@ -165,19 +301,40 @@ struct ResellerLogInfo
     reseller_id team_common.ResellerId
         "Reseller ID."
 
+    example default
+        reseller_name = "abc"
+        reseller_id = "group reseller id"
+
+    example default2
+        reseller_name = "xyz"
+        reseller_id = "another group reseller id"
+
 struct OriginLogInfo 
     "The origin from which the actor performed the action."
 
-    geo_location GeoLocationInfo?
+    geo_location GeoLocationInfo
         "Geographic location details."
-    host HostLogInfo?
+    host HostLogInfo
         "Host details."
     access_method AccessMethodLogInfo
         "The method that was used to perform the action."
 
+    example default
+        geo_location = default
+        host = default
+        access_method = default
+
+    example default2
+        geo_location = default2
+        host = default2
+        access_method = default2
+
 struct MissingDetails 
     "An indication that an event was returned with missing details"
 
+    example default
+
+    example default2
 
 struct SharedFolderLogInfo 
     "SharedFolder's logged information."
@@ -186,6 +343,14 @@ struct SharedFolderLogInfo
         "Namespace ID."
     display_name String
         "Shared folder display name."
+
+    example default
+        ns_id = "1234"
+        display_name = "abc"
+
+    example default2
+        ns_id = "1234"
+        display_name = "xyz"
 
 struct DeviceLogInfo 
     "Device's logged information."
@@ -209,11 +374,39 @@ struct DeviceLogInfo
     last_activity String?
         "Last activity."
 
+    example default
+        device_id = "abc"
+        display_name = "abc"
+        is_emm_managed = true
+        platform = "abc"
+        mac_address = "abc"
+        os_version = "abc"
+        device_type = "abc"
+        ip_address = "10.1.1.100"
+        last_activity = "abc"
+
+    example default2
+        device_id = "xyz"
+        display_name = "xyz"
+        is_emm_managed = false
+        platform = "xyz"
+        mac_address = "xyz"
+        os_version = "xyz"
+        device_type = "xyz"
+        ip_address = "10.1.1.100"
+        last_activity = "xyz"
+
 struct PaperTaggedValue 
     "Paper tagged value."
 
     tag String
         "Tag."
+
+    example default
+        tag = "abc"
+
+    example default2
+        tag = "xyz"
 
 struct GeoLocationInfo 
     "Geographic location details."
@@ -227,6 +420,18 @@ struct GeoLocationInfo
     ip_address IpAddress
         "IP address."
 
+    example default
+        city = "San Francisco"
+        region = "California"
+        country = "US"
+        ip_address = "10.1.1.100"
+
+    example default2
+        city = "San Francisco"
+        region = "California"
+        country = "US"
+        ip_address = "10.1.1.100"
+
 struct HostLogInfo 
     "Host details."
 
@@ -234,6 +439,14 @@ struct HostLogInfo
         "Host ID."
     host_name String?
         "Host name."
+
+    example default
+        host_id = 3
+        host_name = "host.acmecorp.com"
+
+    example default2
+        host_id = 4
+        host_name = "host.acmecorp.com"
 
 union ActorLogInfo
     "The entity who performed the action."
@@ -249,6 +462,12 @@ union ActorLogInfo
     dropbox 
         "Action done by Dropbox."
 
+    example default
+        user = default
+
+    example default2
+        user = default2
+
 union AssetLogInfo
     "Asset details."
 
@@ -261,6 +480,12 @@ union AssetLogInfo
     paper_folder PaperFolderLogInfo
         "Paper folder's details."
 
+    example default
+        file = default
+
+    example default2
+        file = default2
+
 union ContextLogInfo
     "The primary entity on which the action was done."
 
@@ -271,6 +496,12 @@ union ContextLogInfo
     team 
         "Action was done on behalf of the team."
 
+    example default
+        team_member = default
+
+    example default2
+        team_member = default2
+
 union ParticipantLogInfo
     "A user or group"
 
@@ -278,6 +509,12 @@ union ParticipantLogInfo
         "User details."
     group GroupLogInfo
         "Group details."
+
+    example default
+        user = default
+
+    example default2
+        user = default2
 
 union AccessMethodLogInfo
     "Indicates the method in which the action was performed."
@@ -293,6 +530,12 @@ union AccessMethodLogInfo
     api ApiSessionLogInfo
         "Api session details."
 
+    example default
+        end_user = default
+
+    example default2
+        end_user = default2
+
 union EventCategory
     "Category of events in event audit log."
 
@@ -306,6 +549,9 @@ union EventCategory
     groups
     files
 
+    example default
+        sharing = null
+
 #############################
 # Types for specific events
 #############################
@@ -316,17 +562,26 @@ struct DeviceManagementUserApprovalBlockedDetails
     device_type DeviceType
         "A description of the device used while user approval blocked."
 
+    example default
+        device_type = mobile
+
 struct EmmLoginErrorDetails
     "Failed to sign in via EMM."
 
     admin_message String
         "A user friendly description of the error."
 
+    example default
+        admin_message = "abc"
+
 struct LoginFailDetails
     "Failed to sign in."
 
     failure_reason String?
-        "Login failure reason. Might be missing due to historical data gaps."
+        "Login failure reason."
+
+    example default
+        failure_reason = "abc"
 
 struct LoginSuccessDetails
     "Signed in."
@@ -334,9 +589,11 @@ struct LoginSuccessDetails
     is_emm_managed Boolean
         "Tells if the user signed in from an EMM managed device."
 
+    example default
+        is_emm_managed = true
+
 struct LogoutDetails
     "Signed out."
-
 
 struct SsoErrorDetails
     "Failed to sign in via SSO."
@@ -346,43 +603,42 @@ struct SsoErrorDetails
     admin_message String
         "A user friendly description of the error."
 
+    example default
+        system_message = "abc"
+        admin_message = "abc"
+
 struct WebIpChangedDetails
     "Web session IP changed."
 
     user_agent String
         "Web browser name."
 
+    example default
+        user_agent = "abc"
+
 struct AddTfaBackupPhoneDetails
     "Added two-step verification backup phone."
-
 
 struct AddTfaSecurityKeyDetails
     "Added a security key for two-step verification."
 
-
 struct EditTfaBackupPhoneDetails
     "Edited two-step verification backup phone."
-
 
 struct PasswordChangeDetails
     "Changed password."
 
-
 struct RemoveTfaBackupPhoneDetails
     "Removed two-step verification backup phone."
-
 
 struct RemoveTfaSecurityKeyDetails
     "Disabled a security key for two-step verification."
 
-
 struct ResetAllPasswordsDetails
     "Reset all passwords."
 
-
 struct ResetPasswordDetails
     "Reset password."
-
 
 struct TfaDisableDetails
     "Disabled two-step verification."
@@ -390,21 +646,20 @@ struct TfaDisableDetails
     used_rescue_code Boolean
         "Used two factor authentication code."
 
+    example default
+        used_rescue_code = true
+
 struct TfaEditAuthenticatorDetails
     "Set two-step verification to use mobile app."
-
 
 struct TfaEditSmsDetails
     "Set two-step verification to use SMS."
 
-
 struct TfaEnableDetails
     "Enabled two-step verification."
 
-
 struct TfaResetDetails
     "Reset two-step verification."
-
 
 struct AppAllowDetails
     "Authorized an app."
@@ -412,11 +667,17 @@ struct AppAllowDetails
     app_info AppLogInfo
         "Relevant application details."
 
+    example default
+        app_info = default
+
 struct AppRemoveDetails
     "Removed a team app."
 
     app_info AppLogInfo
         "Relevant application details."
+
+    example default
+        app_info = default
 
 struct TeamAppAllowDetails
     "Authorized a team app."
@@ -424,11 +685,17 @@ struct TeamAppAllowDetails
     app_info AppLogInfo
         "Relevant application details."
 
+    example default
+        app_info = default
+
 struct TeamAppRemoveDetails
     "Removed a team app."
 
     app_info AppLogInfo
         "Relevant application details."
+
+    example default
+        app_info = default
 
 struct CapturedUserLeftDomainDetails
     "Left your domain due to account capture."
@@ -436,11 +703,17 @@ struct CapturedUserLeftDomainDetails
     domain_name String
         "Relevant domain name."
 
+    example default
+        domain_name = "abc"
+
 struct CapturedUserMigratedDetails
     "Joined the team via account capture."
 
     domain_name String
         "Relevant domain name."
+
+    example default
+        domain_name = "abc"
 
 struct ChangeTeamMemberNameDetails
     "Changed a team member's name."
@@ -456,13 +729,18 @@ struct ChangeTeamMemberNameDetails
     old_surname String?
         "Previous surname."
 
+    example default
+        locale = "abc"
+        new_given_name = "abc"
+        old_given_name = "abc"
+        new_surname = "abc"
+        old_surname = "abc"
+
 struct DomainInvitesApproveRequestToJoinTeamDetails
     "Approved a member's request to join the team."
 
-
 struct DomainInvitesDeclineRequestToJoinTeamDetails
     "Declined a user's request to join the team."
-
 
 struct DomainInvitesEmailExistingUsersDetails
     "Sent domain invites to existing domain accounts."
@@ -472,13 +750,15 @@ struct DomainInvitesEmailExistingUsersDetails
     num_recipients Int64
         "Number of recipients."
 
+    example default
+        domain_name = "abc"
+        num_recipients = 3
+
 struct DomainInvitesRequestToJoinTeamDetails
     "Asked to join the team."
 
-
 struct MemberInviteDetails
     "Invited a member."
-
 
 struct MemberJoinDetails
     "Joined the team."
@@ -490,27 +770,31 @@ struct MemberJoinDetails
     linked_devices List(DeviceLogInfo)
         "Linked devices."
 
+    example default
+        linked_apps = [default]
+        initial_shared_folders = [default]
+        linked_devices = [default]
+
 struct MemberLeaveDetails
     "Removed a team member."
 
     member_was_on_team Boolean
         "True if the member had joined the team before leaving, False otherwise."
 
+    example default
+        member_was_on_team = true
+
 struct MemberRecoverDetails
     "Recovered a removed member."
-
 
 struct MemberSuspendDetails
     "Suspended a team member."
 
-
 struct MemberUnsuspendDetails
     "Unsuspended a team member."
 
-
 struct SuggestTeamMembersDetails
     "Suggested new team members to the team admin."
-
 
 struct DeleteOnUnlinkFailDetails
     "Failed to delete some files remotely."
@@ -520,17 +804,27 @@ struct DeleteOnUnlinkFailDetails
     num_failures Int64
         "The number of times that remote file deletion failed."
 
+    example default
+        device_info = default
+        num_failures = 3
+
 struct DeleteOnUnlinkSuccessDetails
     "Successfully deleted some files remotely."
 
     device_info DeviceLogInfo
         "Device information."
 
+    example default
+        device_info = default
+
 struct DesktopIpChangedDetails
     "Desktop client IP changed."
 
     device_info DeviceLogInfo
         "Device information."
+
+    example default
+        device_info = default
 
 struct DeviceLinkDetails
     "Linked a device."
@@ -540,6 +834,10 @@ struct DeviceLinkDetails
     app_version String?
         "Linking app version."
 
+    example default
+        device_info = default
+        app_version = "abc"
+
 struct DeviceUnlinkDetails
     "Disconnected a device."
 
@@ -548,11 +846,18 @@ struct DeviceUnlinkDetails
     delete_data Boolean
         "True if the user requested to delete data after device unlink, false otherwise."
 
+    example default
+        device_info = default
+        delete_data = true
+
 struct MobileIpChangedDetails
     "Mobile device IP changed."
 
     device_info DeviceLogInfo
         "Device information."
+
+    example default
+        device_info = default
 
 struct AdminFailedDomainVerificationDetails
     "Failed domain verification."
@@ -562,17 +867,27 @@ struct AdminFailedDomainVerificationDetails
     domain_name String
         "Domain name."
 
+    example default
+        verification_method = "abc"
+        domain_name = "abc"
+
 struct AdminRemovedADomainDetails
     "Removed a verified domain."
 
     domain_name String
         "Domain name."
 
+    example default
+        domain_name = "abc"
+
 struct AdminSetAccountCaptureModeDetails
     "Changed account capture mode."
 
     new_account_capture_mode Int64
         "New account capture mode."
+
+    example default
+        new_account_capture_mode = 3
 
 struct AdminVerifiedADomainDetails
     "Verified a domain."
@@ -582,21 +897,21 @@ struct AdminVerifiedADomainDetails
     domain_name String
         "Domain name."
 
+    example default
+        verification_method = "abc"
+        domain_name = "abc"
+
 struct AllowDownloadDisabledDetails
     "Disabled allow downloads."
-
 
 struct AllowDownloadEnabledDetails
     "Enabled allow downloads."
 
-
 struct AllowEmmDetails
     "Enabled EMM."
 
-
 struct AllowSsoDetails
     "Allowed use of single sign-on."
-
 
 struct ChangeAdminRoleDetails
     "Changed admin role."
@@ -606,6 +921,10 @@ struct ChangeAdminRoleDetails
     prev_admin_role String
         "Previous admin role."
 
+    example default
+        new_admin_role = "abc"
+        prev_admin_role = "abc"
+
 struct ChangeLogoutUrlDetails
     "Changed single sign-on logout URL."
 
@@ -613,6 +932,10 @@ struct ChangeLogoutUrlDetails
         "Previous single sign-on logout URL."
     new_sso_logout_url String?
         "New single sign-on logout URL."
+
+    example default
+        prev_sso_logout_url = "abc"
+        new_sso_logout_url = "abc"
 
 struct ChangeMembershipTypeDetails
     "Changed member type."
@@ -622,6 +945,10 @@ struct ChangeMembershipTypeDetails
     new_membership_type Int64
         "New membership type."
 
+    example default
+        prev_membership_type = 3
+        new_membership_type = 3
+
 struct ChangeSamlIdentityModeDetails
     "Changed single sign-on identity mode."
 
@@ -629,6 +956,10 @@ struct ChangeSamlIdentityModeDetails
         "Previous single sign-on identity mode."
     new_saml_identity_mode Int64
         "New single sign-on identity mode."
+
+    example default
+        prev_saml_identity_mode = 3
+        new_saml_identity_mode = 3
 
 struct ChangeSsoUrlDetails
     "Changed single sign-on URL."
@@ -638,6 +969,10 @@ struct ChangeSsoUrlDetails
     new_sso_url String
         "New SSO Url."
 
+    example default
+        prev_sso_url = "abc"
+        new_sso_url = "abc"
+
 struct ChangeTeamMemberEmailDetails
     "Changed a member's email."
 
@@ -646,13 +981,15 @@ struct ChangeTeamMemberEmailDetails
     new_email String
         "New email."
 
+    example default
+        prev_email = "abc"
+        new_email = "abc"
+
 struct CommentingDisabledDetails
     "Disabled comments."
 
-
 struct CommentingEnabledDetails
     "Enabled comments."
-
 
 struct CsvDownloadDetails
     "Created a team activity report."
@@ -662,9 +999,12 @@ struct CsvDownloadDetails
     end_date String
         "Report end date."
 
+    example default
+        start_date = "abc"
+        end_date = "abc"
+
 struct DbxSupportGrantedAccountCaptureDetails
     "Enabled account capture."
-
 
 struct DbxSupportRemovedDomainsDetails
     "Removed domains."
@@ -672,9 +1012,11 @@ struct DbxSupportRemovedDomainsDetails
     domain_names List(String)
         "Domain names."
 
+    example default
+        domain_names = ["abc"]
+
 struct DbxSupportRevokedAccountCaptureDetails
     "Disabled account capture."
-
 
 struct DbxSupportVerifiedDomainsDetails
     "Verified domains."
@@ -682,109 +1024,86 @@ struct DbxSupportVerifiedDomainsDetails
     domain_names List(String)
         "Domain names."
 
+    example default
+        domain_names = ["abc"]
+
 struct DeviceManagementDesktopsLimitChangedDetails
     "Changed the number of allowed computers."
-
 
 struct DeviceManagementDisabledDetails
     "Disable Device Management."
 
-
 struct DeviceManagementEnabledDetails
     "Enable Device Management."
-
 
 struct DeviceManagementMobilesLimitChangedDetails
     "Changed the number of allowed mobile devices."
 
-
 struct DeviceManagementRolloutChangedDetails
     "Changed the device approvals setting for members who are over the limits."
-
 
 struct DeviceManagementUserCanNotUnapproveDetails
     "Changed the device approvals setting for disconnected devices."
 
-
 struct DeviceManagementUserCanUnapproveDetails
     "Changed Device Management user can unapprove method."
-
 
 struct DisabledDomainInvitesDetails
     "Disabled domain invites."
 
-
 struct DisableEmmDetails
     "Disabled EMM."
-
 
 struct DisableSsoDetails
     "Disabled single sign-on."
 
-
 struct EmmExclusionUsersReportCreatedDetails
     "EMM excluded users report created."
-
 
 struct EmmTokenRefreshedDetails
     "EMM token refreshed."
 
-
 struct EmmUsageReportCreatedDetails
     "EMM mobile app usage report created."
-
 
 struct EmmUserExcludedDetails
     "EMM user added to excluded users list."
 
-
 struct EmmUserUnexcludedDetails
     "EMM user removed from excluded users list."
-
 
 struct EnabledDomainInvitesDetails
     "Enabled domain invites."
 
-
 struct FileRequestsDisabledDetails
     "Disabled file requests."
-
 
 struct FileRequestsEmailsEnabledDetails
     "Enabled file request emails for everyone."
 
-
 struct FileRequestsEmailsRestrictedToTeamOnlyDetails
     "Allowed file request emails for the team."
-
 
 struct FileRequestsEnabledDetails
     "Enabled file requests."
 
-
 struct ForceTfaDisableDetails
     "Allowed two-step verification to be disabled."
-
 
 struct ForceTfaEnableDetails
     "Required two-step verification."
 
-
 struct GoogleLoginDisabledDetails
     "Disallowed team members from logging in with Google."
-
 
 struct GoogleLoginEnabledDetails
     "Allowed team members to log in with Google."
 
-
 struct GroupsAllUsersCanCreateDetails
     "Allowed all team members to create groups."
 
-
 struct GroupsOnlyAdminsCanCreateDetails
     "Allowed only team admins to create groups."
-
 
 struct MakeAdminDetails
     "Gave admin permissions."
@@ -792,13 +1111,14 @@ struct MakeAdminDetails
     new_admin_role String
         "New admin role."
 
+    example default
+        new_admin_role = "abc"
+
 struct MemberSpaceLimitsExclusionListUsersAdditionDetails
     "Member added to space limit exclusion list."
 
-
 struct MemberSpaceLimitsExclusionListUsersRemovalDetails
     "Member removed from space limit exclusion list."
-
 
 struct MemberSpaceLimitsLevelChangeDetails
     "Space limit: allowed usage level changed."
@@ -808,6 +1128,10 @@ struct MemberSpaceLimitsLevelChangeDetails
     new_limits_level String
         "New member space limits level."
 
+    example default
+        prev_limits_level = "abc"
+        new_limits_level = "abc"
+
 struct MemberSpaceUserUsageStateChangeDetails
     "Space limit: member usage state changed."
 
@@ -816,77 +1140,63 @@ struct MemberSpaceUserUsageStateChangeDetails
     new_user_usage_state String?
         "New space limits user usage state."
 
+    example default
+        prev_user_usage_state = "abc"
+        new_user_usage_state = "abc"
+
 struct NotesDisabledDetails
     "Dropbox Paper disabled."
-
 
 struct NotesEnabledDetails
     "Dropbox Paper enabled."
 
-
 struct NotesLinkPolicyPublicDetails
     "Paper links accessible by anyone with the link."
-
 
 struct NotesLinkPolicyTeamDetails
     "Paper links accessible by team members."
 
-
 struct NotesSharePolicyAnyoneWithLinkDetails
     "Paper documents accessible by anyone with the link."
-
 
 struct NotesSharePolicyOnlyTeamDetails
     "Paper documents accessible by only team members."
 
-
 struct NotesSharePolicyTeamAndExplicitlySharedDetails
     "Paper documents accessible by team members and shared external users."
-
 
 struct NtsDisabledDetails
     "Disabled network control."
 
-
 struct NtsEnabledDetails
     "Enabled network control."
-
 
 struct PaperDeploymentPolicyFullDetails
     "Enabled Paper to all team members."
 
-
 struct PaperDeploymentPolicyPartialDetails
     "Enabled Paper to a specific list of team members only."
-
 
 struct PaperDisabledDetails
     "Paper disabled."
 
-
 struct PaperEnabledDetails
     "Paper enabled."
-
 
 struct PaperEnabledUsersGroupAdditionDetails
     "Users added to Paper enabled users list."
 
-
 struct PaperEnabledUsersGroupRemovalDetails
     "Users removed from Paper enabled users list."
-
 
 struct PermanentlyDeleteAccountContentsDetails
     "Permanently deleted account contents."
 
-
 struct PermanentDeleteDisabledDetails
     "Disabled permanent delete for all team members."
 
-
 struct PermanentDeleteEnabledDetails
     "Enabled permanent delete for all team members."
-
 
 struct PlacementRestrictionChangedDetails
     "Team placement restriction changed."
@@ -896,17 +1206,27 @@ struct PlacementRestrictionChangedDetails
     new_value String
         "New placement restriction."
 
+    example default
+        prev_value = "abc"
+        new_value = "abc"
+
 struct PlacementRestrictionFulfilledDetails
     "Team placement restriction fulfilled."
 
     placement_restriction String
         "Placement restriction."
 
+    example default
+        placement_restriction = "abc"
+
 struct RemoveAdminDetails
     "Removed admin permissions."
 
     prev_admin_role String
         "Previous admin role."
+
+    example default
+        prev_admin_role = "abc"
 
 struct RemoveLogoutUrlDetails
     "Removed single sign-on logout URL."
@@ -916,127 +1236,114 @@ struct RemoveLogoutUrlDetails
     new_sso_logout_url String?
         "New single sign-on logout URL."
 
+    example default
+        prev_sso_logout_url = "abc"
+        new_sso_logout_url = "abc"
+
 struct RemoveSsoUrlDetails
     "Removed single sign-on URL."
 
     prev_sso_url String
         "Previous SSO Url."
 
+    example default
+        prev_sso_url = "abc"
+
 struct RequestMembershipAutoAcceptDetails
     "Allowed members to join without approval."
-
 
 struct RequestMembershipDisabledDetails
     "Prevented users from requesting membership."
 
-
 struct RequestMembershipRequireApprovalDetails
     "Required approval for new members."
-
 
 struct RequireEmmDetails
     "Required use of EMM."
 
-
 struct RequireSsoDetails
     "Required use of single sign-on."
-
 
 struct ResellerSupportSessionEndDetails
     "Ended support session."
 
-
 struct ResellerSupportSessionStartDetails
     "Started support session."
-
 
 struct SfExternalAcceptAllowDetails
     "Allowed team members to join shared folders outside the team."
 
-
 struct SfExternalAcceptForbidDetails
     "Prevented team members from joining shared folders outside the team."
-
 
 struct SfExternalInviteAllowDetails
     "Allowed folders to be shared outside the team."
 
-
 struct SfExternalInviteForbidDetails
     "Prevented folders from being shared outside the team."
-
 
 struct ShmodelExternalViewAllowDetails
     "Allowed links to be viewed outside the team."
 
-
 struct ShmodelExternalViewDefaultPrivateDetails
     "Prevented new links from being viewed outside the team by default."
-
 
 struct ShmodelExternalViewForbidDetails
     "Prevented links from being viewed outside the team."
 
-
 struct SmartSyncDefaultChangedToLocalDetails
     "Changed Smart Sync default to synced locally."
-
 
 struct SmartSyncDefaultChangedToOnDemandDetails
     "Changed Smart Sync default to online-only."
 
+struct SmartSyncNoAdminReportCreatedDetails
+    "Smart Sync non-admin devices report created."
 
 struct SuggestMembersPolicyDisabledDetails
     "Disabled team member suggestions."
 
-
 struct SuggestMembersPolicyEnabledDetails
     "Enabled team member suggestions."
-
 
 struct TeamAssumeUserEndDetails
     "Signed out as a member."
 
-
 struct TeamAssumeUserStartDetails
     "Signed in as a member."
-
 
 struct TeamFolderArchiveDetails
     "Archived a team folder."
 
-
 struct TeamFolderCreateDetails
     "Created a team folder."
-
 
 struct TeamFolderPermanentlyDeleteDetails
     "Permanently deleted a team folder."
 
-
 struct TeamFolderRenameDetails
     "Renamed a team folder."
 
-    src_index Int64?
+    src_index Int64
         "Source asset index."
-    dest_index Int64?
+    dest_index Int64
         "Destination asset index."
+
+    example default
+        src_index = 3
+        dest_index = 3
 
 struct TeamFolderUnarchiveDetails
     "Unarchived a team folder."
 
-
 struct TeamLogoAddedDetails
     "Added a logo."
-
 
 struct TeamLogoChangedDetails
     "Updated a logo."
 
-
 struct TeamLogoRemovedDetails
     "Removed a logo."
-
 
 struct TeamMergedDetails
     "Merged teams."
@@ -1046,6 +1353,10 @@ struct TeamMergedDetails
     merged_to_team_name String?
         "Merged to team name."
 
+    example default
+        merged_from_team_name = "abc"
+        merged_to_team_name = "abc"
+
 struct TeamNameChangeDetails
     "Changed team name."
 
@@ -1054,21 +1365,27 @@ struct TeamNameChangeDetails
     team_legal_name String
         "Team's legal name."
 
+    example default
+        team_display_name = "abc"
+        team_legal_name = "abc"
+
 struct TransferAccountContentsDetails
     "Transferred account contents."
 
-    src_index Int64?
+    src_index Int64
         "Source asset index."
-    dest_index Int64?
+    dest_index Int64
         "Destination asset index."
+
+    example default
+        src_index = 3
+        dest_index = 3
 
 struct TwoaccountDesktopDisabledDetails
     "Disabled multiple accounts for desktop computers."
 
-
 struct TwoaccountDesktopEnabledDetails
     "Enabled multiple accounts for desktop computers."
-
 
 struct UpdateSsoCertDetails
     "Updated single sign-on certificate."
@@ -1088,13 +1405,20 @@ struct UpdateSsoCertDetails
     common_name String
         "Certificate common name."
 
+    example default
+        subject = "abc"
+        issuer = "abc"
+        issue_date = "abc"
+        expiration_date = "abc"
+        serial_number = "abc"
+        sha1_fingerprint = "abc"
+        common_name = "abc"
+
 struct VersionHistoryExtendedDetails
     "Opted out of extended version history change."
 
-
 struct VersionHistoryLimitedDetails
     "Accepted version history change."
-
 
 struct AddCommentDetails
     "Commented on a file."
@@ -1104,11 +1428,18 @@ struct AddCommentDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        comment_text = "abc"
+        target_index = 3
+
 struct AddFileRequestDeadlineDetails
     "Added a deadline to a file request."
 
     request_title String
         "File request title."
+
+    example default
+        request_title = "abc"
 
 struct AddUsersToFileRequestDetails
     "Added users to a file request."
@@ -1116,11 +1447,17 @@ struct AddUsersToFileRequestDetails
     request_title String
         "File request title."
 
+    example default
+        request_title = "abc"
+
 struct ChangeFileRequestDetails
     "Changed a file request."
 
     request_title String
         "File request title."
+
+    example default
+        request_title = "abc"
 
 struct ChangeFileRequestFolderDetails
     "Changed the folder of a file request."
@@ -1128,17 +1465,26 @@ struct ChangeFileRequestFolderDetails
     request_title String
         "File request title."
 
+    example default
+        request_title = "abc"
+
 struct CloseFileRequestDetails
     "Closed a file request."
 
     request_title String
         "File request title."
 
+    example default
+        request_title = "abc"
+
 struct CollectionShareDetails
     "Shared an album."
 
     album_name String
         "Album name."
+
+    example default
+        album_name = "abc"
 
 struct DeleteCommentDetails
     "Deleted a file comment."
@@ -1148,11 +1494,18 @@ struct DeleteCommentDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        comment_text = "abc"
+        target_index = 3
+
 struct FileRequestCreatedDetails
     "Created a new file request."
 
     request_title String
         "File request title."
+
+    example default
+        request_title = "abc"
 
 struct FileRequestReceivedFilesDetails
     "Received files via file request."
@@ -1161,6 +1514,10 @@ struct FileRequestReceivedFilesDetails
         "Submitted file names."
     request_title String
         "File request title."
+
+    example default
+        submitted_file_names = ["abc"]
+        request_title = "abc"
 
 struct GroupSfAccessChangedDetails
     "Changed group access to a shared folder."
@@ -1174,6 +1531,12 @@ struct GroupSfAccessChangedDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        sharing_permission = "abc"
+        shared_folder_type = "abc"
+        group_info = default
+        target_index = 3
+
 struct GroupSfAddedDetails
     "Added a group to a shared folder."
 
@@ -1186,6 +1549,12 @@ struct GroupSfAddedDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        sharing_permission = "abc"
+        shared_folder_type = "abc"
+        group_info = default
+        target_index = 3
+
 struct GroupSfRemovedDetails
     "Removed a group from a shared folder."
 
@@ -1196,6 +1565,11 @@ struct GroupSfRemovedDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        shared_folder_type = "abc"
+        group_info = default
+        target_index = 3
+
 struct LikeCommentDetails
     "Liked a file comment."
 
@@ -1203,6 +1577,10 @@ struct LikeCommentDetails
         "Comment text."
     target_index Int64
         "Target asset index."
+
+    example default
+        comment_text = "abc"
+        target_index = 3
 
 struct PaperDocAccessChangedDetails
     "Paper doc access permission level changed."
@@ -1214,6 +1592,11 @@ struct PaperDocAccessChangedDetails
     event_uuid String
         "Event unique identifier."
 
+    example default
+        public_sharing_policy = "abc"
+        team_sharing_policy = "abc"
+        event_uuid = "abc"
+
 struct PaperDocDeleteCommentDetails
     "Paper doc comment deleted."
 
@@ -1221,6 +1604,10 @@ struct PaperDocDeleteCommentDetails
         "Comment text."
     event_uuid String
         "Event unique identifier."
+
+    example default
+        comment_text = "abc"
+        event_uuid = "abc"
 
 struct PaperDocEditCommentDetails
     "Paper doc comment edited."
@@ -1230,11 +1617,18 @@ struct PaperDocEditCommentDetails
     event_uuid String
         "Event unique identifier."
 
+    example default
+        comment_text = "abc"
+        event_uuid = "abc"
+
 struct PaperDocNonteamAddMemberDetails
     "Paper doc shared with non-team member."
 
     event_uuid String
         "Event unique identifier."
+
+    example default
+        event_uuid = "abc"
 
 struct PaperDocNonteamInviteDetails
     "Paper doc shared with non-team member."
@@ -1242,11 +1636,17 @@ struct PaperDocNonteamInviteDetails
     event_uuid String
         "Event unique identifier."
 
+    example default
+        event_uuid = "abc"
+
 struct PaperDocNonteamMentionDetails
     "Non-team member mentioned on Paper doc."
 
     event_uuid String
         "Event unique identifier."
+
+    example default
+        event_uuid = "abc"
 
 struct PaperDocNonteamRequestDetails
     "Paper doc access requested from non-team member."
@@ -1254,17 +1654,26 @@ struct PaperDocNonteamRequestDetails
     event_uuid String
         "Event unique identifier."
 
+    example default
+        event_uuid = "abc"
+
 struct PaperDocNonteamUnshareDetails
     "Paper doc unshared with non-team member."
 
     event_uuid String
         "Event unique identifier."
 
+    example default
+        event_uuid = "abc"
+
 struct PaperDocNonteamViewDetails
     "Paper doc viewed by non-team member."
 
     event_uuid String
         "Event unique identifier."
+
+    example default
+        event_uuid = "abc"
 
 struct PaperDocPostCommentDetails
     "Paper doc commented on."
@@ -1274,6 +1683,10 @@ struct PaperDocPostCommentDetails
     event_uuid String
         "Event unique identifier."
 
+    example default
+        comment_text = "abc"
+        event_uuid = "abc"
+
 struct PaperDocResolveCommentDetails
     "Paper doc comment resolved."
 
@@ -1282,11 +1695,18 @@ struct PaperDocResolveCommentDetails
     event_uuid String
         "Event unique identifier."
 
+    example default
+        comment_text = "abc"
+        event_uuid = "abc"
+
 struct PaperDocTeamAddMemberDetails
     "Paper doc shared with team member."
 
     event_uuid String
         "Event unique identifier."
+
+    example default
+        event_uuid = "abc"
 
 struct PaperDocTeamInviteDetails
     "Paper doc shared with team member."
@@ -1294,11 +1714,17 @@ struct PaperDocTeamInviteDetails
     event_uuid String
         "Event unique identifier."
 
+    example default
+        event_uuid = "abc"
+
 struct PaperDocTeamMentionDetails
     "Team member mentioned on Paper doc."
 
     event_uuid String
         "Event unique identifier."
+
+    example default
+        event_uuid = "abc"
 
 struct PaperDocTeamRequestDetails
     "Paper doc access requested from team member."
@@ -1306,17 +1732,26 @@ struct PaperDocTeamRequestDetails
     event_uuid String
         "Event unique identifier."
 
+    example default
+        event_uuid = "abc"
+
 struct PaperDocTeamUnshareDetails
     "Paper doc unshared with team member."
 
     event_uuid String
         "Event unique identifier."
 
+    example default
+        event_uuid = "abc"
+
 struct PaperDocTeamViewDetails
     "Paper doc viewed by team member."
 
     event_uuid String
         "Event unique identifier."
+
+    example default
+        event_uuid = "abc"
 
 struct PaperDocUnresolveCommentDetails
     "Paper doc comment unresolved."
@@ -1326,11 +1761,18 @@ struct PaperDocUnresolveCommentDetails
     event_uuid String
         "Event unique identifier."
 
+    example default
+        comment_text = "abc"
+        event_uuid = "abc"
+
 struct PaperFolderNonteamAddMemberDetails
     "Paper folder shared with non-team member."
 
     event_uuid String
         "Event unique identifier."
+
+    example default
+        event_uuid = "abc"
 
 struct PaperFolderNonteamInviteDetails
     "Paper folder shared with non-team member."
@@ -1338,11 +1780,17 @@ struct PaperFolderNonteamInviteDetails
     event_uuid String
         "Event unique identifier."
 
+    example default
+        event_uuid = "abc"
+
 struct PaperFolderTeamAddMemberDetails
     "Paper folder shared with team member."
 
     event_uuid String
         "Event unique identifier."
+
+    example default
+        event_uuid = "abc"
 
 struct PaperFolderTeamInviteDetails
     "Paper folder shared with team member."
@@ -1350,11 +1798,17 @@ struct PaperFolderTeamInviteDetails
     event_uuid String
         "Event unique identifier."
 
+    example default
+        event_uuid = "abc"
+
 struct PaperPermissionCommentDetails
     "Paper doc member permission changed: comment only."
 
     event_uuid String
         "Event unique identifier."
+
+    example default
+        event_uuid = "abc"
 
 struct PaperPermissionEditDetails
     "Paper doc member permission changed: can edit."
@@ -1362,17 +1816,26 @@ struct PaperPermissionEditDetails
     event_uuid String
         "Event unique identifier."
 
+    example default
+        event_uuid = "abc"
+
 struct PaperPermissionViewDetails
     "Paper doc member permission changed: view only."
 
     event_uuid String
         "Event unique identifier."
 
+    example default
+        event_uuid = "abc"
+
 struct RemoveFileRequestDeadlineDetails
     "Removed a deadline from a file request."
 
     request_title String
         "File request title."
+
+    example default
+        request_title = "abc"
 
 struct ResolveCommentDetails
     "Resolved a file comment."
@@ -1381,6 +1844,10 @@ struct ResolveCommentDetails
         "Comment text."
     target_index Int64
         "Target asset index."
+
+    example default
+        comment_text = "abc"
+        target_index = 3
 
 struct SfAddExpirationDetails
     "Added an expiration date to a link."
@@ -1396,6 +1863,13 @@ struct SfAddExpirationDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        expiration_start_date = "abc"
+        expiration_days = 3
+        shared_folder_type = "abc"
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfAddGroupDetails
     "Added the team to a shared folder."
 
@@ -1408,6 +1882,12 @@ struct SfAddGroupDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        team_name = "abc"
+        sharing_permission = "abc"
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfAddPasswordDetails
     "Added a password to a link."
 
@@ -1417,6 +1897,11 @@ struct SfAddPasswordDetails
         "Original shared folder name."
     target_index Int64
         "Target asset index."
+
+    example default
+        shared_folder_type = "abc"
+        original_folder_name = "abc"
+        target_index = 3
 
 struct SfAllowAnyoneToViewSharedLinksDetails
     "Allowed anyone to view links to files in a shared folder."
@@ -1428,6 +1913,11 @@ struct SfAllowAnyoneToViewSharedLinksDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        shared_folder_type = "abc"
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfAllowInviterOwnerDetails
     "Prevented anyone but the owner from inviting people to a folder."
 
@@ -1437,6 +1927,11 @@ struct SfAllowInviterOwnerDetails
         "Original shared folder name."
     target_index Int64
         "Target asset index."
+
+    example default
+        shared_folder_type = "abc"
+        original_folder_name = "abc"
+        target_index = 3
 
 struct SfAllowInviterTeamDetails
     "Allowed any team member to invite people to a folder."
@@ -1448,6 +1943,11 @@ struct SfAllowInviterTeamDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        shared_folder_type = "abc"
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfAllowInviteAnyoneDetails
     "Allowed non-team members to be invited to a folder."
 
@@ -1457,6 +1957,11 @@ struct SfAllowInviteAnyoneDetails
         "Original shared folder name."
     target_index Int64
         "Target asset index."
+
+    example default
+        shared_folder_type = "abc"
+        original_folder_name = "abc"
+        target_index = 3
 
 struct SfAllowInviteTeamDetails
     "Prevented non-team members from being invited to a folder."
@@ -1468,6 +1973,11 @@ struct SfAllowInviteTeamDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        shared_folder_type = "abc"
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfAllowNonMembersToViewSharedLinksDetails
     "Allowed non collaborators to view                     links to files in a shared folder."
 
@@ -1477,6 +1987,11 @@ struct SfAllowNonMembersToViewSharedLinksDetails
         "Original shared folder name."
     target_index Int64
         "Target asset index."
+
+    example default
+        shared_folder_type = "abc"
+        original_folder_name = "abc"
+        target_index = 3
 
 struct SfAllowTeamToViewSharedLinksDetails
     "Allowed only team members to view links to files in a shared folder."
@@ -1488,6 +2003,11 @@ struct SfAllowTeamToViewSharedLinksDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        shared_folder_type = "abc"
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfBlockNonMembersFromViewingSharedLinksDetails
     "Prevented non-team members from viewing links to files in a shared folder."
 
@@ -1497,6 +2017,11 @@ struct SfBlockNonMembersFromViewingSharedLinksDetails
         "Original shared folder name."
     target_index Int64
         "Target asset index."
+
+    example default
+        shared_folder_type = "abc"
+        original_folder_name = "abc"
+        target_index = 3
 
 struct SfChangeExpirationDetails
     "Changed the expiration date for a link."
@@ -1512,6 +2037,13 @@ struct SfChangeExpirationDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        expiration_start_date = "abc"
+        expiration_days = 3
+        shared_folder_type = "abc"
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfChangePasswordDetails
     "Changed the password for a link."
 
@@ -1522,6 +2054,11 @@ struct SfChangePasswordDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        shared_folder_type = "abc"
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfCreateDetails
     "Created a shared folder."
 
@@ -1529,6 +2066,10 @@ struct SfCreateDetails
         "Parent namespace ID."
     target_index Int64
         "Target asset index."
+
+    example default
+        parent_ns_id = "1234"
+        target_index = 3
 
 struct SfDownloadsOffDetails
     "Turned off downloads."
@@ -1540,6 +2081,11 @@ struct SfDownloadsOffDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        shared_folder_type = "abc"
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfDownloadsOnDetails
     "Turned on downloads."
 
@@ -1549,6 +2095,11 @@ struct SfDownloadsOnDetails
         "Original shared folder name."
     target_index Int64
         "Target asset index."
+
+    example default
+        shared_folder_type = "abc"
+        original_folder_name = "abc"
+        target_index = 3
 
 struct SfFbInviteDetails
     "Invited Facebook users to a shared folder."
@@ -1561,6 +2112,12 @@ struct SfFbInviteDetails
         "Original shared folder name."
     target_index Int64
         "Target asset index."
+
+    example default
+        sharing_non_member_recipients = [default]
+        sharing_permission = "abc"
+        original_folder_name = "abc"
+        target_index = 3
 
 struct SfFbInviteChangeRoleDetails
     "Changed a Facebook user's role in a shared folder."
@@ -1576,6 +2133,13 @@ struct SfFbInviteChangeRoleDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        sharing_non_member_recipients = [default]
+        prev_sharing_permission = "abc"
+        sharing_permission = "abc"
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfFbUninviteDetails
     "Uninvited a Facebook user from a shared folder."
 
@@ -1586,6 +2150,11 @@ struct SfFbUninviteDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        sharing_non_member_recipients = [default]
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfMemberOnlyLinkDetails
     "Made a folder viewable only to members of the folder."
 
@@ -1595,6 +2164,11 @@ struct SfMemberOnlyLinkDetails
         "Original shared folder name."
     target_index Int64
         "Target asset index."
+
+    example default
+        shared_folder_type = "abc"
+        original_folder_name = "abc"
+        target_index = 3
 
 struct SfNestDetails
     "Changed parent of shared folder."
@@ -1608,6 +2182,12 @@ struct SfNestDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        prev_parent_ns_id = "1234"
+        new_parent_ns_id = "1234"
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfNonteamAddMembersDetails
     "Added non-team members to a shared folder."
 
@@ -1620,6 +2200,12 @@ struct SfNonteamAddMembersDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        sharing_non_member_recipients = [default]
+        sharing_permission = "abc"
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfNonteamClaimMembershipDetails
     "Claimed a membership to a shared folder (non-team member)."
 
@@ -1627,6 +2213,10 @@ struct SfNonteamClaimMembershipDetails
         "Original shared folder name."
     target_index Int64
         "Target asset index."
+
+    example default
+        original_folder_name = "abc"
+        target_index = 3
 
 struct SfNonteamDeclineDetails
     "Declined an invitation to a shared folder (non-team member)."
@@ -1636,6 +2226,10 @@ struct SfNonteamDeclineDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfNonteamGrantAccessDetails
     "Granted access to a shared folder (non-team member)."
 
@@ -1643,6 +2237,10 @@ struct SfNonteamGrantAccessDetails
         "Original shared folder name."
     target_index Int64
         "Target asset index."
+
+    example default
+        original_folder_name = "abc"
+        target_index = 3
 
 struct SfNonteamInviteDetails
     "Invited non-team members to a shared folder."
@@ -1655,6 +2253,12 @@ struct SfNonteamInviteDetails
         "Original shared folder name."
     target_index Int64
         "Target asset index."
+
+    example default
+        sharing_non_member_recipients = [default]
+        sharing_permission = "abc"
+        original_folder_name = "abc"
+        target_index = 3
 
 struct SfNonteamInviteChangeRoleDetails
     "Changed a non-team member's role in a shared folder."
@@ -1670,6 +2274,13 @@ struct SfNonteamInviteChangeRoleDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        sharing_non_member_recipients = [default]
+        prev_sharing_permission = "abc"
+        sharing_permission = "abc"
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfNonteamJoinDetails
     "Joined a shared folder (non-team member)."
 
@@ -1677,6 +2288,10 @@ struct SfNonteamJoinDetails
         "Original shared folder name."
     target_index Int64
         "Target asset index."
+
+    example default
+        original_folder_name = "abc"
+        target_index = 3
 
 struct SfNonteamJoinFromOobLinkDetails
     "Joined a shared folder from a link (non-team member)."
@@ -1690,6 +2305,12 @@ struct SfNonteamJoinFromOobLinkDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        token_key = "abc"
+        sharing_permission = "abc"
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfNonteamKickDetails
     "Removed a non-team member from a shared folder."
 
@@ -1698,6 +2319,10 @@ struct SfNonteamKickDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfNonteamLeaveDetails
     "Left a shared folder (non-team member)."
 
@@ -1705,6 +2330,10 @@ struct SfNonteamLeaveDetails
         "Original shared folder name."
     target_index Int64
         "Target asset index."
+
+    example default
+        original_folder_name = "abc"
+        target_index = 3
 
 struct SfNonteamMemberChangeRoleDetails
     "Changed a non-team member's role in a shared folder."
@@ -1718,6 +2347,12 @@ struct SfNonteamMemberChangeRoleDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        prev_sharing_permission = "abc"
+        sharing_permission = "abc"
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfNonteamMountDetails
     "Added a shared folder to their Dropbox (non-team member)."
 
@@ -1726,6 +2361,10 @@ struct SfNonteamMountDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfNonteamTransferDetails
     "Transferred folder ownership to a non-team member."
 
@@ -1733,6 +2372,10 @@ struct SfNonteamTransferDetails
         "Original shared folder name."
     target_index Int64
         "Target asset index."
+
+    example default
+        original_folder_name = "abc"
+        target_index = 3
 
 struct SfNonteamUninviteDetails
     "Unshared a folder with a non-team member."
@@ -1744,6 +2387,11 @@ struct SfNonteamUninviteDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        sharing_non_member_recipients = [default]
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfNonteamUnmountDetails
     "Removed a shared folder from their Dropbox (non-team member)."
 
@@ -1751,6 +2399,10 @@ struct SfNonteamUnmountDetails
         "Original shared folder name."
     target_index Int64
         "Target asset index."
+
+    example default
+        original_folder_name = "abc"
+        target_index = 3
 
 struct SfPublicLinkDetails
     "Made a folder viewable to anyone with the link."
@@ -1762,6 +2414,11 @@ struct SfPublicLinkDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        shared_folder_type = "abc"
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfRemoveExpirationDetails
     "Removed the expiration date from a link."
 
@@ -1771,6 +2428,11 @@ struct SfRemoveExpirationDetails
         "Original shared folder name."
     target_index Int64
         "Target asset index."
+
+    example default
+        shared_folder_type = "abc"
+        original_folder_name = "abc"
+        target_index = 3
 
 struct SfRemovePasswordDetails
     "Removed the password from a link."
@@ -1782,6 +2444,11 @@ struct SfRemovePasswordDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        shared_folder_type = "abc"
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfRequestAccessDetails
     "Requested access to a shared folder."
 
@@ -1790,6 +2457,10 @@ struct SfRequestAccessDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfSetConfidentialDetails
     "Made a shared folder invite only."
 
@@ -1797,6 +2468,10 @@ struct SfSetConfidentialDetails
         "Original shared folder name."
     target_index Int64
         "Target asset index."
+
+    example default
+        original_folder_name = "abc"
+        target_index = 3
 
 struct SfTeamAddMembersDetails
     "Added team members to a shared folder."
@@ -1808,6 +2483,11 @@ struct SfTeamAddMembersDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        sharing_permission = "abc"
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfTeamClaimMembershipDetails
     "Claimed membership to a team member's shared folder."
 
@@ -1815,6 +2495,10 @@ struct SfTeamClaimMembershipDetails
         "Original shared folder name."
     target_index Int64
         "Target asset index."
+
+    example default
+        original_folder_name = "abc"
+        target_index = 3
 
 struct SfTeamDeclineDetails
     "Declined a team member's invitation to a shared folder."
@@ -1824,6 +2508,10 @@ struct SfTeamDeclineDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfTeamGrantAccessDetails
     "Granted access to a shared folder."
 
@@ -1831,6 +2519,10 @@ struct SfTeamGrantAccessDetails
         "Original shared folder name."
     target_index Int64
         "Target asset index."
+
+    example default
+        original_folder_name = "abc"
+        target_index = 3
 
 struct SfTeamInviteDetails
     "Invited team members to a shared folder."
@@ -1841,6 +2533,11 @@ struct SfTeamInviteDetails
         "Original shared folder name."
     target_index Int64
         "Target asset index."
+
+    example default
+        sharing_permission = "abc"
+        original_folder_name = "abc"
+        target_index = 3
 
 struct SfTeamInviteChangeRoleDetails
     "Changed a team member's role in a shared folder."
@@ -1854,6 +2551,12 @@ struct SfTeamInviteChangeRoleDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        prev_sharing_permission = "abc"
+        sharing_permission = "abc"
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfTeamJoinDetails
     "Joined a team member's shared folder."
 
@@ -1861,6 +2564,10 @@ struct SfTeamJoinDetails
         "Original shared folder name."
     target_index Int64
         "Target asset index."
+
+    example default
+        original_folder_name = "abc"
+        target_index = 3
 
 struct SfTeamJoinFromOobLinkDetails
     "Joined a team member's shared folder from a link."
@@ -1874,6 +2581,12 @@ struct SfTeamJoinFromOobLinkDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        token_key = "abc"
+        sharing_permission = "abc"
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfTeamKickDetails
     "Removed a team member from a shared folder."
 
@@ -1882,6 +2595,10 @@ struct SfTeamKickDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfTeamLeaveDetails
     "Left a team member's shared folder."
 
@@ -1889,6 +2606,10 @@ struct SfTeamLeaveDetails
         "Original shared folder name."
     target_index Int64
         "Target asset index."
+
+    example default
+        original_folder_name = "abc"
+        target_index = 3
 
 struct SfTeamMemberChangeRoleDetails
     "Changed a team member's role in a shared folder."
@@ -1902,6 +2623,12 @@ struct SfTeamMemberChangeRoleDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        prev_sharing_permission = "abc"
+        sharing_permission = "abc"
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfTeamMountDetails
     "Added a team member's shared folder to their Dropbox."
 
@@ -1909,6 +2636,10 @@ struct SfTeamMountDetails
         "Original shared folder name."
     target_index Int64
         "Target asset index."
+
+    example default
+        original_folder_name = "abc"
+        target_index = 3
 
 struct SfTeamOnlyLinkDetails
     "Made a folder viewable only to team members with the link."
@@ -1920,6 +2651,11 @@ struct SfTeamOnlyLinkDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        shared_folder_type = "abc"
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfTeamTransferDetails
     "Transferred folder ownership to a team member."
 
@@ -1927,6 +2663,10 @@ struct SfTeamTransferDetails
         "Original shared folder name."
     target_index Int64
         "Target asset index."
+
+    example default
+        original_folder_name = "abc"
+        target_index = 3
 
 struct SfTeamUninviteDetails
     "Unshared a folder with a team member."
@@ -1936,6 +2676,10 @@ struct SfTeamUninviteDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfTeamUnmountDetails
     "Removed a team member's shared folder from their Dropbox."
 
@@ -1944,6 +2688,10 @@ struct SfTeamUnmountDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfUnsetConfidentialDetails
     "Removed the invite only restriction from a shared folder."
 
@@ -1951,6 +2699,10 @@ struct SfUnsetConfidentialDetails
         "Original shared folder name."
     target_index Int64
         "Target asset index."
+
+    example default
+        original_folder_name = "abc"
+        target_index = 3
 
 struct SfUnshareDetails
     "Unshared a folder."
@@ -1962,6 +2714,11 @@ struct SfUnshareDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        sharing_non_member_recipients = [default]
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SfViewerInfoOffDetails
     "Turned off viewer info."
 
@@ -1971,6 +2728,11 @@ struct SfViewerInfoOffDetails
         "Original shared folder name."
     target_index Int64
         "Target asset index."
+
+    example default
+        shared_folder_type = "abc"
+        original_folder_name = "abc"
+        target_index = 3
 
 struct SfViewerInfoOnDetails
     "Turned on viewer info."
@@ -1982,17 +2744,28 @@ struct SfViewerInfoOnDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        shared_folder_type = "abc"
+        original_folder_name = "abc"
+        target_index = 3
+
 struct SharedContentNonteamCopyDetails
     "Copied the contents of a link to their Dropbox (non-team member)."
 
-    src_index Int64?
+    src_index Int64
         "Source asset index."
-    dest_index Int64?
+    dest_index Int64
         "Destination asset index."
     sharing_permission String?
         "Sharing permission."
     shared_content_link String
         "Shared content link."
+
+    example default
+        src_index = 3
+        dest_index = 3
+        sharing_permission = "abc"
+        shared_content_link = "abc"
 
 struct SharedContentNonteamDownloadDetails
     "Downloaded the contents of a link (non-team member)."
@@ -2002,6 +2775,10 @@ struct SharedContentNonteamDownloadDetails
     shared_content_link String
         "Shared content link."
 
+    example default
+        sharing_permission = "abc"
+        shared_content_link = "abc"
+
 struct SharedContentNonteamViewDetails
     "Opened a link (non-team-member)."
 
@@ -2010,17 +2787,27 @@ struct SharedContentNonteamViewDetails
     shared_content_link String
         "Shared content link."
 
+    example default
+        sharing_permission = "abc"
+        shared_content_link = "abc"
+
 struct SharedContentTeamCopyDetails
     "Copied the contents of a link to their Dropbox (team member)."
 
-    src_index Int64?
+    src_index Int64
         "Source asset index."
-    dest_index Int64?
+    dest_index Int64
         "Destination asset index."
     sharing_permission String?
         "Sharing permission."
     shared_content_link String
         "Shared content link."
+
+    example default
+        src_index = 3
+        dest_index = 3
+        sharing_permission = "abc"
+        shared_content_link = "abc"
 
 struct SharedContentTeamDownloadDetails
     "Downloaded the contents of a link (team member)."
@@ -2030,6 +2817,10 @@ struct SharedContentTeamDownloadDetails
     shared_content_link String
         "Shared content link."
 
+    example default
+        sharing_permission = "abc"
+        shared_content_link = "abc"
+
 struct SharedContentTeamViewDetails
     "Opened a link (team member)."
 
@@ -2037,6 +2828,10 @@ struct SharedContentTeamViewDetails
         "Sharing permission."
     shared_content_link String
         "Shared content link."
+
+    example default
+        sharing_permission = "abc"
+        shared_content_link = "abc"
 
 struct SharedFileAddExpirationDetails
     "Added an expiration date to a link."
@@ -2046,9 +2841,12 @@ struct SharedFileAddExpirationDetails
     expiration_days Int64
         "The number of days from the starting expiration date after which the link will expire."
 
+    example default
+        expiration_start_date = "abc"
+        expiration_days = 3
+
 struct SharedFileAddPasswordDetails
     "Added a password to a link."
-
 
 struct SharedFileChangeExpirationDetails
     "Changed the expiration date for a link."
@@ -2058,17 +2856,18 @@ struct SharedFileChangeExpirationDetails
     expiration_days Int64
         "The number of days from the starting expiration date after which the link will expire."
 
+    example default
+        expiration_start_date = "abc"
+        expiration_days = 3
+
 struct SharedFileChangePasswordDetails
     "Changed the password for a link."
-
 
 struct SharedFileDownloadsOffDetails
     "Turned off downloads."
 
-
 struct SharedFileDownloadsOnDetails
     "Turned on downloads."
-
 
 struct SharedFileGroupAddedDetails
     "Added groups to a file."
@@ -2078,6 +2877,10 @@ struct SharedFileGroupAddedDetails
     sharing_groups List(GroupLogInfo)?
         "Sharing groups details."
 
+    example default
+        sharing_permission = "abc"
+        sharing_groups = [default]
+
 struct SharedFileGroupRemovedDetails
     "Removed groups from a file."
 
@@ -2086,9 +2889,12 @@ struct SharedFileGroupRemovedDetails
     sharing_groups List(GroupLogInfo)?
         "Sharing groups details."
 
+    example default
+        sharing_permission = "abc"
+        sharing_groups = [default]
+
 struct SharedFileMemberOnlyLinkDetails
     "Made a file viewable only to members of the file."
-
 
 struct SharedFileNonteamAddMemberDetails
     "Added non-team members to a file."
@@ -2097,6 +2903,10 @@ struct SharedFileNonteamAddMemberDetails
         "Sharing non member recipients."
     sharing_permission String?
         "Sharing permission."
+
+    example default
+        sharing_non_member_recipients = [default]
+        sharing_permission = "abc"
 
 struct SharedFileNonteamChangeRoleDetails
     "Changed non-team member's role in a shared file."
@@ -2108,11 +2918,19 @@ struct SharedFileNonteamChangeRoleDetails
     sharing_groups List(GroupLogInfo)?
         "Sharing groups details."
 
+    example default
+        prev_sharing_permission = "abc"
+        sharing_permission = "abc"
+        sharing_groups = [default]
+
 struct SharedFileNonteamClaimDetails
     "Added a file to their Dropbox (non-team member)."
 
     shared_content_link String
         "Shared content link."
+
+    example default
+        shared_content_link = "abc"
 
 struct SharedFileNonteamInviteMemberDetails
     "Added non-team members to a file."
@@ -2122,6 +2940,10 @@ struct SharedFileNonteamInviteMemberDetails
     sharing_permission String?
         "Sharing permission."
 
+    example default
+        sharing_non_member_recipients = [default]
+        sharing_permission = "abc"
+
 struct SharedFileNonteamRemoveMemberDetails
     "Removed non-team members from a file."
 
@@ -2130,29 +2952,36 @@ struct SharedFileNonteamRemoveMemberDetails
     sharing_permission String?
         "Sharing permission."
 
+    example default
+        sharing_non_member_recipients = [default]
+        sharing_permission = "abc"
+
 struct SharedFileNonteamRequestAccessDetails
     "Requested access to a file (non-team member)."
 
     shared_content_link String
         "Shared content link."
 
+    example default
+        shared_content_link = "abc"
+
 struct SharedFilePublicLinkDetails
     "Made a file viewable to anyone with the link."
-
 
 struct SharedFileRemoveExpirationDetails
     "Removed the expiration date from a link."
 
-
 struct SharedFileRemovePasswordDetails
     "Removed the password from a link."
-
 
 struct SharedFileTeamAddMemberDetails
     "Added team members to a file."
 
     sharing_permission String?
         "Sharing permission."
+
+    example default
+        sharing_permission = "abc"
 
 struct SharedFileTeamChangeRoleDetails
     "Changed team member's role in a shared file."
@@ -2164,15 +2993,22 @@ struct SharedFileTeamChangeRoleDetails
     sharing_groups List(GroupLogInfo)?
         "Sharing groups details."
 
+    example default
+        prev_sharing_permission = "abc"
+        sharing_permission = "abc"
+        sharing_groups = [default]
+
 struct SharedFileTeamClaimDetails
     "Added a file to their Dropbox."
 
     shared_content_link String
         "Shared content link."
 
+    example default
+        shared_content_link = "abc"
+
 struct SharedFileTeamOnlyLinkDetails
     "Made a file viewable only to team members with the link."
-
 
 struct SharedFileTeamRemoveMemberDetails
     "Removed team members from a file."
@@ -2180,23 +3016,26 @@ struct SharedFileTeamRemoveMemberDetails
     sharing_permission String?
         "Sharing permission."
 
+    example default
+        sharing_permission = "abc"
+
 struct SharedFileTeamRequestAccessDetails
     "Requested access to a file."
 
     shared_content_link String
         "Shared content link."
 
+    example default
+        shared_content_link = "abc"
+
 struct SharedFileUnshareDetails
     "Unshared a file."
-
 
 struct SharedFileViewerInfoOffDetails
     "Turned off viewer info."
 
-
 struct SharedFileViewerInfoOnDetails
     "Turned on viewer info."
-
 
 struct ShmodelAppCreateDetails
     "Created a link to a file using an app."
@@ -2206,6 +3045,10 @@ struct ShmodelAppCreateDetails
     token_key String?
         "Shared link token key."
 
+    example default
+        sharing_permission = "abc"
+        token_key = "abc"
+
 struct ShmodelCreateDetails
     "Created a new link."
 
@@ -2213,6 +3056,10 @@ struct ShmodelCreateDetails
         "Sharing permission."
     token_key String?
         "Shared link token key."
+
+    example default
+        sharing_permission = "abc"
+        token_key = "abc"
 
 struct ShmodelDisableDetails
     "Removed a link."
@@ -2222,15 +3069,21 @@ struct ShmodelDisableDetails
     token_key String?
         "Shared link token key."
 
+    example default
+        sharing_permission = "abc"
+        token_key = "abc"
+
 struct ShmodelFbShareDetails
     "Shared a link with Facebook users."
 
     sharing_non_member_recipients List(NonTeamMemberLogInfo)
         "Sharing non member recipients."
 
+    example default
+        sharing_non_member_recipients = [default]
+
 struct ShmodelNonteamCopyDetails
     "Added a file/folder to their Dropbox from a link (non-team member)."
-
 
 struct ShmodelNonteamCreateDetails
     "Created a new link (non-team member)."
@@ -2240,9 +3093,12 @@ struct ShmodelNonteamCreateDetails
     token_key String?
         "Shared link token key."
 
+    example default
+        sharing_permission = "abc"
+        token_key = "abc"
+
 struct ShmodelNonteamDownloadDetails
     "Downloaded a file/folder from a link (non-team member)."
-
 
 struct ShmodelNonteamShareDetails
     "Shared a link with non-team members."
@@ -2250,13 +3106,14 @@ struct ShmodelNonteamShareDetails
     sharing_non_member_recipients List(NonTeamMemberLogInfo)
         "Sharing non member recipients."
 
+    example default
+        sharing_non_member_recipients = [default]
+
 struct ShmodelNonteamViewDetails
     "Opened a link (non-team member)."
 
-
 struct ShmodelRemoveExpirationDetails
     "Removed the expiration date from a link."
-
 
 struct ShmodelSetExpirationDetails
     "Added an expiration date to a link."
@@ -2266,33 +3123,30 @@ struct ShmodelSetExpirationDetails
     expiration_days Int64
         "The number of days from the starting expiration date after which the link will expire."
 
+    example default
+        expiration_start_date = "abc"
+        expiration_days = 3
+
 struct ShmodelTeamCopyDetails
     "Added a team member's file/folder to their Dropbox from a link."
-
 
 struct ShmodelTeamDownloadDetails
     "Downloaded a team member's file/folder from a link."
 
-
 struct ShmodelTeamShareDetails
     "Shared a link with team members."
-
 
 struct ShmodelTeamViewDetails
     "Opened a team member's link."
 
-
 struct ShmodelVisibilityPasswordDetails
     "Password-protected a link."
-
 
 struct ShmodelVisibilityPublicDetails
     "Made a file/folder visible to anyone with the link."
 
-
 struct ShmodelVisibilityTeamOnlyDetails
     "Made a file/folder visible only to team members with the link."
-
 
 struct SubscribeToCommentNotificationsDetails
     "Subscribed to file comment notifications."
@@ -2300,11 +3154,17 @@ struct SubscribeToCommentNotificationsDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        target_index = 3
+
 struct TeamFolderDowngradedDetails
     "Converted a team folder into a shared folder."
 
     target_index Int64
         "Target asset index."
+
+    example default
+        target_index = 3
 
 struct UnlikeCommentDetails
     "Unliked a file comment."
@@ -2314,6 +3174,10 @@ struct UnlikeCommentDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        comment_text = "abc"
+        target_index = 3
+
 struct UnresolveCommentDetails
     "Restored a resolved file comment."
 
@@ -2322,11 +3186,18 @@ struct UnresolveCommentDetails
     target_index Int64
         "Target asset index."
 
+    example default
+        comment_text = "abc"
+        target_index = 3
+
 struct UnsubscribeFromCommentNotificationsDetails
     "Unsubscribed from file comment notifications."
 
     target_index Int64
         "Target asset index."
+
+    example default
+        target_index = 3
 
 struct GroupChangedToAdminManagedDetails
     "Changed group type to company-managed."
@@ -2334,11 +3205,17 @@ struct GroupChangedToAdminManagedDetails
     group_info GroupLogInfo
         "Group details."
 
+    example default
+        group_info = default
+
 struct GroupChangedToMemberManagedDetails
     "Changed group type to user-managed."
 
     group_info GroupLogInfo
         "Group details."
+
+    example default
+        group_info = default
 
 struct GroupCreatedDetails
     "Created a group."
@@ -2350,6 +3227,11 @@ struct GroupCreatedDetails
     join_policy GroupJoinPolicy
         "sda."
 
+    example default
+        group_info = default
+        is_admin_managed = true
+        join_policy = open
+
 struct GroupDeletedDetails
     "Deleted a group."
 
@@ -2358,11 +3240,18 @@ struct GroupDeletedDetails
     is_admin_managed Boolean?
         "Is admin managed group."
 
+    example default
+        group_info = default
+        is_admin_managed = true
+
 struct GroupDescriptionUpdatedDetails
     "Updated a group."
 
     group_info GroupLogInfo
         "Group details."
+
+    example default
+        group_info = default
 
 struct GroupExternalIdChangedDetails
     "Changed the external ID for a group."
@@ -2374,6 +3263,11 @@ struct GroupExternalIdChangedDetails
     old_external_id team_common.GroupExternalId
         "Old external id."
 
+    example default
+        group_info = default
+        external_id = "some group id"
+        old_external_id = "some group id"
+
 struct GroupJoinPolicyUpdatedDetails
     "Updated a group join policy."
 
@@ -2384,6 +3278,11 @@ struct GroupJoinPolicyUpdatedDetails
     join_policy GroupJoinPolicy
         "sda."
 
+    example default
+        group_info = default
+        is_admin_managed = true
+        join_policy = open
+
 struct GroupMembersAddedDetails
     "Added group members."
 
@@ -2392,11 +3291,18 @@ struct GroupMembersAddedDetails
     is_group_owner Boolean
         "Is group owner."
 
+    example default
+        group_info = default
+        is_group_owner = true
+
 struct GroupMembersRemovedDetails
     "Removed group members."
 
     group_info GroupLogInfo
         "Group details."
+
+    example default
+        group_info = default
 
 struct GroupMembertypeChangedDetails
     "Changed group member access type."
@@ -2406,11 +3312,18 @@ struct GroupMembertypeChangedDetails
     is_group_owner Boolean
         "Is group owner."
 
+    example default
+        group_info = default
+        is_group_owner = true
+
 struct GroupMovedDetails
     "Moved a group."
 
     group_info GroupLogInfo
         "Group details."
+
+    example default
+        group_info = default
 
 struct GroupRenamedDetails
     "Renamed a group."
@@ -2420,57 +3333,66 @@ struct GroupRenamedDetails
     old_display_name String
         "Old display name."
 
+    example default
+        group_info = default
+        old_display_name = "abc"
+
 struct AddFilesDetails
     "Added files."
-
 
 struct CopyFilesDetails
     "Copied files."
 
-    src_index Int64?
+    src_index Int64
         "Source asset index."
-    dest_index Int64?
+    dest_index Int64
         "Destination asset index."
+
+    example default
+        src_index = 3
+        dest_index = 3
 
 struct CopyReferenceGetDetails
     "Get reference to a file."
 
-
 struct CopyReferenceSaveDetails
     "Save reference to a file."
 
-    src_index Int64?
+    src_index Int64
         "Source asset index."
-    dest_index Int64?
+    dest_index Int64
         "Destination asset index."
+
+    example default
+        src_index = 3
+        dest_index = 3
 
 struct CreateFolderDetails
     "Created folders."
 
-
 struct DeleteFilesDetails
     "Deleted files."
-
 
 struct DownloadFilesDetails
     "Downloaded files."
 
-
 struct EditFilesDetails
     "Edited files."
-
 
 struct FilePermanentlyDeletedDetails
     "Permanently deleted a file."
 
-
 struct MoveFilesDetails
     "Moved files."
 
-    src_index Int64?
+    src_index Int64
         "Source asset index."
-    dest_index Int64?
+    dest_index Int64
         "Destination asset index."
+
+    example default
+        src_index = 3
+        dest_index = 3
 
 struct PaperDocAddedToFolderDetails
     "Paper doc added to folder."
@@ -2478,11 +3400,17 @@ struct PaperDocAddedToFolderDetails
     event_uuid String
         "Event unique identifier."
 
+    example default
+        event_uuid = "abc"
+
 struct PaperDocArchivedDetails
     "Paper doc archived."
 
     event_uuid String
         "Event unique identifier."
+
+    example default
+        event_uuid = "abc"
 
 struct PaperDocCreatedDetails
     "Paper doc created."
@@ -2490,11 +3418,17 @@ struct PaperDocCreatedDetails
     event_uuid String
         "Event unique identifier."
 
+    example default
+        event_uuid = "abc"
+
 struct PaperDocDeletedDetails
     "Paper doc archived."
 
     event_uuid String
         "Event unique identifier."
+
+    example default
+        event_uuid = "abc"
 
 struct PaperDocDocxExportDetails
     "Paper doc exported as docx."
@@ -2502,11 +3436,17 @@ struct PaperDocDocxExportDetails
     event_uuid String
         "Event unique identifier."
 
+    example default
+        event_uuid = "abc"
+
 struct PaperDocEditedDetails
     "Paper doc edited."
 
     event_uuid String
         "Event unique identifier."
+
+    example default
+        event_uuid = "abc"
 
 struct PaperDocFollowedDetails
     "Paper doc followed."
@@ -2514,11 +3454,17 @@ struct PaperDocFollowedDetails
     event_uuid String
         "Event unique identifier."
 
+    example default
+        event_uuid = "abc"
+
 struct PaperDocHtmlExportDetails
     "Paper doc exported as html."
 
     event_uuid String
         "Event unique identifier."
+
+    example default
+        event_uuid = "abc"
 
 struct PaperDocMdExportDetails
     "Paper doc exported as md."
@@ -2526,11 +3472,17 @@ struct PaperDocMdExportDetails
     event_uuid String
         "Event unique identifier."
 
+    example default
+        event_uuid = "abc"
+
 struct PaperDocPermanentlyDeletedDetails
     "Paper doc permanently deleted."
 
     event_uuid String
         "Event unique identifier."
+
+    example default
+        event_uuid = "abc"
 
 struct PaperDocRemovedFromFolderDetails
     "Paper doc removed from folder."
@@ -2538,11 +3490,17 @@ struct PaperDocRemovedFromFolderDetails
     event_uuid String
         "Event unique identifier."
 
+    example default
+        event_uuid = "abc"
+
 struct PaperDocRenamedDetails
     "Paper doc renamed."
 
     event_uuid String
         "Event unique identifier."
+
+    example default
+        event_uuid = "abc"
 
 struct PaperDocRestoredDetails
     "Paper doc restored."
@@ -2550,17 +3508,26 @@ struct PaperDocRestoredDetails
     event_uuid String
         "Event unique identifier."
 
+    example default
+        event_uuid = "abc"
+
 struct PaperDocRevisionRestoredDetails
     "Paper doc revision restored."
 
     event_uuid String
         "Event unique identifier."
 
+    example default
+        event_uuid = "abc"
+
 struct PaperDocSlackShareDetails
     "Paper doc link shared via slack."
 
     event_uuid String
         "Event unique identifier."
+
+    example default
+        event_uuid = "abc"
 
 struct PaperDocSubscriptionLevelChangedDetails
     "Paper doc subscription level changed."
@@ -2569,6 +3536,10 @@ struct PaperDocSubscriptionLevelChangedDetails
         "Document subscription level."
     event_uuid String
         "Event unique identifier."
+
+    example default
+        doc_subscription_level = default
+        event_uuid = "abc"
 
 struct PaperFolderAddedToFolderDetails
     "Paper subfolder added to folder."
@@ -2580,11 +3551,19 @@ struct PaperFolderAddedToFolderDetails
     event_uuid String
         "Event unique identifier."
 
+    example default
+        target_index = 3
+        parent_index = 3
+        event_uuid = "abc"
+
 struct PaperFolderArchivedDetails
     "Paper folder archived."
 
     event_uuid String
         "Event unique identifier."
+
+    example default
+        event_uuid = "abc"
 
 struct PaperFolderCreatedDetails
     "Paper folder created."
@@ -2592,11 +3571,17 @@ struct PaperFolderCreatedDetails
     event_uuid String
         "Event unique identifier."
 
+    example default
+        event_uuid = "abc"
+
 struct PaperFolderDeletedDetails
     "Paper folder archived."
 
     event_uuid String
         "Event unique identifier."
+
+    example default
+        event_uuid = "abc"
 
 struct PaperFolderFollowedDetails
     "Paper folder followed."
@@ -2604,11 +3589,17 @@ struct PaperFolderFollowedDetails
     event_uuid String
         "Event unique identifier."
 
+    example default
+        event_uuid = "abc"
+
 struct PaperFolderPermanentlyDeletedDetails
     "Paper folder permanently deleted."
 
     event_uuid String
         "Event unique identifier."
+
+    example default
+        event_uuid = "abc"
 
 struct PaperFolderRenamedDetails
     "Paper folder renamed."
@@ -2616,11 +3607,17 @@ struct PaperFolderRenamedDetails
     event_uuid String
         "Event unique identifier."
 
+    example default
+        event_uuid = "abc"
+
 struct PaperFolderRestoredDetails
     "Paper folder restored."
 
     event_uuid String
         "Event unique identifier."
+
+    example default
+        event_uuid = "abc"
 
 struct PaperFolderSubscriptionLevelChangedDetails
     "Paper folder subscription level changed."
@@ -2630,28 +3627,34 @@ struct PaperFolderSubscriptionLevelChangedDetails
     event_uuid String
         "Event unique identifier."
 
+    example default
+        folder_subscription_level = default
+        event_uuid = "abc"
+
 struct PreviewFilesDetails
     "Previewed files."
-
 
 struct RenameFilesOrFoldersDetails
     "Renamed files."
 
-    src_index Int64?
+    src_index Int64
         "Source asset index."
-    dest_index Int64?
+    dest_index Int64
         "Destination asset index."
+
+    example default
+        src_index = 3
+        dest_index = 3
 
 struct RestoreFilesDetails
     "Restored files."
 
-
 struct RevertFilesToPreviousVersionDetails
     "Reverted files to a previous version."
 
-
 struct RollbackChangesInFilesDetails
     "Rolled back file changes."
+
 
 struct TeamEvent
     "An audit log event."
@@ -2672,3 +3675,13 @@ struct TeamEvent
         "True if the action involved a non team member either as the actor or as one of the affected users."
     context ContextLogInfo
         "The user or team on whose behalf the actor performed the action."
+
+    example default
+        timestamp = "2017-01-25T15:51:30Z"
+        event_categories = [default]
+        actor = default
+        origin = default
+        participants = [default2]
+        assets = [default]
+        involve_non_team_member = true
+        context = default

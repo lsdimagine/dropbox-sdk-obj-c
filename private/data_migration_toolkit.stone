@@ -1,0 +1,38 @@
+namespace team
+
+#
+# Route get_version_for_app
+#
+
+struct VersionInfoResult
+    latest_version String
+        "The latest version of the toolkit"
+    latest_version_url String
+        "The URL of the setup file for the latest version of the toolkit"
+    minimum_version String
+        "The minimum required version of the toolkit"
+
+    example default
+        latest_version = "1.0.83"
+        latest_version_url = "http://downloads.dropbox.com/migrationtoolkit-x64-1.0.83.exe"
+        minimum_version = "1.0.60"
+
+route data_migration_toolkit/get_version_for_app(Void, VersionInfoResult, Void)
+    "Get information on the latest version of the toolkit along with other relevant metadata based
+    on the app which made the call."
+
+    attrs
+        auth="app"
+        owner="adminx"
+
+#
+# Route get_version_for_team
+#
+
+route data_migration_toolkit/get_version_for_team(Void, VersionInfoResult, Void)
+    "Get information on the latest version of the toolkit along with other relevant metadata based
+    on the given team."
+
+    attrs
+        auth="team"
+        owner="adminx"
