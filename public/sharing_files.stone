@@ -88,7 +88,8 @@ struct SharedFileMetadata
     "Properties of the shared file."
 
     link_metadata SharedContentLinkMetadata?
-        "The metadata of the link associated for the file."
+        "The metadata of the link associated for the file. This is for an unreleased feature so
+        it may not be returned yet."
     policy FolderPolicy
         "Policies governing this shared file."
     permissions List(FilePermission)?
@@ -118,6 +119,8 @@ struct SharedFileMetadata
         "Timestamp indicating when the current user was invited to this shared file. If the user was
         not invited to the shared file, the timestamp will indicate when the user was invited to the
         parent shared folder. This value may be absent."
+    access_type AccessLevel?
+        "The current user's access level for this shared file."
 
 
     example default
@@ -130,6 +133,7 @@ struct SharedFileMetadata
         name = "file.txt"
         id = "id:3kmLmQFnf1AAAAAAAAAAAw"
         time_invited = "2016-01-20T00:00:00Z"
+        access_type = viewer
 
 union ViewerInfoPolicy
     enabled
@@ -281,7 +285,9 @@ struct GetFileMetadataArg
     file PathOrId
         "The file to query."
     actions List(FileAction)?
-        "File actions to query."
+        "A list of `FileAction`s corresponding to `FilePermission`s that should appear in the
+         response's :field:`SharedFileMetadata.permissions` field describing the actions the
+         authenticated user can perform on the file."
 
     example default
         file = "id:3kmLmQFnf1AAAAAAAAAAAw"
@@ -307,7 +313,9 @@ struct GetFileMetadataBatchArg
     files List(PathOrId, max_items=100)
         "The files to query."
     actions List(FileAction)?
-        "File actions to query."
+        "A list of `FileAction`s corresponding to `FilePermission`s that should appear in the
+         response's :field:`SharedFileMetadata.permissions` field describing the actions the
+         authenticated user can perform on the file."
 
     example default
         files = ["id:3kmLmQFnf1AAAAAAAAAAAw","id:VvTaJu2VZzAAAAAAAAAADQ"]
@@ -506,7 +514,9 @@ struct ListFilesArg
         "Number of files to return max per query. Defaults to 100 if no limit
         is specified."
     actions List(FileAction)?
-        "File actions to query."
+        "A list of `FileAction`s corresponding to `FilePermission`s that should appear in the
+         response's :field:`SharedFileMetadata.permissions` field describing the actions the
+         authenticated user can perform on the file."
 
     example default
         limit = 100

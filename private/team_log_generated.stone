@@ -18,10 +18,6 @@ alias RequestId = String
 # Union types that are used by events.
 ########################################
 
-union AppType
-    user_linked_app
-    team_linked_app
-
 union DeviceType
     mobile
     desktop
@@ -47,24 +43,22 @@ struct ApiSessionLogInfo
         request_id = "e"
 
 struct AppLogInfo 
-    "Application's logged information."
+    "App's logged information."
+    union
+        user_or_team_linked_app UserOrTeamLinkedAppLogInfo
+        user_linked_app UserLinkedAppLogInfo
+        team_linked_app TeamLinkedAppLogInfo
 
     app_id AppId?
-        "Application unique ID."
+        "App unique ID."
     display_name String?
-        "Application display name."
-    app_type AppType?
-        "Application type, user-linked or team-linked."
+        "App display name."
 
     example default
-        app_id = "dbaid:AAFhvuxku2OYumUaV17x6ExFhr6OPrwjTKs"
-        display_name = "abc"
-        app_type = user_linked_app
+        user_or_team_linked_app = default
 
     example default2
-        app_id = "dbaid:AAG1NxJeBtby__IZENPAvDGeOssreFpPALE"
-        display_name = "xyz"
-        app_type = user_linked_app
+        user_or_team_linked_app = default2
 
 struct DesktopSessionLogInfo extends SessionLogInfo
     "Desktop session."
@@ -110,6 +104,28 @@ struct UserLogInfo
     example default2
         team_member = default2
 
+struct UserLinkedAppLogInfo extends AppLogInfo
+    "User linked app"
+
+    example default
+        app_id = "dbaid:AAFhvuxku2OYumUaV17x6ExFhr6OPrwjTKs"
+        display_name = "abc"
+
+    example default2
+        app_id = "dbaid:AAG1NxJeBtby__IZENPAvDGeOssreFpPALE"
+        display_name = "xyz"
+
+struct UserOrTeamLinkedAppLogInfo extends AppLogInfo
+    "User or team linked app. Used when linked type is missing due to historical data gap."
+
+    example default
+        app_id = "dbaid:AAFhvuxku2OYumUaV17x6ExFhr6OPrwjTKs"
+        display_name = "abc"
+
+    example default2
+        app_id = "dbaid:AAG1NxJeBtby__IZENPAvDGeOssreFpPALE"
+        display_name = "xyz"
+
 struct TeamMemberLogInfo extends UserLogInfo
     "Team member's logged information."
 
@@ -131,6 +147,17 @@ struct TeamMemberLogInfo extends UserLogInfo
         account_id = "dbid:AAGx4oiLtHdvRdNxUpvvJBXYgR4BS19c9kw"
         display_name = "Jane Smith"
         email = "jane_smith@acmecorp.com"
+
+struct TeamLinkedAppLogInfo extends AppLogInfo
+    "Team linked app"
+
+    example default
+        app_id = "dbaid:AAFhvuxku2OYumUaV17x6ExFhr6OPrwjTKs"
+        display_name = "abc"
+
+    example default2
+        app_id = "dbaid:AAG1NxJeBtby__IZENPAvDGeOssreFpPALE"
+        display_name = "xyz"
 
 struct FileOrFolderLogInfo 
     "Generic information relevant both for files and folders"
@@ -1419,6 +1446,12 @@ struct VersionHistoryExtendedDetails
 
 struct VersionHistoryLimitedDetails
     "Accepted version history change."
+
+struct WebSessionManagementIdleTimeoutDetails
+    "Changed idle timeout length."
+
+struct WebSessionManagementSessionExpirationDetails
+    "Changed session length."
 
 struct AddCommentDetails
     "Commented on a file."
@@ -3370,6 +3403,33 @@ struct CopyReferenceSaveDetails
 struct CreateFolderDetails
     "Created folders."
 
+struct DecipherRansomwareDetectedDetails
+    "Ransomware detected on device."
+
+    host_id Int64
+        "Infected host."
+
+    example default
+        host_id = 3
+
+struct DecipherRecoveryCompleteDetails
+    "Ransomware recovery completed."
+
+    host_id Int64
+        "Infected host."
+
+    example default
+        host_id = 3
+
+struct DecipherRecoveryInitiatedDetails
+    "Ransomware recovery initiated."
+
+    host_id Int64
+        "Infected host."
+
+    example default
+        host_id = 3
+
 struct DeleteFilesDetails
     "Deleted files."
 
@@ -3655,6 +3715,1515 @@ struct RevertFilesToPreviousVersionDetails
 struct RollbackChangesInFilesDetails
     "Rolled back file changes."
 
+#################
+# Event Details
+#################
+
+union EventDetails
+    "Additional fields depending on the event type."
+
+    device_management_user_approval_blocked_details DeviceManagementUserApprovalBlockedDetails
+        "Failed to sign in because of device approvals limit."
+    emm_login_error_details EmmLoginErrorDetails
+        "Failed to sign in via EMM."
+    login_fail_details LoginFailDetails
+        "Failed to sign in."
+    login_success_details LoginSuccessDetails
+        "Signed in."
+    logout_details LogoutDetails
+        "Signed out."
+    sso_error_details SsoErrorDetails
+        "Failed to sign in via SSO."
+    web_ip_changed_details WebIpChangedDetails
+        "Web session IP changed."
+    add_tfa_backup_phone_details AddTfaBackupPhoneDetails
+        "Added two-step verification backup phone."
+    add_tfa_security_key_details AddTfaSecurityKeyDetails
+        "Added a security key for two-step verification."
+    edit_tfa_backup_phone_details EditTfaBackupPhoneDetails
+        "Edited two-step verification backup phone."
+    password_change_details PasswordChangeDetails
+        "Changed password."
+    remove_tfa_backup_phone_details RemoveTfaBackupPhoneDetails
+        "Removed two-step verification backup phone."
+    remove_tfa_security_key_details RemoveTfaSecurityKeyDetails
+        "Disabled a security key for two-step verification."
+    reset_all_passwords_details ResetAllPasswordsDetails
+        "Reset all passwords."
+    reset_password_details ResetPasswordDetails
+        "Reset password."
+    tfa_disable_details TfaDisableDetails
+        "Disabled two-step verification."
+    tfa_edit_authenticator_details TfaEditAuthenticatorDetails
+        "Set two-step verification to use mobile app."
+    tfa_edit_sms_details TfaEditSmsDetails
+        "Set two-step verification to use SMS."
+    tfa_enable_details TfaEnableDetails
+        "Enabled two-step verification."
+    tfa_reset_details TfaResetDetails
+        "Reset two-step verification."
+    app_allow_details AppAllowDetails
+        "Authorized an app."
+    app_remove_details AppRemoveDetails
+        "Removed a team app."
+    team_app_allow_details TeamAppAllowDetails
+        "Authorized a team app."
+    team_app_remove_details TeamAppRemoveDetails
+        "Removed a team app."
+    captured_user_left_domain_details CapturedUserLeftDomainDetails
+        "Left your domain due to account capture."
+    captured_user_migrated_details CapturedUserMigratedDetails
+        "Joined the team via account capture."
+    change_team_member_name_details ChangeTeamMemberNameDetails
+        "Changed a team member's name."
+    domain_invites_approve_request_to_join_team_details DomainInvitesApproveRequestToJoinTeamDetails
+        "Approved a member's request to join the team."
+    domain_invites_decline_request_to_join_team_details DomainInvitesDeclineRequestToJoinTeamDetails
+        "Declined a user's request to join the team."
+    domain_invites_email_existing_users_details DomainInvitesEmailExistingUsersDetails
+        "Sent domain invites to existing domain accounts."
+    domain_invites_request_to_join_team_details DomainInvitesRequestToJoinTeamDetails
+        "Asked to join the team."
+    member_invite_details MemberInviteDetails
+        "Invited a member."
+    member_join_details MemberJoinDetails
+        "Joined the team."
+    member_leave_details MemberLeaveDetails
+        "Removed a team member."
+    member_recover_details MemberRecoverDetails
+        "Recovered a removed member."
+    member_suspend_details MemberSuspendDetails
+        "Suspended a team member."
+    member_unsuspend_details MemberUnsuspendDetails
+        "Unsuspended a team member."
+    suggest_team_members_details SuggestTeamMembersDetails
+        "Suggested new team members to the team admin."
+    delete_on_unlink_fail_details DeleteOnUnlinkFailDetails
+        "Failed to delete some files remotely."
+    delete_on_unlink_success_details DeleteOnUnlinkSuccessDetails
+        "Successfully deleted some files remotely."
+    desktop_ip_changed_details DesktopIpChangedDetails
+        "Desktop client IP changed."
+    device_link_details DeviceLinkDetails
+        "Linked a device."
+    device_unlink_details DeviceUnlinkDetails
+        "Disconnected a device."
+    mobile_ip_changed_details MobileIpChangedDetails
+        "Mobile device IP changed."
+    admin_failed_domain_verification_details AdminFailedDomainVerificationDetails
+        "Failed domain verification."
+    admin_removed_a_domain_details AdminRemovedADomainDetails
+        "Removed a verified domain."
+    admin_set_account_capture_mode_details AdminSetAccountCaptureModeDetails
+        "Changed account capture mode."
+    admin_verified_a_domain_details AdminVerifiedADomainDetails
+        "Verified a domain."
+    allow_download_disabled_details AllowDownloadDisabledDetails
+        "Disabled allow downloads."
+    allow_download_enabled_details AllowDownloadEnabledDetails
+        "Enabled allow downloads."
+    allow_emm_details AllowEmmDetails
+        "Enabled EMM."
+    allow_sso_details AllowSsoDetails
+        "Allowed use of single sign-on."
+    change_admin_role_details ChangeAdminRoleDetails
+        "Changed admin role."
+    change_logout_url_details ChangeLogoutUrlDetails
+        "Changed single sign-on logout URL."
+    change_membership_type_details ChangeMembershipTypeDetails
+        "Changed member type."
+    change_saml_identity_mode_details ChangeSamlIdentityModeDetails
+        "Changed single sign-on identity mode."
+    change_sso_url_details ChangeSsoUrlDetails
+        "Changed single sign-on URL."
+    change_team_member_email_details ChangeTeamMemberEmailDetails
+        "Changed a member's email."
+    commenting_disabled_details CommentingDisabledDetails
+        "Disabled comments."
+    commenting_enabled_details CommentingEnabledDetails
+        "Enabled comments."
+    csv_download_details CsvDownloadDetails
+        "Created a team activity report."
+    dbx_support_granted_account_capture_details DbxSupportGrantedAccountCaptureDetails
+        "Enabled account capture."
+    dbx_support_removed_domains_details DbxSupportRemovedDomainsDetails
+        "Removed domains."
+    dbx_support_revoked_account_capture_details DbxSupportRevokedAccountCaptureDetails
+        "Disabled account capture."
+    dbx_support_verified_domains_details DbxSupportVerifiedDomainsDetails
+        "Verified domains."
+    device_management_desktops_limit_changed_details DeviceManagementDesktopsLimitChangedDetails
+        "Changed the number of allowed computers."
+    device_management_disabled_details DeviceManagementDisabledDetails
+        "Disable Device Management."
+    device_management_enabled_details DeviceManagementEnabledDetails
+        "Enable Device Management."
+    device_management_mobiles_limit_changed_details DeviceManagementMobilesLimitChangedDetails
+        "Changed the number of allowed mobile devices."
+    device_management_rollout_changed_details DeviceManagementRolloutChangedDetails
+        "Changed the device approvals setting for members who are over the limits."
+    device_management_user_can_not_unapprove_details DeviceManagementUserCanNotUnapproveDetails
+        "Changed the device approvals setting for disconnected devices."
+    device_management_user_can_unapprove_details DeviceManagementUserCanUnapproveDetails
+        "Changed Device Management user can unapprove method."
+    disabled_domain_invites_details DisabledDomainInvitesDetails
+        "Disabled domain invites."
+    disable_emm_details DisableEmmDetails
+        "Disabled EMM."
+    disable_sso_details DisableSsoDetails
+        "Disabled single sign-on."
+    emm_exclusion_users_report_created_details EmmExclusionUsersReportCreatedDetails
+        "EMM excluded users report created."
+    emm_token_refreshed_details EmmTokenRefreshedDetails
+        "EMM token refreshed."
+    emm_usage_report_created_details EmmUsageReportCreatedDetails
+        "EMM mobile app usage report created."
+    emm_user_excluded_details EmmUserExcludedDetails
+        "EMM user added to excluded users list."
+    emm_user_unexcluded_details EmmUserUnexcludedDetails
+        "EMM user removed from excluded users list."
+    enabled_domain_invites_details EnabledDomainInvitesDetails
+        "Enabled domain invites."
+    file_requests_disabled_details FileRequestsDisabledDetails
+        "Disabled file requests."
+    file_requests_emails_enabled_details FileRequestsEmailsEnabledDetails
+        "Enabled file request emails for everyone."
+    file_requests_emails_restricted_to_team_only_details FileRequestsEmailsRestrictedToTeamOnlyDetails
+        "Allowed file request emails for the team."
+    file_requests_enabled_details FileRequestsEnabledDetails
+        "Enabled file requests."
+    force_tfa_disable_details ForceTfaDisableDetails
+        "Allowed two-step verification to be disabled."
+    force_tfa_enable_details ForceTfaEnableDetails
+        "Required two-step verification."
+    google_login_disabled_details GoogleLoginDisabledDetails
+        "Disallowed team members from logging in with Google."
+    google_login_enabled_details GoogleLoginEnabledDetails
+        "Allowed team members to log in with Google."
+    groups_all_users_can_create_details GroupsAllUsersCanCreateDetails
+        "Allowed all team members to create groups."
+    groups_only_admins_can_create_details GroupsOnlyAdminsCanCreateDetails
+        "Allowed only team admins to create groups."
+    make_admin_details MakeAdminDetails
+        "Gave admin permissions."
+    member_space_limits_exclusion_list_users_addition_details MemberSpaceLimitsExclusionListUsersAdditionDetails
+        "Member added to space limit exclusion list."
+    member_space_limits_exclusion_list_users_removal_details MemberSpaceLimitsExclusionListUsersRemovalDetails
+        "Member removed from space limit exclusion list."
+    member_space_limits_level_change_details MemberSpaceLimitsLevelChangeDetails
+        "Space limit: allowed usage level changed."
+    member_space_user_usage_state_change_details MemberSpaceUserUsageStateChangeDetails
+        "Space limit: member usage state changed."
+    notes_disabled_details NotesDisabledDetails
+        "Dropbox Paper disabled."
+    notes_enabled_details NotesEnabledDetails
+        "Dropbox Paper enabled."
+    notes_link_policy_public_details NotesLinkPolicyPublicDetails
+        "Paper links accessible by anyone with the link."
+    notes_link_policy_team_details NotesLinkPolicyTeamDetails
+        "Paper links accessible by team members."
+    notes_share_policy_anyone_with_link_details NotesSharePolicyAnyoneWithLinkDetails
+        "Paper documents accessible by anyone with the link."
+    notes_share_policy_only_team_details NotesSharePolicyOnlyTeamDetails
+        "Paper documents accessible by only team members."
+    notes_share_policy_team_and_explicitly_shared_details NotesSharePolicyTeamAndExplicitlySharedDetails
+        "Paper documents accessible by team members and shared external users."
+    nts_disabled_details NtsDisabledDetails
+        "Disabled network control."
+    nts_enabled_details NtsEnabledDetails
+        "Enabled network control."
+    paper_deployment_policy_full_details PaperDeploymentPolicyFullDetails
+        "Enabled Paper to all team members."
+    paper_deployment_policy_partial_details PaperDeploymentPolicyPartialDetails
+        "Enabled Paper to a specific list of team members only."
+    paper_disabled_details PaperDisabledDetails
+        "Paper disabled."
+    paper_enabled_details PaperEnabledDetails
+        "Paper enabled."
+    paper_enabled_users_group_addition_details PaperEnabledUsersGroupAdditionDetails
+        "Users added to Paper enabled users list."
+    paper_enabled_users_group_removal_details PaperEnabledUsersGroupRemovalDetails
+        "Users removed from Paper enabled users list."
+    permanently_delete_account_contents_details PermanentlyDeleteAccountContentsDetails
+        "Permanently deleted account contents."
+    permanent_delete_disabled_details PermanentDeleteDisabledDetails
+        "Disabled permanent delete for all team members."
+    permanent_delete_enabled_details PermanentDeleteEnabledDetails
+        "Enabled permanent delete for all team members."
+    placement_restriction_changed_details PlacementRestrictionChangedDetails
+        "Team placement restriction changed."
+    placement_restriction_fulfilled_details PlacementRestrictionFulfilledDetails
+        "Team placement restriction fulfilled."
+    remove_admin_details RemoveAdminDetails
+        "Removed admin permissions."
+    remove_logout_url_details RemoveLogoutUrlDetails
+        "Removed single sign-on logout URL."
+    remove_sso_url_details RemoveSsoUrlDetails
+        "Removed single sign-on URL."
+    request_membership_auto_accept_details RequestMembershipAutoAcceptDetails
+        "Allowed members to join without approval."
+    request_membership_disabled_details RequestMembershipDisabledDetails
+        "Prevented users from requesting membership."
+    request_membership_require_approval_details RequestMembershipRequireApprovalDetails
+        "Required approval for new members."
+    require_emm_details RequireEmmDetails
+        "Required use of EMM."
+    require_sso_details RequireSsoDetails
+        "Required use of single sign-on."
+    reseller_support_session_end_details ResellerSupportSessionEndDetails
+        "Ended support session."
+    reseller_support_session_start_details ResellerSupportSessionStartDetails
+        "Started support session."
+    sf_external_accept_allow_details SfExternalAcceptAllowDetails
+        "Allowed team members to join shared folders outside the team."
+    sf_external_accept_forbid_details SfExternalAcceptForbidDetails
+        "Prevented team members from joining shared folders outside the team."
+    sf_external_invite_allow_details SfExternalInviteAllowDetails
+        "Allowed folders to be shared outside the team."
+    sf_external_invite_forbid_details SfExternalInviteForbidDetails
+        "Prevented folders from being shared outside the team."
+    shmodel_external_view_allow_details ShmodelExternalViewAllowDetails
+        "Allowed links to be viewed outside the team."
+    shmodel_external_view_default_private_details ShmodelExternalViewDefaultPrivateDetails
+        "Prevented new links from being viewed outside the team by default."
+    shmodel_external_view_forbid_details ShmodelExternalViewForbidDetails
+        "Prevented links from being viewed outside the team."
+    smart_sync_default_changed_to_local_details SmartSyncDefaultChangedToLocalDetails
+        "Changed Smart Sync default to synced locally."
+    smart_sync_default_changed_to_on_demand_details SmartSyncDefaultChangedToOnDemandDetails
+        "Changed Smart Sync default to online-only."
+    smart_sync_no_admin_report_created_details SmartSyncNoAdminReportCreatedDetails
+        "Smart Sync non-admin devices report created."
+    suggest_members_policy_disabled_details SuggestMembersPolicyDisabledDetails
+        "Disabled team member suggestions."
+    suggest_members_policy_enabled_details SuggestMembersPolicyEnabledDetails
+        "Enabled team member suggestions."
+    team_assume_user_end_details TeamAssumeUserEndDetails
+        "Signed out as a member."
+    team_assume_user_start_details TeamAssumeUserStartDetails
+        "Signed in as a member."
+    team_folder_archive_details TeamFolderArchiveDetails
+        "Archived a team folder."
+    team_folder_create_details TeamFolderCreateDetails
+        "Created a team folder."
+    team_folder_permanently_delete_details TeamFolderPermanentlyDeleteDetails
+        "Permanently deleted a team folder."
+    team_folder_rename_details TeamFolderRenameDetails
+        "Renamed a team folder."
+    team_folder_unarchive_details TeamFolderUnarchiveDetails
+        "Unarchived a team folder."
+    team_logo_added_details TeamLogoAddedDetails
+        "Added a logo."
+    team_logo_changed_details TeamLogoChangedDetails
+        "Updated a logo."
+    team_logo_removed_details TeamLogoRemovedDetails
+        "Removed a logo."
+    team_merged_details TeamMergedDetails
+        "Merged teams."
+    team_name_change_details TeamNameChangeDetails
+        "Changed team name."
+    transfer_account_contents_details TransferAccountContentsDetails
+        "Transferred account contents."
+    twoaccount_desktop_disabled_details TwoaccountDesktopDisabledDetails
+        "Disabled multiple accounts for desktop computers."
+    twoaccount_desktop_enabled_details TwoaccountDesktopEnabledDetails
+        "Enabled multiple accounts for desktop computers."
+    update_sso_cert_details UpdateSsoCertDetails
+        "Updated single sign-on certificate."
+    version_history_extended_details VersionHistoryExtendedDetails
+        "Opted out of extended version history change."
+    version_history_limited_details VersionHistoryLimitedDetails
+        "Accepted version history change."
+    web_session_management_idle_timeout_details WebSessionManagementIdleTimeoutDetails
+        "Changed idle timeout length."
+    web_session_management_session_expiration_details WebSessionManagementSessionExpirationDetails
+        "Changed session length."
+    add_comment_details AddCommentDetails
+        "Commented on a file."
+    add_file_request_deadline_details AddFileRequestDeadlineDetails
+        "Added a deadline to a file request."
+    add_users_to_file_request_details AddUsersToFileRequestDetails
+        "Added users to a file request."
+    change_file_request_details ChangeFileRequestDetails
+        "Changed a file request."
+    change_file_request_folder_details ChangeFileRequestFolderDetails
+        "Changed the folder of a file request."
+    close_file_request_details CloseFileRequestDetails
+        "Closed a file request."
+    collection_share_details CollectionShareDetails
+        "Shared an album."
+    delete_comment_details DeleteCommentDetails
+        "Deleted a file comment."
+    file_request_created_details FileRequestCreatedDetails
+        "Created a new file request."
+    file_request_received_files_details FileRequestReceivedFilesDetails
+        "Received files via file request."
+    group_sf_access_changed_details GroupSfAccessChangedDetails
+        "Changed group access to a shared folder."
+    group_sf_added_details GroupSfAddedDetails
+        "Added a group to a shared folder."
+    group_sf_removed_details GroupSfRemovedDetails
+        "Removed a group from a shared folder."
+    like_comment_details LikeCommentDetails
+        "Liked a file comment."
+    paper_doc_access_changed_details PaperDocAccessChangedDetails
+        "Paper doc access permission level changed."
+    paper_doc_delete_comment_details PaperDocDeleteCommentDetails
+        "Paper doc comment deleted."
+    paper_doc_edit_comment_details PaperDocEditCommentDetails
+        "Paper doc comment edited."
+    paper_doc_nonteam_add_member_details PaperDocNonteamAddMemberDetails
+        "Paper doc shared with non-team member."
+    paper_doc_nonteam_invite_details PaperDocNonteamInviteDetails
+        "Paper doc shared with non-team member."
+    paper_doc_nonteam_mention_details PaperDocNonteamMentionDetails
+        "Non-team member mentioned on Paper doc."
+    paper_doc_nonteam_request_details PaperDocNonteamRequestDetails
+        "Paper doc access requested from non-team member."
+    paper_doc_nonteam_unshare_details PaperDocNonteamUnshareDetails
+        "Paper doc unshared with non-team member."
+    paper_doc_nonteam_view_details PaperDocNonteamViewDetails
+        "Paper doc viewed by non-team member."
+    paper_doc_post_comment_details PaperDocPostCommentDetails
+        "Paper doc commented on."
+    paper_doc_resolve_comment_details PaperDocResolveCommentDetails
+        "Paper doc comment resolved."
+    paper_doc_team_add_member_details PaperDocTeamAddMemberDetails
+        "Paper doc shared with team member."
+    paper_doc_team_invite_details PaperDocTeamInviteDetails
+        "Paper doc shared with team member."
+    paper_doc_team_mention_details PaperDocTeamMentionDetails
+        "Team member mentioned on Paper doc."
+    paper_doc_team_request_details PaperDocTeamRequestDetails
+        "Paper doc access requested from team member."
+    paper_doc_team_unshare_details PaperDocTeamUnshareDetails
+        "Paper doc unshared with team member."
+    paper_doc_team_view_details PaperDocTeamViewDetails
+        "Paper doc viewed by team member."
+    paper_doc_unresolve_comment_details PaperDocUnresolveCommentDetails
+        "Paper doc comment unresolved."
+    paper_folder_nonteam_add_member_details PaperFolderNonteamAddMemberDetails
+        "Paper folder shared with non-team member."
+    paper_folder_nonteam_invite_details PaperFolderNonteamInviteDetails
+        "Paper folder shared with non-team member."
+    paper_folder_team_add_member_details PaperFolderTeamAddMemberDetails
+        "Paper folder shared with team member."
+    paper_folder_team_invite_details PaperFolderTeamInviteDetails
+        "Paper folder shared with team member."
+    paper_permission_comment_details PaperPermissionCommentDetails
+        "Paper doc member permission changed: comment only."
+    paper_permission_edit_details PaperPermissionEditDetails
+        "Paper doc member permission changed: can edit."
+    paper_permission_view_details PaperPermissionViewDetails
+        "Paper doc member permission changed: view only."
+    remove_file_request_deadline_details RemoveFileRequestDeadlineDetails
+        "Removed a deadline from a file request."
+    resolve_comment_details ResolveCommentDetails
+        "Resolved a file comment."
+    sf_add_expiration_details SfAddExpirationDetails
+        "Added an expiration date to a link."
+    sf_add_group_details SfAddGroupDetails
+        "Added the team to a shared folder."
+    sf_add_password_details SfAddPasswordDetails
+        "Added a password to a link."
+    sf_allow_anyone_to_view_shared_links_details SfAllowAnyoneToViewSharedLinksDetails
+        "Allowed anyone to view links to files in a shared folder."
+    sf_allow_inviter_owner_details SfAllowInviterOwnerDetails
+        "Prevented anyone but the owner from inviting people to a folder."
+    sf_allow_inviter_team_details SfAllowInviterTeamDetails
+        "Allowed any team member to invite people to a folder."
+    sf_allow_invite_anyone_details SfAllowInviteAnyoneDetails
+        "Allowed non-team members to be invited to a folder."
+    sf_allow_invite_team_details SfAllowInviteTeamDetails
+        "Prevented non-team members from being invited to a folder."
+    sf_allow_non_members_to_view_shared_links_details SfAllowNonMembersToViewSharedLinksDetails
+        "Allowed non collaborators to view                     links to files in a shared folder."
+    sf_allow_team_to_view_shared_links_details SfAllowTeamToViewSharedLinksDetails
+        "Allowed only team members to view links to files in a shared folder."
+    sf_block_non_members_from_viewing_shared_links_details SfBlockNonMembersFromViewingSharedLinksDetails
+        "Prevented non-team members from viewing links to files in a shared folder."
+    sf_change_expiration_details SfChangeExpirationDetails
+        "Changed the expiration date for a link."
+    sf_change_password_details SfChangePasswordDetails
+        "Changed the password for a link."
+    sf_create_details SfCreateDetails
+        "Created a shared folder."
+    sf_downloads_off_details SfDownloadsOffDetails
+        "Turned off downloads."
+    sf_downloads_on_details SfDownloadsOnDetails
+        "Turned on downloads."
+    sf_fb_invite_details SfFbInviteDetails
+        "Invited Facebook users to a shared folder."
+    sf_fb_invite_change_role_details SfFbInviteChangeRoleDetails
+        "Changed a Facebook user's role in a shared folder."
+    sf_fb_uninvite_details SfFbUninviteDetails
+        "Uninvited a Facebook user from a shared folder."
+    sf_member_only_link_details SfMemberOnlyLinkDetails
+        "Made a folder viewable only to members of the folder."
+    sf_nest_details SfNestDetails
+        "Changed parent of shared folder."
+    sf_nonteam_add_members_details SfNonteamAddMembersDetails
+        "Added non-team members to a shared folder."
+    sf_nonteam_claim_membership_details SfNonteamClaimMembershipDetails
+        "Claimed a membership to a shared folder (non-team member)."
+    sf_nonteam_decline_details SfNonteamDeclineDetails
+        "Declined an invitation to a shared folder (non-team member)."
+    sf_nonteam_grant_access_details SfNonteamGrantAccessDetails
+        "Granted access to a shared folder (non-team member)."
+    sf_nonteam_invite_details SfNonteamInviteDetails
+        "Invited non-team members to a shared folder."
+    sf_nonteam_invite_change_role_details SfNonteamInviteChangeRoleDetails
+        "Changed a non-team member's role in a shared folder."
+    sf_nonteam_join_details SfNonteamJoinDetails
+        "Joined a shared folder (non-team member)."
+    sf_nonteam_join_from_oob_link_details SfNonteamJoinFromOobLinkDetails
+        "Joined a shared folder from a link (non-team member)."
+    sf_nonteam_kick_details SfNonteamKickDetails
+        "Removed a non-team member from a shared folder."
+    sf_nonteam_leave_details SfNonteamLeaveDetails
+        "Left a shared folder (non-team member)."
+    sf_nonteam_member_change_role_details SfNonteamMemberChangeRoleDetails
+        "Changed a non-team member's role in a shared folder."
+    sf_nonteam_mount_details SfNonteamMountDetails
+        "Added a shared folder to their Dropbox (non-team member)."
+    sf_nonteam_transfer_details SfNonteamTransferDetails
+        "Transferred folder ownership to a non-team member."
+    sf_nonteam_uninvite_details SfNonteamUninviteDetails
+        "Unshared a folder with a non-team member."
+    sf_nonteam_unmount_details SfNonteamUnmountDetails
+        "Removed a shared folder from their Dropbox (non-team member)."
+    sf_public_link_details SfPublicLinkDetails
+        "Made a folder viewable to anyone with the link."
+    sf_remove_expiration_details SfRemoveExpirationDetails
+        "Removed the expiration date from a link."
+    sf_remove_password_details SfRemovePasswordDetails
+        "Removed the password from a link."
+    sf_request_access_details SfRequestAccessDetails
+        "Requested access to a shared folder."
+    sf_set_confidential_details SfSetConfidentialDetails
+        "Made a shared folder invite only."
+    sf_team_add_members_details SfTeamAddMembersDetails
+        "Added team members to a shared folder."
+    sf_team_claim_membership_details SfTeamClaimMembershipDetails
+        "Claimed membership to a team member's shared folder."
+    sf_team_decline_details SfTeamDeclineDetails
+        "Declined a team member's invitation to a shared folder."
+    sf_team_grant_access_details SfTeamGrantAccessDetails
+        "Granted access to a shared folder."
+    sf_team_invite_details SfTeamInviteDetails
+        "Invited team members to a shared folder."
+    sf_team_invite_change_role_details SfTeamInviteChangeRoleDetails
+        "Changed a team member's role in a shared folder."
+    sf_team_join_details SfTeamJoinDetails
+        "Joined a team member's shared folder."
+    sf_team_join_from_oob_link_details SfTeamJoinFromOobLinkDetails
+        "Joined a team member's shared folder from a link."
+    sf_team_kick_details SfTeamKickDetails
+        "Removed a team member from a shared folder."
+    sf_team_leave_details SfTeamLeaveDetails
+        "Left a team member's shared folder."
+    sf_team_member_change_role_details SfTeamMemberChangeRoleDetails
+        "Changed a team member's role in a shared folder."
+    sf_team_mount_details SfTeamMountDetails
+        "Added a team member's shared folder to their Dropbox."
+    sf_team_only_link_details SfTeamOnlyLinkDetails
+        "Made a folder viewable only to team members with the link."
+    sf_team_transfer_details SfTeamTransferDetails
+        "Transferred folder ownership to a team member."
+    sf_team_uninvite_details SfTeamUninviteDetails
+        "Unshared a folder with a team member."
+    sf_team_unmount_details SfTeamUnmountDetails
+        "Removed a team member's shared folder from their Dropbox."
+    sf_unset_confidential_details SfUnsetConfidentialDetails
+        "Removed the invite only restriction from a shared folder."
+    sf_unshare_details SfUnshareDetails
+        "Unshared a folder."
+    sf_viewer_info_off_details SfViewerInfoOffDetails
+        "Turned off viewer info."
+    sf_viewer_info_on_details SfViewerInfoOnDetails
+        "Turned on viewer info."
+    shared_content_nonteam_copy_details SharedContentNonteamCopyDetails
+        "Copied the contents of a link to their Dropbox (non-team member)."
+    shared_content_nonteam_download_details SharedContentNonteamDownloadDetails
+        "Downloaded the contents of a link (non-team member)."
+    shared_content_nonteam_view_details SharedContentNonteamViewDetails
+        "Opened a link (non-team-member)."
+    shared_content_team_copy_details SharedContentTeamCopyDetails
+        "Copied the contents of a link to their Dropbox (team member)."
+    shared_content_team_download_details SharedContentTeamDownloadDetails
+        "Downloaded the contents of a link (team member)."
+    shared_content_team_view_details SharedContentTeamViewDetails
+        "Opened a link (team member)."
+    shared_file_add_expiration_details SharedFileAddExpirationDetails
+        "Added an expiration date to a link."
+    shared_file_add_password_details SharedFileAddPasswordDetails
+        "Added a password to a link."
+    shared_file_change_expiration_details SharedFileChangeExpirationDetails
+        "Changed the expiration date for a link."
+    shared_file_change_password_details SharedFileChangePasswordDetails
+        "Changed the password for a link."
+    shared_file_downloads_off_details SharedFileDownloadsOffDetails
+        "Turned off downloads."
+    shared_file_downloads_on_details SharedFileDownloadsOnDetails
+        "Turned on downloads."
+    shared_file_group_added_details SharedFileGroupAddedDetails
+        "Added groups to a file."
+    shared_file_group_removed_details SharedFileGroupRemovedDetails
+        "Removed groups from a file."
+    shared_file_member_only_link_details SharedFileMemberOnlyLinkDetails
+        "Made a file viewable only to members of the file."
+    shared_file_nonteam_add_member_details SharedFileNonteamAddMemberDetails
+        "Added non-team members to a file."
+    shared_file_nonteam_change_role_details SharedFileNonteamChangeRoleDetails
+        "Changed non-team member's role in a shared file."
+    shared_file_nonteam_claim_details SharedFileNonteamClaimDetails
+        "Added a file to their Dropbox (non-team member)."
+    shared_file_nonteam_invite_member_details SharedFileNonteamInviteMemberDetails
+        "Added non-team members to a file."
+    shared_file_nonteam_remove_member_details SharedFileNonteamRemoveMemberDetails
+        "Removed non-team members from a file."
+    shared_file_nonteam_request_access_details SharedFileNonteamRequestAccessDetails
+        "Requested access to a file (non-team member)."
+    shared_file_public_link_details SharedFilePublicLinkDetails
+        "Made a file viewable to anyone with the link."
+    shared_file_remove_expiration_details SharedFileRemoveExpirationDetails
+        "Removed the expiration date from a link."
+    shared_file_remove_password_details SharedFileRemovePasswordDetails
+        "Removed the password from a link."
+    shared_file_team_add_member_details SharedFileTeamAddMemberDetails
+        "Added team members to a file."
+    shared_file_team_change_role_details SharedFileTeamChangeRoleDetails
+        "Changed team member's role in a shared file."
+    shared_file_team_claim_details SharedFileTeamClaimDetails
+        "Added a file to their Dropbox."
+    shared_file_team_only_link_details SharedFileTeamOnlyLinkDetails
+        "Made a file viewable only to team members with the link."
+    shared_file_team_remove_member_details SharedFileTeamRemoveMemberDetails
+        "Removed team members from a file."
+    shared_file_team_request_access_details SharedFileTeamRequestAccessDetails
+        "Requested access to a file."
+    shared_file_unshare_details SharedFileUnshareDetails
+        "Unshared a file."
+    shared_file_viewer_info_off_details SharedFileViewerInfoOffDetails
+        "Turned off viewer info."
+    shared_file_viewer_info_on_details SharedFileViewerInfoOnDetails
+        "Turned on viewer info."
+    shmodel_app_create_details ShmodelAppCreateDetails
+        "Created a link to a file using an app."
+    shmodel_create_details ShmodelCreateDetails
+        "Created a new link."
+    shmodel_disable_details ShmodelDisableDetails
+        "Removed a link."
+    shmodel_fb_share_details ShmodelFbShareDetails
+        "Shared a link with Facebook users."
+    shmodel_nonteam_copy_details ShmodelNonteamCopyDetails
+        "Added a file/folder to their Dropbox from a link (non-team member)."
+    shmodel_nonteam_create_details ShmodelNonteamCreateDetails
+        "Created a new link (non-team member)."
+    shmodel_nonteam_download_details ShmodelNonteamDownloadDetails
+        "Downloaded a file/folder from a link (non-team member)."
+    shmodel_nonteam_share_details ShmodelNonteamShareDetails
+        "Shared a link with non-team members."
+    shmodel_nonteam_view_details ShmodelNonteamViewDetails
+        "Opened a link (non-team member)."
+    shmodel_remove_expiration_details ShmodelRemoveExpirationDetails
+        "Removed the expiration date from a link."
+    shmodel_set_expiration_details ShmodelSetExpirationDetails
+        "Added an expiration date to a link."
+    shmodel_team_copy_details ShmodelTeamCopyDetails
+        "Added a team member's file/folder to their Dropbox from a link."
+    shmodel_team_download_details ShmodelTeamDownloadDetails
+        "Downloaded a team member's file/folder from a link."
+    shmodel_team_share_details ShmodelTeamShareDetails
+        "Shared a link with team members."
+    shmodel_team_view_details ShmodelTeamViewDetails
+        "Opened a team member's link."
+    shmodel_visibility_password_details ShmodelVisibilityPasswordDetails
+        "Password-protected a link."
+    shmodel_visibility_public_details ShmodelVisibilityPublicDetails
+        "Made a file/folder visible to anyone with the link."
+    shmodel_visibility_team_only_details ShmodelVisibilityTeamOnlyDetails
+        "Made a file/folder visible only to team members with the link."
+    subscribe_to_comment_notifications_details SubscribeToCommentNotificationsDetails
+        "Subscribed to file comment notifications."
+    team_folder_downgraded_details TeamFolderDowngradedDetails
+        "Converted a team folder into a shared folder."
+    unlike_comment_details UnlikeCommentDetails
+        "Unliked a file comment."
+    unresolve_comment_details UnresolveCommentDetails
+        "Restored a resolved file comment."
+    unsubscribe_from_comment_notifications_details UnsubscribeFromCommentNotificationsDetails
+        "Unsubscribed from file comment notifications."
+    group_changed_to_admin_managed_details GroupChangedToAdminManagedDetails
+        "Changed group type to company-managed."
+    group_changed_to_member_managed_details GroupChangedToMemberManagedDetails
+        "Changed group type to user-managed."
+    group_created_details GroupCreatedDetails
+        "Created a group."
+    group_deleted_details GroupDeletedDetails
+        "Deleted a group."
+    group_description_updated_details GroupDescriptionUpdatedDetails
+        "Updated a group."
+    group_external_id_changed_details GroupExternalIdChangedDetails
+        "Changed the external ID for a group."
+    group_join_policy_updated_details GroupJoinPolicyUpdatedDetails
+        "Updated a group join policy."
+    group_members_added_details GroupMembersAddedDetails
+        "Added group members."
+    group_members_removed_details GroupMembersRemovedDetails
+        "Removed group members."
+    group_membertype_changed_details GroupMembertypeChangedDetails
+        "Changed group member access type."
+    group_moved_details GroupMovedDetails
+        "Moved a group."
+    group_renamed_details GroupRenamedDetails
+        "Renamed a group."
+    add_files_details AddFilesDetails
+        "Added files."
+    copy_files_details CopyFilesDetails
+        "Copied files."
+    copy_reference_get_details CopyReferenceGetDetails
+        "Get reference to a file."
+    copy_reference_save_details CopyReferenceSaveDetails
+        "Save reference to a file."
+    create_folder_details CreateFolderDetails
+        "Created folders."
+    decipher_ransomware_detected_details DecipherRansomwareDetectedDetails
+        "Ransomware detected on device."
+    decipher_recovery_complete_details DecipherRecoveryCompleteDetails
+        "Ransomware recovery completed."
+    decipher_recovery_initiated_details DecipherRecoveryInitiatedDetails
+        "Ransomware recovery initiated."
+    delete_files_details DeleteFilesDetails
+        "Deleted files."
+    download_files_details DownloadFilesDetails
+        "Downloaded files."
+    edit_files_details EditFilesDetails
+        "Edited files."
+    file_permanently_deleted_details FilePermanentlyDeletedDetails
+        "Permanently deleted a file."
+    move_files_details MoveFilesDetails
+        "Moved files."
+    paper_doc_added_to_folder_details PaperDocAddedToFolderDetails
+        "Paper doc added to folder."
+    paper_doc_archived_details PaperDocArchivedDetails
+        "Paper doc archived."
+    paper_doc_created_details PaperDocCreatedDetails
+        "Paper doc created."
+    paper_doc_deleted_details PaperDocDeletedDetails
+        "Paper doc archived."
+    paper_doc_docx_export_details PaperDocDocxExportDetails
+        "Paper doc exported as docx."
+    paper_doc_edited_details PaperDocEditedDetails
+        "Paper doc edited."
+    paper_doc_followed_details PaperDocFollowedDetails
+        "Paper doc followed."
+    paper_doc_html_export_details PaperDocHtmlExportDetails
+        "Paper doc exported as html."
+    paper_doc_md_export_details PaperDocMdExportDetails
+        "Paper doc exported as md."
+    paper_doc_permanently_deleted_details PaperDocPermanentlyDeletedDetails
+        "Paper doc permanently deleted."
+    paper_doc_removed_from_folder_details PaperDocRemovedFromFolderDetails
+        "Paper doc removed from folder."
+    paper_doc_renamed_details PaperDocRenamedDetails
+        "Paper doc renamed."
+    paper_doc_restored_details PaperDocRestoredDetails
+        "Paper doc restored."
+    paper_doc_revision_restored_details PaperDocRevisionRestoredDetails
+        "Paper doc revision restored."
+    paper_doc_slack_share_details PaperDocSlackShareDetails
+        "Paper doc link shared via slack."
+    paper_doc_subscription_level_changed_details PaperDocSubscriptionLevelChangedDetails
+        "Paper doc subscription level changed."
+    paper_folder_added_to_folder_details PaperFolderAddedToFolderDetails
+        "Paper subfolder added to folder."
+    paper_folder_archived_details PaperFolderArchivedDetails
+        "Paper folder archived."
+    paper_folder_created_details PaperFolderCreatedDetails
+        "Paper folder created."
+    paper_folder_deleted_details PaperFolderDeletedDetails
+        "Paper folder archived."
+    paper_folder_followed_details PaperFolderFollowedDetails
+        "Paper folder followed."
+    paper_folder_permanently_deleted_details PaperFolderPermanentlyDeletedDetails
+        "Paper folder permanently deleted."
+    paper_folder_renamed_details PaperFolderRenamedDetails
+        "Paper folder renamed."
+    paper_folder_restored_details PaperFolderRestoredDetails
+        "Paper folder restored."
+    paper_folder_subscription_level_changed_details PaperFolderSubscriptionLevelChangedDetails
+        "Paper folder subscription level changed."
+    preview_files_details PreviewFilesDetails
+        "Previewed files."
+    rename_files_or_folders_details RenameFilesOrFoldersDetails
+        "Renamed files."
+    restore_files_details RestoreFilesDetails
+        "Restored files."
+    revert_files_to_previous_version_details RevertFilesToPreviousVersionDetails
+        "Reverted files to a previous version."
+    rollback_changes_in_files_details RollbackChangesInFilesDetails
+        "Rolled back file changes."
+    missing_details MissingDetails
+        "Hints that this event was returned with missing details due to an internal error."
+
+    example default
+        sf_nonteam_add_members_details = default
+
+
+##############
+# Event Type
+##############
+
+union EventType
+    "The type of the event."
+
+    device_management_user_approval_blocked
+        "Failed to sign in because of device approvals limit."
+    emm_login_error
+        "Failed to sign in via EMM."
+    login_fail
+        "Failed to sign in."
+    login_success
+        "Signed in."
+    logout
+        "Signed out."
+    sso_error
+        "Failed to sign in via SSO."
+    web_ip_changed
+        "Web session IP changed."
+    add_tfa_backup_phone
+        "Added two-step verification backup phone."
+    add_tfa_security_key
+        "Added a security key for two-step verification."
+    edit_tfa_backup_phone
+        "Edited two-step verification backup phone."
+    password_change
+        "Changed password."
+    remove_tfa_backup_phone
+        "Removed two-step verification backup phone."
+    remove_tfa_security_key
+        "Disabled a security key for two-step verification."
+    reset_all_passwords
+        "Reset all passwords."
+    reset_password
+        "Reset password."
+    tfa_disable
+        "Disabled two-step verification."
+    tfa_edit_authenticator
+        "Set two-step verification to use mobile app."
+    tfa_edit_sms
+        "Set two-step verification to use SMS."
+    tfa_enable
+        "Enabled two-step verification."
+    tfa_reset
+        "Reset two-step verification."
+    app_allow
+        "Authorized an app."
+    app_remove
+        "Removed a team app."
+    team_app_allow
+        "Authorized a team app."
+    team_app_remove
+        "Removed a team app."
+    captured_user_left_domain
+        "Left your domain due to account capture."
+    captured_user_migrated
+        "Joined the team via account capture."
+    change_team_member_name
+        "Changed a team member's name."
+    domain_invites_approve_request_to_join_team
+        "Approved a member's request to join the team."
+    domain_invites_decline_request_to_join_team
+        "Declined a user's request to join the team."
+    domain_invites_email_existing_users
+        "Sent domain invites to existing domain accounts."
+    domain_invites_request_to_join_team
+        "Asked to join the team."
+    member_invite
+        "Invited a member."
+    member_join
+        "Joined the team."
+    member_leave
+        "Removed a team member."
+    member_recover
+        "Recovered a removed member."
+    member_suspend
+        "Suspended a team member."
+    member_unsuspend
+        "Unsuspended a team member."
+    suggest_team_members
+        "Suggested new team members to the team admin."
+    delete_on_unlink_fail
+        "Failed to delete some files remotely."
+    delete_on_unlink_success
+        "Successfully deleted some files remotely."
+    desktop_ip_changed
+        "Desktop client IP changed."
+    device_link
+        "Linked a device."
+    device_unlink
+        "Disconnected a device."
+    mobile_ip_changed
+        "Mobile device IP changed."
+    admin_failed_domain_verification
+        "Failed domain verification."
+    admin_removed_a_domain
+        "Removed a verified domain."
+    admin_set_account_capture_mode
+        "Changed account capture mode."
+    admin_verified_a_domain
+        "Verified a domain."
+    allow_download_disabled
+        "Disabled allow downloads."
+    allow_download_enabled
+        "Enabled allow downloads."
+    allow_emm
+        "Enabled EMM."
+    allow_sso
+        "Allowed use of single sign-on."
+    change_admin_role
+        "Changed admin role."
+    change_logout_url
+        "Changed single sign-on logout URL."
+    change_membership_type
+        "Changed member type."
+    change_saml_identity_mode
+        "Changed single sign-on identity mode."
+    change_sso_url
+        "Changed single sign-on URL."
+    change_team_member_email
+        "Changed a member's email."
+    commenting_disabled
+        "Disabled comments."
+    commenting_enabled
+        "Enabled comments."
+    csv_download
+        "Created a team activity report."
+    dbx_support_granted_account_capture
+        "Enabled account capture."
+    dbx_support_removed_domains
+        "Removed domains."
+    dbx_support_revoked_account_capture
+        "Disabled account capture."
+    dbx_support_verified_domains
+        "Verified domains."
+    device_management_desktops_limit_changed
+        "Changed the number of allowed computers."
+    device_management_disabled
+        "Disable Device Management."
+    device_management_enabled
+        "Enable Device Management."
+    device_management_mobiles_limit_changed
+        "Changed the number of allowed mobile devices."
+    device_management_rollout_changed
+        "Changed the device approvals setting for members who are over the limits."
+    device_management_user_can_not_unapprove
+        "Changed the device approvals setting for disconnected devices."
+    device_management_user_can_unapprove
+        "Changed Device Management user can unapprove method."
+    disabled_domain_invites
+        "Disabled domain invites."
+    disable_emm
+        "Disabled EMM."
+    disable_sso
+        "Disabled single sign-on."
+    emm_exclusion_users_report_created
+        "EMM excluded users report created."
+    emm_token_refreshed
+        "EMM token refreshed."
+    emm_usage_report_created
+        "EMM mobile app usage report created."
+    emm_user_excluded
+        "EMM user added to excluded users list."
+    emm_user_unexcluded
+        "EMM user removed from excluded users list."
+    enabled_domain_invites
+        "Enabled domain invites."
+    file_requests_disabled
+        "Disabled file requests."
+    file_requests_emails_enabled
+        "Enabled file request emails for everyone."
+    file_requests_emails_restricted_to_team_only
+        "Allowed file request emails for the team."
+    file_requests_enabled
+        "Enabled file requests."
+    force_tfa_disable
+        "Allowed two-step verification to be disabled."
+    force_tfa_enable
+        "Required two-step verification."
+    google_login_disabled
+        "Disallowed team members from logging in with Google."
+    google_login_enabled
+        "Allowed team members to log in with Google."
+    groups_all_users_can_create
+        "Allowed all team members to create groups."
+    groups_only_admins_can_create
+        "Allowed only team admins to create groups."
+    make_admin
+        "Gave admin permissions."
+    member_space_limits_exclusion_list_users_addition
+        "Member added to space limit exclusion list."
+    member_space_limits_exclusion_list_users_removal
+        "Member removed from space limit exclusion list."
+    member_space_limits_level_change
+        "Space limit: allowed usage level changed."
+    member_space_user_usage_state_change
+        "Space limit: member usage state changed."
+    notes_disabled
+        "Dropbox Paper disabled."
+    notes_enabled
+        "Dropbox Paper enabled."
+    notes_link_policy_public
+        "Paper links accessible by anyone with the link."
+    notes_link_policy_team
+        "Paper links accessible by team members."
+    notes_share_policy_anyone_with_link
+        "Paper documents accessible by anyone with the link."
+    notes_share_policy_only_team
+        "Paper documents accessible by only team members."
+    notes_share_policy_team_and_explicitly_shared
+        "Paper documents accessible by team members and shared external users."
+    nts_disabled
+        "Disabled network control."
+    nts_enabled
+        "Enabled network control."
+    paper_deployment_policy_full
+        "Enabled Paper to all team members."
+    paper_deployment_policy_partial
+        "Enabled Paper to a specific list of team members only."
+    paper_disabled
+        "Paper disabled."
+    paper_enabled
+        "Paper enabled."
+    paper_enabled_users_group_addition
+        "Users added to Paper enabled users list."
+    paper_enabled_users_group_removal
+        "Users removed from Paper enabled users list."
+    permanently_delete_account_contents
+        "Permanently deleted account contents."
+    permanent_delete_disabled
+        "Disabled permanent delete for all team members."
+    permanent_delete_enabled
+        "Enabled permanent delete for all team members."
+    placement_restriction_changed
+        "Team placement restriction changed."
+    placement_restriction_fulfilled
+        "Team placement restriction fulfilled."
+    remove_admin
+        "Removed admin permissions."
+    remove_logout_url
+        "Removed single sign-on logout URL."
+    remove_sso_url
+        "Removed single sign-on URL."
+    request_membership_auto_accept
+        "Allowed members to join without approval."
+    request_membership_disabled
+        "Prevented users from requesting membership."
+    request_membership_require_approval
+        "Required approval for new members."
+    require_emm
+        "Required use of EMM."
+    require_sso
+        "Required use of single sign-on."
+    reseller_support_session_end
+        "Ended support session."
+    reseller_support_session_start
+        "Started support session."
+    sf_external_accept_allow
+        "Allowed team members to join shared folders outside the team."
+    sf_external_accept_forbid
+        "Prevented team members from joining shared folders outside the team."
+    sf_external_invite_allow
+        "Allowed folders to be shared outside the team."
+    sf_external_invite_forbid
+        "Prevented folders from being shared outside the team."
+    shmodel_external_view_allow
+        "Allowed links to be viewed outside the team."
+    shmodel_external_view_default_private
+        "Prevented new links from being viewed outside the team by default."
+    shmodel_external_view_forbid
+        "Prevented links from being viewed outside the team."
+    smart_sync_default_changed_to_local
+        "Changed Smart Sync default to synced locally."
+    smart_sync_default_changed_to_on_demand
+        "Changed Smart Sync default to online-only."
+    smart_sync_no_admin_report_created
+        "Smart Sync non-admin devices report created."
+    suggest_members_policy_disabled
+        "Disabled team member suggestions."
+    suggest_members_policy_enabled
+        "Enabled team member suggestions."
+    team_assume_user_end
+        "Signed out as a member."
+    team_assume_user_start
+        "Signed in as a member."
+    team_folder_archive
+        "Archived a team folder."
+    team_folder_create
+        "Created a team folder."
+    team_folder_permanently_delete
+        "Permanently deleted a team folder."
+    team_folder_rename
+        "Renamed a team folder."
+    team_folder_unarchive
+        "Unarchived a team folder."
+    team_logo_added
+        "Added a logo."
+    team_logo_changed
+        "Updated a logo."
+    team_logo_removed
+        "Removed a logo."
+    team_merged
+        "Merged teams."
+    team_name_change
+        "Changed team name."
+    transfer_account_contents
+        "Transferred account contents."
+    twoaccount_desktop_disabled
+        "Disabled multiple accounts for desktop computers."
+    twoaccount_desktop_enabled
+        "Enabled multiple accounts for desktop computers."
+    update_sso_cert
+        "Updated single sign-on certificate."
+    version_history_extended
+        "Opted out of extended version history change."
+    version_history_limited
+        "Accepted version history change."
+    web_session_management_idle_timeout
+        "Changed idle timeout length."
+    web_session_management_session_expiration
+        "Changed session length."
+    add_comment
+        "Commented on a file."
+    add_file_request_deadline
+        "Added a deadline to a file request."
+    add_users_to_file_request
+        "Added users to a file request."
+    change_file_request
+        "Changed a file request."
+    change_file_request_folder
+        "Changed the folder of a file request."
+    close_file_request
+        "Closed a file request."
+    collection_share
+        "Shared an album."
+    delete_comment
+        "Deleted a file comment."
+    file_request_created
+        "Created a new file request."
+    file_request_received_files
+        "Received files via file request."
+    group_sf_access_changed
+        "Changed group access to a shared folder."
+    group_sf_added
+        "Added a group to a shared folder."
+    group_sf_removed
+        "Removed a group from a shared folder."
+    like_comment
+        "Liked a file comment."
+    paper_doc_access_changed
+        "Paper doc access permission level changed."
+    paper_doc_delete_comment
+        "Paper doc comment deleted."
+    paper_doc_edit_comment
+        "Paper doc comment edited."
+    paper_doc_nonteam_add_member
+        "Paper doc shared with non-team member."
+    paper_doc_nonteam_invite
+        "Paper doc shared with non-team member."
+    paper_doc_nonteam_mention
+        "Non-team member mentioned on Paper doc."
+    paper_doc_nonteam_request
+        "Paper doc access requested from non-team member."
+    paper_doc_nonteam_unshare
+        "Paper doc unshared with non-team member."
+    paper_doc_nonteam_view
+        "Paper doc viewed by non-team member."
+    paper_doc_post_comment
+        "Paper doc commented on."
+    paper_doc_resolve_comment
+        "Paper doc comment resolved."
+    paper_doc_team_add_member
+        "Paper doc shared with team member."
+    paper_doc_team_invite
+        "Paper doc shared with team member."
+    paper_doc_team_mention
+        "Team member mentioned on Paper doc."
+    paper_doc_team_request
+        "Paper doc access requested from team member."
+    paper_doc_team_unshare
+        "Paper doc unshared with team member."
+    paper_doc_team_view
+        "Paper doc viewed by team member."
+    paper_doc_unresolve_comment
+        "Paper doc comment unresolved."
+    paper_folder_nonteam_add_member
+        "Paper folder shared with non-team member."
+    paper_folder_nonteam_invite
+        "Paper folder shared with non-team member."
+    paper_folder_team_add_member
+        "Paper folder shared with team member."
+    paper_folder_team_invite
+        "Paper folder shared with team member."
+    paper_permission_comment
+        "Paper doc member permission changed: comment only."
+    paper_permission_edit
+        "Paper doc member permission changed: can edit."
+    paper_permission_view
+        "Paper doc member permission changed: view only."
+    remove_file_request_deadline
+        "Removed a deadline from a file request."
+    resolve_comment
+        "Resolved a file comment."
+    sf_add_expiration
+        "Added an expiration date to a link."
+    sf_add_group
+        "Added the team to a shared folder."
+    sf_add_password
+        "Added a password to a link."
+    sf_allow_anyone_to_view_shared_links
+        "Allowed anyone to view links to files in a shared folder."
+    sf_allow_inviter_owner
+        "Prevented anyone but the owner from inviting people to a folder."
+    sf_allow_inviter_team
+        "Allowed any team member to invite people to a folder."
+    sf_allow_invite_anyone
+        "Allowed non-team members to be invited to a folder."
+    sf_allow_invite_team
+        "Prevented non-team members from being invited to a folder."
+    sf_allow_non_members_to_view_shared_links
+        "Allowed non collaborators to view                     links to files in a shared folder."
+    sf_allow_team_to_view_shared_links
+        "Allowed only team members to view links to files in a shared folder."
+    sf_block_non_members_from_viewing_shared_links
+        "Prevented non-team members from viewing links to files in a shared folder."
+    sf_change_expiration
+        "Changed the expiration date for a link."
+    sf_change_password
+        "Changed the password for a link."
+    sf_create
+        "Created a shared folder."
+    sf_downloads_off
+        "Turned off downloads."
+    sf_downloads_on
+        "Turned on downloads."
+    sf_fb_invite
+        "Invited Facebook users to a shared folder."
+    sf_fb_invite_change_role
+        "Changed a Facebook user's role in a shared folder."
+    sf_fb_uninvite
+        "Uninvited a Facebook user from a shared folder."
+    sf_member_only_link
+        "Made a folder viewable only to members of the folder."
+    sf_nest
+        "Changed parent of shared folder."
+    sf_nonteam_add_members
+        "Added non-team members to a shared folder."
+    sf_nonteam_claim_membership
+        "Claimed a membership to a shared folder (non-team member)."
+    sf_nonteam_decline
+        "Declined an invitation to a shared folder (non-team member)."
+    sf_nonteam_grant_access
+        "Granted access to a shared folder (non-team member)."
+    sf_nonteam_invite
+        "Invited non-team members to a shared folder."
+    sf_nonteam_invite_change_role
+        "Changed a non-team member's role in a shared folder."
+    sf_nonteam_join
+        "Joined a shared folder (non-team member)."
+    sf_nonteam_join_from_oob_link
+        "Joined a shared folder from a link (non-team member)."
+    sf_nonteam_kick
+        "Removed a non-team member from a shared folder."
+    sf_nonteam_leave
+        "Left a shared folder (non-team member)."
+    sf_nonteam_member_change_role
+        "Changed a non-team member's role in a shared folder."
+    sf_nonteam_mount
+        "Added a shared folder to their Dropbox (non-team member)."
+    sf_nonteam_transfer
+        "Transferred folder ownership to a non-team member."
+    sf_nonteam_uninvite
+        "Unshared a folder with a non-team member."
+    sf_nonteam_unmount
+        "Removed a shared folder from their Dropbox (non-team member)."
+    sf_public_link
+        "Made a folder viewable to anyone with the link."
+    sf_remove_expiration
+        "Removed the expiration date from a link."
+    sf_remove_password
+        "Removed the password from a link."
+    sf_request_access
+        "Requested access to a shared folder."
+    sf_set_confidential
+        "Made a shared folder invite only."
+    sf_team_add_members
+        "Added team members to a shared folder."
+    sf_team_claim_membership
+        "Claimed membership to a team member's shared folder."
+    sf_team_decline
+        "Declined a team member's invitation to a shared folder."
+    sf_team_grant_access
+        "Granted access to a shared folder."
+    sf_team_invite
+        "Invited team members to a shared folder."
+    sf_team_invite_change_role
+        "Changed a team member's role in a shared folder."
+    sf_team_join
+        "Joined a team member's shared folder."
+    sf_team_join_from_oob_link
+        "Joined a team member's shared folder from a link."
+    sf_team_kick
+        "Removed a team member from a shared folder."
+    sf_team_leave
+        "Left a team member's shared folder."
+    sf_team_member_change_role
+        "Changed a team member's role in a shared folder."
+    sf_team_mount
+        "Added a team member's shared folder to their Dropbox."
+    sf_team_only_link
+        "Made a folder viewable only to team members with the link."
+    sf_team_transfer
+        "Transferred folder ownership to a team member."
+    sf_team_uninvite
+        "Unshared a folder with a team member."
+    sf_team_unmount
+        "Removed a team member's shared folder from their Dropbox."
+    sf_unset_confidential
+        "Removed the invite only restriction from a shared folder."
+    sf_unshare
+        "Unshared a folder."
+    sf_viewer_info_off
+        "Turned off viewer info."
+    sf_viewer_info_on
+        "Turned on viewer info."
+    shared_content_nonteam_copy
+        "Copied the contents of a link to their Dropbox (non-team member)."
+    shared_content_nonteam_download
+        "Downloaded the contents of a link (non-team member)."
+    shared_content_nonteam_view
+        "Opened a link (non-team-member)."
+    shared_content_team_copy
+        "Copied the contents of a link to their Dropbox (team member)."
+    shared_content_team_download
+        "Downloaded the contents of a link (team member)."
+    shared_content_team_view
+        "Opened a link (team member)."
+    shared_file_add_expiration
+        "Added an expiration date to a link."
+    shared_file_add_password
+        "Added a password to a link."
+    shared_file_change_expiration
+        "Changed the expiration date for a link."
+    shared_file_change_password
+        "Changed the password for a link."
+    shared_file_downloads_off
+        "Turned off downloads."
+    shared_file_downloads_on
+        "Turned on downloads."
+    shared_file_group_added
+        "Added groups to a file."
+    shared_file_group_removed
+        "Removed groups from a file."
+    shared_file_member_only_link
+        "Made a file viewable only to members of the file."
+    shared_file_nonteam_add_member
+        "Added non-team members to a file."
+    shared_file_nonteam_change_role
+        "Changed non-team member's role in a shared file."
+    shared_file_nonteam_claim
+        "Added a file to their Dropbox (non-team member)."
+    shared_file_nonteam_invite_member
+        "Added non-team members to a file."
+    shared_file_nonteam_remove_member
+        "Removed non-team members from a file."
+    shared_file_nonteam_request_access
+        "Requested access to a file (non-team member)."
+    shared_file_public_link
+        "Made a file viewable to anyone with the link."
+    shared_file_remove_expiration
+        "Removed the expiration date from a link."
+    shared_file_remove_password
+        "Removed the password from a link."
+    shared_file_team_add_member
+        "Added team members to a file."
+    shared_file_team_change_role
+        "Changed team member's role in a shared file."
+    shared_file_team_claim
+        "Added a file to their Dropbox."
+    shared_file_team_only_link
+        "Made a file viewable only to team members with the link."
+    shared_file_team_remove_member
+        "Removed team members from a file."
+    shared_file_team_request_access
+        "Requested access to a file."
+    shared_file_unshare
+        "Unshared a file."
+    shared_file_viewer_info_off
+        "Turned off viewer info."
+    shared_file_viewer_info_on
+        "Turned on viewer info."
+    shmodel_app_create
+        "Created a link to a file using an app."
+    shmodel_create
+        "Created a new link."
+    shmodel_disable
+        "Removed a link."
+    shmodel_fb_share
+        "Shared a link with Facebook users."
+    shmodel_nonteam_copy
+        "Added a file/folder to their Dropbox from a link (non-team member)."
+    shmodel_nonteam_create
+        "Created a new link (non-team member)."
+    shmodel_nonteam_download
+        "Downloaded a file/folder from a link (non-team member)."
+    shmodel_nonteam_share
+        "Shared a link with non-team members."
+    shmodel_nonteam_view
+        "Opened a link (non-team member)."
+    shmodel_remove_expiration
+        "Removed the expiration date from a link."
+    shmodel_set_expiration
+        "Added an expiration date to a link."
+    shmodel_team_copy
+        "Added a team member's file/folder to their Dropbox from a link."
+    shmodel_team_download
+        "Downloaded a team member's file/folder from a link."
+    shmodel_team_share
+        "Shared a link with team members."
+    shmodel_team_view
+        "Opened a team member's link."
+    shmodel_visibility_password
+        "Password-protected a link."
+    shmodel_visibility_public
+        "Made a file/folder visible to anyone with the link."
+    shmodel_visibility_team_only
+        "Made a file/folder visible only to team members with the link."
+    subscribe_to_comment_notifications
+        "Subscribed to file comment notifications."
+    team_folder_downgraded
+        "Converted a team folder into a shared folder."
+    unlike_comment
+        "Unliked a file comment."
+    unresolve_comment
+        "Restored a resolved file comment."
+    unsubscribe_from_comment_notifications
+        "Unsubscribed from file comment notifications."
+    group_changed_to_admin_managed
+        "Changed group type to company-managed."
+    group_changed_to_member_managed
+        "Changed group type to user-managed."
+    group_created
+        "Created a group."
+    group_deleted
+        "Deleted a group."
+    group_description_updated
+        "Updated a group."
+    group_external_id_changed
+        "Changed the external ID for a group."
+    group_join_policy_updated
+        "Updated a group join policy."
+    group_members_added
+        "Added group members."
+    group_members_removed
+        "Removed group members."
+    group_membertype_changed
+        "Changed group member access type."
+    group_moved
+        "Moved a group."
+    group_renamed
+        "Renamed a group."
+    add_files
+        "Added files."
+    copy_files
+        "Copied files."
+    copy_reference_get
+        "Get reference to a file."
+    copy_reference_save
+        "Save reference to a file."
+    create_folder
+        "Created folders."
+    decipher_ransomware_detected
+        "Ransomware detected on device."
+    decipher_recovery_complete
+        "Ransomware recovery completed."
+    decipher_recovery_initiated
+        "Ransomware recovery initiated."
+    delete_files
+        "Deleted files."
+    download_files
+        "Downloaded files."
+    edit_files
+        "Edited files."
+    file_permanently_deleted
+        "Permanently deleted a file."
+    move_files
+        "Moved files."
+    paper_doc_added_to_folder
+        "Paper doc added to folder."
+    paper_doc_archived
+        "Paper doc archived."
+    paper_doc_created
+        "Paper doc created."
+    paper_doc_deleted
+        "Paper doc archived."
+    paper_doc_docx_export
+        "Paper doc exported as docx."
+    paper_doc_edited
+        "Paper doc edited."
+    paper_doc_followed
+        "Paper doc followed."
+    paper_doc_html_export
+        "Paper doc exported as html."
+    paper_doc_md_export
+        "Paper doc exported as md."
+    paper_doc_permanently_deleted
+        "Paper doc permanently deleted."
+    paper_doc_removed_from_folder
+        "Paper doc removed from folder."
+    paper_doc_renamed
+        "Paper doc renamed."
+    paper_doc_restored
+        "Paper doc restored."
+    paper_doc_revision_restored
+        "Paper doc revision restored."
+    paper_doc_slack_share
+        "Paper doc link shared via slack."
+    paper_doc_subscription_level_changed
+        "Paper doc subscription level changed."
+    paper_folder_added_to_folder
+        "Paper subfolder added to folder."
+    paper_folder_archived
+        "Paper folder archived."
+    paper_folder_created
+        "Paper folder created."
+    paper_folder_deleted
+        "Paper folder archived."
+    paper_folder_followed
+        "Paper folder followed."
+    paper_folder_permanently_deleted
+        "Paper folder permanently deleted."
+    paper_folder_renamed
+        "Paper folder renamed."
+    paper_folder_restored
+        "Paper folder restored."
+    paper_folder_subscription_level_changed
+        "Paper folder subscription level changed."
+    preview_files
+        "Previewed files."
+    rename_files_or_folders
+        "Renamed files."
+    restore_files
+        "Restored files."
+    revert_files_to_previous_version
+        "Reverted files to a previous version."
+    rollback_changes_in_files
+        "Rolled back file changes."
+
+    example default
+        sf_nonteam_add_members = null
+
 
 struct TeamEvent
     "An audit log event."
@@ -3675,8 +5244,14 @@ struct TeamEvent
         "True if the action involved a non team member either as the actor or as one of the affected users."
     context ContextLogInfo
         "The user or team on whose behalf the actor performed the action."
+    event_type EventType
+        "The particular type of action taken."
+    details EventDetails
+        "The variable event schema applicable to this type of action, instantiated with respect to this particular action."
 
     example default
+        details = default
+        event_type = sf_nonteam_add_members
         timestamp = "2017-01-25T15:51:30Z"
         event_categories = [default]
         actor = default

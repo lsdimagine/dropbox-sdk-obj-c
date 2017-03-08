@@ -84,7 +84,7 @@ route docs/create (PaperDocCreateArgs, PaperDocCreateUpdateResult, PaperDocCreat
 
 struct PaperDocCreateArgs
     parent_folder_id String?
-        "The Paper folder id where the Paper document should be created. The API user has to have
+        "The Paper folder ID where the Paper document should be created. The API user has to have
         write access to this folder or error is thrown."
     import_format ImportFormat
         "The format of provided data."
@@ -100,7 +100,7 @@ struct PaperDocCreateArgs
 
 struct PaperDocCreateUpdateResult
     doc_id String
-        "Doc id of the newly created doc."
+        "Doc ID of the newly created doc."
     revision Int64
         "The Paper doc revision. Simply an ever increasing number."
     title String
@@ -114,6 +114,8 @@ struct PaperDocCreateUpdateResult
 union PaperDocCreateError extends PaperApiBaseError
     content_malformed
         "The provided content was malformed and cannot be imported to Paper."
+    folder_not_found
+        "The specified Paper folder is cannot be found."
 
 # --
 
@@ -163,5 +165,48 @@ union PaperDocUpdateError extends DocLookupError
         "The provided content was malformed and cannot be imported to Paper."
     revision_mismatch
         "The provided revision does not match the document head."
+
+# --
+
+route docs/get_metadata (RefPaperDoc, PaperDocGetMetadataResult, DocLookupError)
+    "Returns Paper doc metadata."
+    attrs
+        owner = "paper-eng"
+        is_preview = true
+        api_group = "paper-api-alpha"
+
+union PaperDocStatus
+    active
+        "The Paper doc is active."
+    archived
+        "The Paper doc is archived."
+
+struct PaperDocGetMetadataResult
+    doc_id PaperDocId
+        "The Paper doc ID."
+    owner String
+        "The Paper doc owner's email address."
+    title String
+        "The Paper doc title."
+    created_date common.DropboxTimestamp
+        "The Paper doc creation date."
+    status PaperDocStatus
+        "The Paper doc status."
+    revision Int64
+        "The Paper doc revision. Simply an ever increasing number."
+    last_updated_date common.DropboxTimestamp
+        "The date when the Paper doc was last edited."
+    last_editor String
+        "The email address of the last editor of the Paper doc."
+
+    example default
+        doc_id = "uaSvRuxvnkFa12PTkBv5q"
+        owner = "steph@example.com"
+        title = "Onbaording Doc"
+        created_date = "2016-01-20T00:00:00Z"
+        status = active
+        revision = 56556
+        last_updated_date = "2017-01-02T00:00:00Z"
+        last_editor = "stephen@example.com"
 
 # --

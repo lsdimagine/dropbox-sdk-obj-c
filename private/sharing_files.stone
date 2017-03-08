@@ -14,38 +14,7 @@ route add_file_members(AddFileMemberArgs, List(FileMemberActionResult), AddFileM
 
 # --
 
-
-# --
-
-route share_file(ShareFileArg, AlphaSharedFileMetadata, ShareFileError)
-    "Share a file. Creates a url for the file."
-
-    attrs
-        owner = "sharing"
-
-struct ShareFileArg
-    "Arguments for :route:`share_file`."
-
-    file PathOrId
-        "The file to share."
-    actions List(AlphaFileAction)?
-        "File actions to query."
-
-    example default
-        file = "id:3kmLmQFnf1AAAAAAAAAAAw"
-        actions = []
-
-union ShareFileError
-    "Error result for :route:`share_file`."
-    access_error SharingFileAccessError
-    user_error SharingUserError
-
-    example default
-        user_error = email_unverified
-
-# --
-
-route share_file/internal(ShareFileInternalArg, ShareFileInternalResult, ShareFileError)
+route share_file/internal(ShareFileInternalArg, ShareFileInternalResult, ShareFileInternalError)
     "Share a file. This is would be used in the case for temporary path based links."
 
     attrs
@@ -65,6 +34,14 @@ union ShareFileInternalResult
     "Result of :route:`share_file/internal`."
     pending_file TempPathBasedFileMetadata
     file AlphaSharedFileMetadata
+
+union ShareFileInternalError
+    "Error result for :route:`share_file/internal`."
+    access_error SharingFileAccessError
+    user_error SharingUserError
+
+    example default
+        user_error = email_unverified
 
 struct TempPathBasedFileMetadata
     "Properties of the temporary path based file placeholder."
@@ -211,7 +188,9 @@ struct AlphaSharedFileMetadata
         "DEPRECATED, use file_policy instead"
     download_policy DownloadPolicy
         "DEPRECATED, use file_policy instead"
-    link_metadata SharedContentLinkMetadata?
+    link_metadata AlphaSharedContentLinkMetadata?
+    access_type AccessLevel?
+        "The current user's access level for this shared file."
 
 route alpha/get_file_metadata(AlphaGetFileMetadataArg, AlphaSharedFileMetadata, GetFileMetadataError)
     "Similar to get_file_metadata, except for a few additional features.
@@ -360,7 +339,9 @@ struct UpdateFilePolicyArg
     file PathOrId
         "File that we are changing the policy for."
     actions List(FileAction)?
-        "File actions to query."
+        "A list of `FileAction`s corresponding to `FilePermission`s that should appear in the
+         response's :field:`SharedFileMetadata.permissions` field describing the actions the
+         authenticated user can perform on the file."
     link_settings LinkSettings?
         "Settings on the link for the file."
     viewer_info_policy ViewerInfoPolicy?

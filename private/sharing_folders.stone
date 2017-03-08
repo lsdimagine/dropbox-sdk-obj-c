@@ -544,7 +544,7 @@ struct AlphaFolderPermission
 
 struct AlphaSharedFolderMetadata extends SharedFolderMetadataBase
     "Extended version of SharedFolderMetadata with link metadata and extended folder policy"
-    link_metadata SharedContentLinkMetadata?
+    link_metadata AlphaSharedContentLinkMetadata?
     name String
         "The name of the this shared folder."
     permissions List(AlphaFolderPermission)?

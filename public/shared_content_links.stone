@@ -17,6 +17,9 @@ union LinkPassword
 
 struct LinkSettings
     "Settings that apply to a link."
+    access_level AccessLevel?
+        "The access level on the link for this file. Currently,
+        it only accepts 'viewer' and 'viewer_no_comment'."
     audience LinkAudience?
         "The type of audience on the link for this file."
     expiry LinkExpiry?
@@ -56,6 +59,8 @@ union LinkAction
         "Create or modify the password of the link."
 
 struct SharedContentLinkMetadataBase
+    access_level AccessLevel?
+        "The access level on the link for this file."
     audience_options List(LinkAudience)
         "The audience options that are available for the content. Some audience options may be
         unavailable. For example, team_only may be unavailable if the content is not owned by a

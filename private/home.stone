@@ -77,3 +77,94 @@ route update_incoming_read_status (UpdateIncomingReadStatusArg, Void, UpdateInco
     attrs
         owner="home"
         is_preview=true
+
+# --
+
+struct StarredItemDetails
+    "Additional information about a starred item"
+
+    fq_path String
+        "The path to the file (empty if not applicable)"
+
+    target_ns_id UInt64
+        "The target namespace for the file (zero if not applicable)"
+
+union DisplayType
+    "The type of item, used in selecting an icon for display."
+    # keep these in sync with the constants in lib/home/constants.py
+
+    file
+    folder
+    paper_document
+    paper_folder
+    paper_project
+    msdoc
+    pdf
+    spreadsheet
+    shared_folder
+    team_folder
+    paper_public_folder
+
+union ItemIdType
+    encoded_file_obj_id
+    fq_path
+    paper_document_id_path
+    paper_folder_id_path
+
+struct StarredItem
+    "A starred item"
+
+    id String
+        "id of the item (file/folder/doc) to operate on"
+
+    id_type ItemIdType
+        "What kind of identifier has been supplied"
+
+    display_type DisplayType
+        "The type of icon to present when displaying the item"
+
+    title String
+        "The item's title"
+
+    url String
+        "The URL to access the starred item"
+
+    time UInt64
+        "The last access time for the item, in ms"
+
+    details StarredItemDetails
+
+union GetStarredStatus
+    success
+    not_paper_user
+
+struct GetStarredArg
+    "Arguments for :route:`get_starred`."
+
+    limit UInt32 = 0
+        "The number of starred items to fetch. If zero, sends all of them."
+
+struct GetStarredResponse
+    "Response for :route:`get_starred`."
+
+    status GetStarredStatus
+        "Status information about the request"
+
+    has_more Boolean
+        "If there are more starred items available, above `limit`"
+
+    hide_section Boolean
+        "Should an empty starred section be hidden from the user?"
+
+    items List(StarredItem)
+        "The starred items"
+
+union GetStarredError
+    unused
+
+route get_starred (GetStarredArg, GetStarredResponse, GetStarredError)
+    "Fetch starred items (files and paper docs) for the current user"
+
+    attrs
+        owner="home"
+        is_preview=true

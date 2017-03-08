@@ -31,17 +31,17 @@ struct FileStarredStatus extends FileQuery
         "Whether the file is starred"
 
 #
-# route update
+# route update_item
 #
-route update (UpdateArgs, Void, UpdateError)
+route update_item (UpdateItemArgs, Void, UpdateItemError)
     "Change the starred status of a file"
 
     attrs
         owner="home"
         is_preview=true
 
-struct UpdateArgs extends FileStarredStatus
-    "Arguments for :route:`update`."
+struct UpdateItemArgs extends FileStarredStatus
+    "Arguments for :route:`update_item`."
 
     example default
         id = "12345"
@@ -61,28 +61,28 @@ struct UpdateArgs extends FileStarredStatus
         id_type = fq_path
         is_starred = true
 
-union UpdateError
+union UpdateItemError
     unused
 
 #
-# route get_status
+# route check_status
 #
-route get_status(GetStatusArgs, GetStatusResponse, GetStatusError)
+route check_status(CheckStatusArgs, CheckStatusResponse, CheckStatusError)
     "Determine the starred status of a list of files"
 
     attrs
         owner="home"
         is_preview=true
 
-struct GetStatusArgs
-    "Arguments for :route:`get_status`."
+struct CheckStatusArgs
+    "Arguments for :route:`check_status`."
 
     files List(FileQuery)
 
-struct GetStatusResponse
-    "Response for :route:`get_status`."
+struct CheckStatusResponse
+    "Response for :route:`check_status`."
 
     starred_files List(FileStarredStatus)
 
-union GetStatusError
+union CheckStatusError
     unused
