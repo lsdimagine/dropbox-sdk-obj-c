@@ -3736,8 +3736,6 @@ struct TeamEvent
         "The user or team on whose behalf the actor performed the action."
 
     example default
-        details = default
-        event_type = sf_nonteam_add_members
         timestamp = "2017-01-25T15:51:30Z"
         event_categories = [default]
         actor = default
