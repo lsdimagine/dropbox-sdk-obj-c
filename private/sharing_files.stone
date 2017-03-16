@@ -14,8 +14,36 @@ route add_file_members(AddFileMemberArgs, List(FileMemberActionResult), AddFileM
 
 # --
 
+route share_file(ShareFileArg, SharedFileMetadata, ShareFileError)
+    "Share a file. This is used when copying the link to a file."
+
+    attrs
+        owner = "sharing"
+
+struct ShareFileArg
+    "Arguments for :route:`share_file`."
+
+    file PathOrId
+        "The file to share."
+    actions List(AlphaFileAction)?
+        "File actions to query."
+
+    example default
+        file = "id:3kmLmQFnf1AAAAAAAAAAAw"
+        actions = []
+
+union ShareFileError
+    "Error result for :route:`share_file`."
+    access_error SharingFileAccessError
+    user_error SharingUserError
+
+    example default
+        user_error = email_unverified
+
+# --
+
 route share_file/internal(ShareFileInternalArg, ShareFileInternalResult, ShareFileInternalError)
-    "Share a file. This is would be used in the case for temporary path based links."
+    "Share a file. This is used in the case for temporary path based links."
 
     attrs
         owner = "sharing"
@@ -354,7 +382,7 @@ struct AlphaUpdateFilePolicyArg
         "File actions to query."
     file_settings FileSettings?
         "Settings for the file. DEPRECATED: use download_policy and pass_policy instead."
-    link_settings LinkSettings?
+    link_settings AlphaLinkSettings?
         "Settings on the link for the file."
     download_policy DownloadPolicy?
         "The download policy on the file."

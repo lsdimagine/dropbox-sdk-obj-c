@@ -1,0 +1,98 @@
+namespace file_attribution
+
+import files
+import users
+
+alias ReadPath = files.ReadPath
+alias Rev = files.Rev
+
+struct Attribution
+    "The attribution of a specific area of a file to a particular user."
+
+    revision Rev
+        "The revision in which the attribution appears."
+    account_id users.AccountId
+        "The account ID of the attributed user."
+    page UInt32
+        "The page number on which the attribution appears, zero-based."
+    area AttributionArea
+        "The attributed area."
+
+    example default
+        revision = "a1c10ce0dd78"
+        account_id = "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
+        page = 0
+        area = default
+
+union AttributionArea
+    "The region of a page being attributed."
+
+    rect AttributionRect
+        "A rectangular region."
+    all
+        "The whole page."
+
+    example default
+        rect = whole_page
+
+struct AttributionRect
+    "The bounding box for a rectangular attributed area."
+
+    x Float32(min_value=0.0, max_value=1.0)
+        "The starting X position of the attributed rect. Expressed as a fraction
+        of the page width, from 0.0 to 1.0, relative to the left of the page."
+    y Float32(min_value=0.0, max_value=1.0)
+        "The starting Y position of the attributed rect. Expressed as a fraction
+        of the page height, from 0.0 to 1.0, relative to the top of the page."
+    width Float32(min_value=0.0, max_value=1.0)
+        "The width of the attributed rect. Expressed as a fraction of the page
+        width, from 0.0 to 1.0."
+    height Float32(min_value=0.0, max_value=1.0)
+        "The height of the attributed rect. Expressed as a fraction of the page
+        height, from 0.0 to 1.0."
+
+    example whole_page
+        x = 0.0
+        y = 0.0
+        width = 1.0
+        height = 1.0
+
+    example bottom_half
+        x = 0.0
+        y = 0.5
+        width = 1.0
+        height = 0.5
+
+struct ListAttributionsArg
+    path ReadPath
+        "The path to the file you want to fetch attributions for."
+
+    example default
+        path = "/sample.docx"
+
+    example id
+        path = "id:a4ayc_80_OEAAAAAAAAAYa"
+
+    example rev
+        path = "rev:a1c10ce0dd78"
+
+struct ListAttributionsResult
+    metadata files.FileMetadata
+        "The metadata of the revision associated with the returned attributions."
+
+    attributions List(Attribution)
+        "The attributions present in the given file revision."
+
+    example single_page
+        metadata = default
+        attributions = [default]
+
+union ListAttributionsError
+    path_lookup files.LookupError
+        "An error occurs when attempting to parse the supplied path."
+    no_attribution
+        "The file does not have associated attribution data."
+
+route list_attributions(ListAttributionsArg, ListAttributionsResult, ListAttributionsError)
+    attrs
+        is_preview = true

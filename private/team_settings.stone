@@ -331,3 +331,23 @@ route configure_google_login_policy(ConfigureGoogleLoginPolicyArg, Void, Adminis
     attrs
         auth="team"
         owner="adminx"
+
+
+#
+# Office add-in
+#
+
+
+struct OfficeAddInPolicy
+    office_addin_enabled Boolean
+
+    example office_addin_enabled
+        office_addin_enabled = true
+
+alias OfficeAddInPolicyArg = OfficeAddInPolicy
+
+route set_office_addin_policy(OfficeAddInPolicyArg, Void, AdministrationError)
+
+    attrs
+        auth="team"
+        owner="adminx"  # TODO: switch to file-collab-desktop, after adding to the owner enum

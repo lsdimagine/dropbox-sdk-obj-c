@@ -16,6 +16,8 @@ union VisibilityPolicyDisallowedReason
         "The user needs to be on a team to set this policy"
     user_account_type
         "The user is a basic user or is on a limited team."
+    permission_denied
+        "The user does not have permission."
 
 union AlphaResolvedVisibility extends ResolvedVisibility
     only_you
