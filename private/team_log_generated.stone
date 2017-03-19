@@ -2278,24 +2278,6 @@ struct SfNonteamGrantAccessDetails
         original_folder_name = "abc"
         target_index = 3
 
-struct SfNonteamInviteDetails
-    "Invited non-team members to a shared folder."
-
-    sharing_non_member_recipients List(NonTeamMemberLogInfo)
-        "Sharing non member recipients."
-    sharing_permission String?
-        "Sharing permission."
-    original_folder_name String
-        "Original shared folder name."
-    target_index Int64
-        "Target asset index."
-
-    example default
-        sharing_non_member_recipients = [default]
-        sharing_permission = "abc"
-        original_folder_name = "abc"
-        target_index = 3
-
 struct SfNonteamInviteChangeRoleDetails
     "Changed a non-team member's role in a shared folder."
 
@@ -2410,21 +2392,6 @@ struct SfNonteamTransferDetails
         "Target asset index."
 
     example default
-        original_folder_name = "abc"
-        target_index = 3
-
-struct SfNonteamUninviteDetails
-    "Unshared a folder with a non-team member."
-
-    sharing_non_member_recipients List(NonTeamMemberLogInfo)
-        "Sharing non member recipients."
-    original_folder_name String
-        "Original shared folder name."
-    target_index Int64
-        "Target asset index."
-
-    example default
-        sharing_non_member_recipients = [default]
         original_folder_name = "abc"
         target_index = 3
 
@@ -2971,13 +2938,10 @@ struct SharedFileNonteamClaimDetails
 struct SharedFileNonteamInviteMemberDetails
     "Added non-team members to a file."
 
-    sharing_non_member_recipients List(NonTeamMemberLogInfo)
-        "Sharing non member recipients."
     sharing_permission String?
         "Sharing permission."
 
     example default
-        sharing_non_member_recipients = [default]
         sharing_permission = "abc"
 
 struct SharedFileNonteamRemoveMemberDetails
@@ -3135,15 +3099,6 @@ struct ShmodelNonteamCreateDetails
 
 struct ShmodelNonteamDownloadDetails
     "Downloaded a file/folder from a link (non-team member)."
-
-struct ShmodelNonteamShareDetails
-    "Shared a link with non-team members."
-
-    sharing_non_member_recipients List(NonTeamMemberLogInfo)
-        "Sharing non member recipients."
-
-    example default
-        sharing_non_member_recipients = [default]
 
 struct ShmodelNonteamViewDetails
     "Opened a link (non-team member)."
@@ -4177,8 +4132,6 @@ union EventType
         "Declined an invitation to a shared folder (non-team member)."
     sf_nonteam_grant_access
         "Granted access to a shared folder (non-team member)."
-    sf_nonteam_invite
-        "Invited non-team members to a shared folder."
     sf_nonteam_invite_change_role
         "Changed a non-team member's role in a shared folder."
     sf_nonteam_join
@@ -4195,8 +4148,6 @@ union EventType
         "Added a shared folder to their Dropbox (non-team member)."
     sf_nonteam_transfer
         "Transferred folder ownership to a non-team member."
-    sf_nonteam_uninvite
-        "Unshared a folder with a non-team member."
     sf_nonteam_unmount
         "Removed a shared folder from their Dropbox (non-team member)."
     sf_public_link
@@ -4329,8 +4280,6 @@ union EventType
         "Created a new link (non-team member)."
     shmodel_nonteam_download
         "Downloaded a file/folder from a link (non-team member)."
-    shmodel_nonteam_share
-        "Shared a link with non-team members."
     shmodel_nonteam_view
         "Opened a link (non-team member)."
     shmodel_remove_expiration

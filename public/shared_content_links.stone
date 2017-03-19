@@ -66,6 +66,9 @@ struct SharedContentLinkMetadataBase
         unavailable. For example, team_only may be unavailable if the content is not owned by a
         user on a team. The 'default' audience option is always available if the user can modify
         link settings."
+    audience_restricting_shared_folder AudienceRestrictingSharedFolder?
+        "The shared folder that prevents the link audience for this link from being more
+        restrictive."
     current_audience LinkAudience
         "The current audience of the link."
     expiry common.DropboxTimestamp?
@@ -87,3 +90,14 @@ struct SharedContentLinkMetadata extends SharedContentLinkMetadataBase
         link_permissions = [default]
         password_protected = false
         url = ""
+
+
+struct AudienceRestrictingSharedFolder
+    "Information about the shared folder that prevents the link audience for this link from being
+    more restrictive."
+    shared_folder_id common.SharedFolderId
+        "The ID of the shared folder."
+    name String
+        "The name of the shared folder."
+    audience LinkAudience
+        "The link audience of the shared folder."

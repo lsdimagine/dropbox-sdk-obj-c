@@ -216,7 +216,7 @@ struct AlphaSharedFileMetadata
         "DEPRECATED, use file_policy instead"
     download_policy DownloadPolicy
         "DEPRECATED, use file_policy instead"
-    link_metadata AlphaSharedContentLinkMetadata?
+    link_metadata SharedContentLinkMetadata?
     access_type AccessLevel?
         "The current user's access level for this shared file."
 

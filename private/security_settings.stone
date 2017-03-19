@@ -23,3 +23,107 @@ route send_verify_pending_email (SendVerifyPendingEmailArg, Void, SendVerifyPend
     attrs
         owner = "prodsec"
         is_preview = true
+
+struct WebSessionInfo
+    browser_name String
+    os_name String
+    last_activity String
+        "Last activity with hour ago granularity."
+    location String
+        "A canonicalized location, or 'Unknown Location' if none found."
+    login_id String
+        "The user session identifier."
+    is_current Boolean
+        "Whether this is the calling client's session."
+    icon String
+        "Short name for the sprite."
+
+route get_active_web_sessions (Void, List(WebSessionInfo), Void)
+    "Returns a list of active web sessions sorted by last activity, with current session if any first."
+    attrs
+        owner = "prodsec"
+        is_preview = true
+
+struct LogoutUserSessionArg
+    remote_login_id String
+        "The user session ID to invalidate."
+
+    example logoutID
+        remote_login_id = "1235123412341235"
+
+route logout_user_session (LogoutUserSessionArg, Void, Void)
+    "Logs out the user's remote session."
+    attrs
+        owner = "prodsec"
+        is_preview = true
+
+struct HostInfo
+    display_name String
+    id UInt64
+    last_activity String
+        "Last activity with hour ago granularity."
+    location String
+        "A canonicalized location, or 'Unknown Location' if none found."
+    platform String
+        "The machine's platform e.g. Windows."
+    can_delete Boolean
+        "Whether the user can remote wipe."
+    icon String
+
+route get_linked_hosts (Void, List(HostInfo), Void)
+    "Returns a list of linked desktop clients sorted by last activity."
+    attrs
+        owner = "prodsec"
+        is_preview = true
+
+struct UnlinkHostArg
+    host_id UInt64
+    delete_data Boolean
+
+    example unlinkHost
+        host_id = 123512342134213412
+        delete_data = false
+
+union UnlinkHostError
+    invalid_host_id_for_user
+    already_unlinked
+
+route unlink_host (UnlinkHostArg, Void, UnlinkHostError)
+    "Unlink's a user's desktop client remotely."
+    attrs
+        owner = "prodsec"
+        is_preview = true
+
+struct MobileDeviceInfo
+    app_id UInt64
+        "The official app's ID."
+    category String
+        "The app category, e.g. iPhone."
+    device_id String
+        "A unique identifier for the device."
+    display_name String
+        "The name of the device given."
+    last_activity String
+    location String
+        "A canonicalized location, or 'Unknown Location' if none found."
+    icon String
+
+route get_mobile_devices (Void, List(MobileDeviceInfo), Void)
+    "Returns a list of linked mobile clients sorted by last activity."
+    attrs
+        owner = "prodsec"
+        is_preview = true
+
+struct UnlinkMobileDeviceArg
+    device_id String
+    app_id UInt64
+
+    example unlinkeMobileDevice
+        device_id = "35124312341234"
+        app_id = 31241234
+
+route unlink_mobile_device (UnlinkMobileDeviceArg, Void, Void)
+    "Unlinks a user's app remotely."
+    attrs
+        owner = "prodsec"
+        is_preview = true
