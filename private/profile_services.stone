@@ -25,6 +25,8 @@ union ServiceType
         "Yahoo"
     facebook
         "Facebook"
+    outlook
+        "Outlook"
 
 
 # --

@@ -7,19 +7,19 @@ struct GetUpgradePromptEmailArgs
 struct GetUpgradePromptEmailResult
 
     subject String
-        "The subject of the email"
-    send_to String
-        "The comma-separated email addresses to send to"
+        "The subject of the email."
+    send_to_emails List(String)
+        "The list of email addresses to send to."
     body String
-        "The body of the email"
+        "The body of the email."
 
     example default
         subject="Please upgrade our team"
-        send_to="abc@gmail.com,xyz@gmail.com"
+        send_to_emails=["abc@gmail.com","xyz@gmail.com"]
         body="Upgrade us at dropbox.com"
 
 route get_email_template_to_prompt_admin_to_upgrade(GetUpgradePromptEmailArgs, GetUpgradePromptEmailResult, Void)
-    "Retrieves email template for prompting team admin to upgrade"
+    "Retrieves email template for prompting team admin to upgrade the team."
 
     attrs
         auth="user"

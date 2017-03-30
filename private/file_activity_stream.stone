@@ -21,15 +21,21 @@ struct FileActivityStreamUser
     email String?
     photo_url String?
 
+struct FileActivityStreamGroup
+    id String
+    is_team_group Boolean
+    name String
+    user_count UInt32
+
 struct Activity
     union
-        add          AddActivity
-        edit         EditActivity
-        move         MoveActivity
-        rename       RenameActivity
-        share        ShareActivity
-        shared_link  SharedLinkActivity
-        view         ViewActivity
+        add                          AddActivity
+        edit                         EditActivity
+        move                         MoveActivity
+        rename                       RenameActivity
+        shared_content_invite        SharedContentInviteActivity
+        shared_link                  SharedLinkActivity
+        view                         ViewActivity
 
     id String
     timestamp common.DropboxTimestamp
@@ -44,7 +50,6 @@ struct EditActivity extends Activity
     "Activity for edited files."
 
     revision_num UInt32
-    revision_url String
 
 struct MoveActivity extends Activity
     "Activity for moved files."
@@ -61,10 +66,12 @@ struct RenameActivity extends Activity
 struct ViewActivity extends Activity
     "Activity for viewed files."
 
-struct ShareActivity extends Activity
+struct SharedContentInviteActivity extends Activity
     "Activity for shared files."
 
-    shared_user FileActivityStreamUser
+    shared_emails List(String)
+    shared_groups List(FileActivityStreamGroup)
+    shared_users List(FileActivityStreamUser)
     access_type FileActivityStreamAccessType
 
 struct SharedLinkActivity extends Activity

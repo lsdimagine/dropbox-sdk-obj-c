@@ -468,11 +468,9 @@ route docs/sharing_policy/set (PaperDocSharingPolicy, Void, DocLookupError)
         owner="paper-eng"
 
 route docs/archive (RefPaperDoc, Void, DocLookupError)
-    "Marks the given Paper doc as deleted. This operation is non-destructive and the doc
-    can be revived by the owner.
+    "Marks the given Paper doc as archived.
 
-
-    Note: This action can be performed only by the doc owner."
+    Note: This action can be performed or undone by anyone with edit permissions to the doc."
     attrs
         owner="paper-eng"
 

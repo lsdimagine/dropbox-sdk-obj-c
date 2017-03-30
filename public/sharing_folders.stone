@@ -845,6 +845,8 @@ union UpdateFolderPolicyError
         :field:`ShareFolderArg.shared_link_policy`."
     no_permission
         "The current user does not have permission to perform this action."
+    team_folder
+        "This action cannot be performed on a team shared folder."
 
 # --
 

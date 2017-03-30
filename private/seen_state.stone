@@ -78,7 +78,7 @@ struct SeenStateInfoResult
 
     file_info FileInfo
     seen_state_info SeenStateInfo
-    seen_state_error SeenStateError?
+    seen_state_error GetSeenStateInfoError?
 
 union SharingAccessType
     "Possible levels of access that the user has when viewing the content. If the user has access of
@@ -126,13 +126,18 @@ struct CoachmarkInteractionData
     type SeenStateCoachmarkType
     interaction CoachmarkInteraction
 
-union_closed SeenStateError
+union SeenStateError
     no_file
         "The file does not exist."
     no_permission
         "The user doesn't have permission to view this file."
     inconsistent_params
         "The shared link passed in doesn't match the file identifier params."
+
+union GetSeenStateInfoError extends SeenStateError
+    seen_state_disabled
+        "The user has presence and members access to this file, but not to seen state.
+        Should only be returned in the seen_state_error subfield of a SeenStateInfoResult"
 
 route get_seen_state_info(FileInfoList, List(SeenStateInfoResult), SeenStateError)
     "Get the seen state info for multiple files."

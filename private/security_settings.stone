@@ -100,10 +100,11 @@ struct MobileDeviceInfo
     category String
         "The app category, e.g. iPhone."
     device_id String
-        "A unique identifier for the device."
+        "A unique identifier for the device, or empty string if none exists."
     display_name String
         "The name of the device given."
     last_activity String
+        "The last known activity from the device, with an hour granularity, or empty string if none exists."
     location String
         "A canonicalized location, or 'Unknown Location' if none found."
     icon String
@@ -118,12 +119,52 @@ struct UnlinkMobileDeviceArg
     device_id String
     app_id UInt64
 
-    example unlinkeMobileDevice
+    example unlinkMobileDevice
         device_id = "35124312341234"
         app_id = 31241234
 
 route unlink_mobile_device (UnlinkMobileDeviceArg, Void, Void)
-    "Unlinks a user's app remotely."
+    "Unlinks a user's mobile device remotely."
+    attrs
+        owner = "prodsec"
+        is_preview = true
+
+struct AppInfo
+    app_folder String
+        "The folder the app is present in, empty string if none."
+    app_name String
+        "The name of the linked app."
+    id UInt64
+        "A unique identifier for the app."
+    publisher String
+        "The name of the app's publisher, or empty string if same as app name."
+    publisher_url String
+        "The URL of the app's publisher's page, or empty string if none exists."
+    icon_url String
+        "The URL of the app icon, or empty string if none exists."
+
+route get_linked_apps (Void, List(AppInfo), Void)
+    "Returns a list of linked third party apps."
+    attrs
+        owner = "prodsec"
+        is_preview = true
+
+struct UninstallAppArg
+    app_id UInt64
+    keep_sandbox_files Boolean
+
+    example uninstallApp
+        app_id = 83264981762
+        keep_sandbox_files = false
+
+union UninstallAppError
+    invalid_app
+        "The app_id does not exist."
+    team_linked_app
+        "The app is a team linked app."
+
+route uninstall_app (UninstallAppArg, Void, UninstallAppError)
+    "Uninstalls a user's linked third party app remotely."
     attrs
         owner = "prodsec"
         is_preview = true

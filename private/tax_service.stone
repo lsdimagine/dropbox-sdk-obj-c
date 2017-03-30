@@ -166,6 +166,8 @@ struct CalculateTaxResponse
         sku_taxes=[default]
 
 union CalculateTaxError
+    invalid_vat_id_error
+        "The vat id provided doesn't match format of the provided country."
     postal_code_required_error
         "A postal code is required for the given country, but is missing in the request."
     unexpected_error

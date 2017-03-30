@@ -8,40 +8,55 @@ union FileIdType
     encoded_file_obj_id
     fq_path
 
+union ItemIdType extends FileIdType
+    paper_document_id
+    paper_document_id_path
+    paper_folder_id
+    paper_folder_id_path
+
 struct FileQuery
-    "A file to query"
+    "A file to query."
 
     id String
-        "file_obj_id or fq_path of the file to operate on"
+        "file_obj_id or fq_path of the file to operate on."
 
     id_type FileIdType = encoded_file_obj_id
-        "What kind of identifier has been supplied, defaults to encoded_file_obj_id if none is specified"
+        "What kind of identifier has been supplied, defaults to encoded_file_obj_id if none is specified."
 
     example default
         id = "12345"
 
     example with_explicit_type
-        id = "12345"
+        id = "/foo/bar.txt"
         id_type = fq_path
 
 struct FileStarredStatus extends FileQuery
-    "The starred status for a file"
+    "The starred status for a file."
 
     is_starred Boolean
-        "Whether the file is starred"
+        "Whether the file is starred."
 
 #
 # route update_item
 #
 route update_item (UpdateItemArgs, Void, UpdateItemError)
-    "Change the starred status of a file"
+    "Change the starred status of a file."
 
     attrs
         owner="home"
         is_preview=true
 
-struct UpdateItemArgs extends FileStarredStatus
+struct UpdateItemArgs
     "Arguments for :route:`update_item`."
+
+    id String
+        "file_obj_id or fq_path of the item to operate on."
+
+    id_type ItemIdType = encoded_file_obj_id
+        "What kind of identifier has been supplied, defaults to encoded_file_obj_id if none is specified."
+
+    is_starred Boolean
+        "Whether the item is starred."
 
     example default
         id = "12345"
@@ -56,10 +71,16 @@ struct UpdateItemArgs extends FileStarredStatus
         id_type = encoded_file_obj_id
         is_starred = false
 
-    example fq_path
+    example with_fq_path_type
         id = "/dir/file.txt"
         id_type = fq_path
         is_starred = true
+
+    example with_paper_type
+        id = "Xejfg92mx"
+        id_type = paper_folder_id
+        is_starred = true
+
 
 union UpdateItemError
     unused
@@ -68,7 +89,7 @@ union UpdateItemError
 # route check_status
 #
 route check_status(CheckStatusArgs, CheckStatusResponse, CheckStatusError)
-    "Determine the starred status of a list of files"
+    "Determine the starred status of a list of files."
 
     attrs
         owner="home"

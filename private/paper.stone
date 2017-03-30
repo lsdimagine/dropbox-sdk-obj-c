@@ -64,7 +64,7 @@ route docs/upload (PaperDocImportOld, PaperDocImportResultOld, DocImportErrorOld
     In the case of update (the Paper doc id is provided), the document will be completely
     overwritten.
 
-    NOTE: DO NOT USE! (I will remove this soon)
+    NOTE: DO NOT USE! (I will remove this soon).
     "
     attrs
         style="upload"
@@ -116,8 +116,9 @@ union PaperDocCreateError extends PaperApiBaseError
         "The provided content was malformed and cannot be imported to Paper."
     folder_not_found
         "The specified Paper folder is cannot be found."
-
-# --
+    doc_length_exceeded
+        "The newly created Paper doc would be too large.
+        Please split the content into multiple docs."
 
 route docs/update (PaperDocUpdateArgs, PaperDocCreateUpdateResult, PaperDocUpdateError)
     "Updates an existing Paper doc with the provided content."
@@ -135,7 +136,7 @@ union PaperDocUpdatePolicy
 
         Note: the doc title will not be affected."
     overwrite_all
-        "The document will be overwitten at the head with the provided content"
+        "The document will be overwitten at the head with the provided content."
 
 struct PaperDocUpdateArgs extends RefPaperDoc
     doc_update_policy PaperDocUpdatePolicy
@@ -165,6 +166,8 @@ union PaperDocUpdateError extends DocLookupError
         "The provided content was malformed and cannot be imported to Paper."
     revision_mismatch
         "The provided revision does not match the document head."
+    doc_length_exceeded
+        "The newly created Paper doc would be too large, split the content into multiple docs."
 
 # --
 
