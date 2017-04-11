@@ -135,6 +135,7 @@ route list(Void, ListFileRequestsResult, ListFileRequestsError)
     attrs
         owner = "dev-plat"
         is_preview = true
+        allow_app_folder_app = true
 
 struct ListFileRequestsResult
     "Result for :route:`list`."
@@ -163,6 +164,7 @@ route get(GetFileRequestArgs, FileRequest, GetFileRequestError)
     attrs
         owner = "dev-plat"
         is_preview = true
+        allow_app_folder_app = true
 
 struct GetFileRequestArgs
     "Arguments for :route:`get`."
@@ -190,6 +192,7 @@ route create(CreateFileRequestArgs, FileRequest, CreateFileRequestError)
     attrs
         owner = "dev-plat"
         is_preview = true
+        allow_app_folder_app = true
 
 struct CreateFileRequestArgs
     "Arguments for :route:`create`."
@@ -235,6 +238,7 @@ route update(UpdateFileRequestArgs, FileRequest, UpdateFileRequestError)
     attrs
         owner = "dev-plat"
         is_preview = true
+        allow_app_folder_app = true
 
 struct UpdateFileRequestArgs
     "Arguments for :route:`update`."

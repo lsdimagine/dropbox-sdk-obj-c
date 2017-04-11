@@ -17,7 +17,7 @@ struct AccessInfo
     user_id Int64
         "Authenticated user's Dropbox user ID."
     oauth2_access_token String
-        "OAuth version 2 access token"
+        "OAuth version 2 access token."
 
     example default
         user_id = 230170050
@@ -189,7 +189,7 @@ struct SmsError
         reason = carrier_unsupported
 
 union_closed SmsErrorReason
-    "Reason an SMS error occurred (see :type:`SmsError`)"
+    "Reason an SMS error occurred (see :type:`SmsError`)."
 
     number_invalid
         "Mobile phone number is invalid.  This could indicate the
@@ -344,7 +344,7 @@ union CreateAccountResult
 
 union CreateAccountError
 
-    email_invalid
+    email_invalid EmailInvalidError
         "E-mail address is invalid.  See user error message for
         details."
     first_name_invalid
@@ -356,3 +356,9 @@ union CreateAccountError
     password_invalid
         "Password does not meet minimum criteria.  See user error
         message for details."
+
+union EmailInvalidError
+    already_taken
+        "E-mail address is already taken."
+    invalid
+        "E-mail address is invalid."

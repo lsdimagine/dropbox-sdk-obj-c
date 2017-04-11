@@ -25,3 +25,5 @@ struct Route
     feature String?
         "Set if the route belongs to an orion feature. Accounts must have access to the feature to
         successfully make a request to the route. Only features with boolean value are supported"
+    allow_app_folder_app Boolean = false
+        "If app folder app is allowed to use this endpoint."

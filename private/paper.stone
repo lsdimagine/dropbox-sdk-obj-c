@@ -14,66 +14,6 @@ union ImportFormat
 
         Note: The first line of the provided document will be used as the doc title."
 
-# --
-
-# TODO(jenda): Remove this struct.
-struct PaperDocImportOld
-    doc_id PaperDocId?
-        "Specify Paper doc id if you want to override the existing document.
-        Your account has to have edit permissions on this document.
-
-        Leave empty for to create a new document."
-    parent_folder_id String?
-        "The Paper folder id where the Paper document should be created. The API user has to have
-        wite access to this folder or error is thrown.
-
-        This value can be specified only if the doc is being created,
-        i. e. :field:`doc_id` is left empty."
-    import_format ImportFormat
-
-    example default
-        "Create new Paper doc."
-        import_format = markdown
-
-    example updateDoc
-        "Update Paper doc."
-        import_format = markdown
-        doc_id = "uaSvRuxvnkFa12PTkBv5q"
-
-    example createDocInFolder
-        "Create new Paper doc inside Paper folder."
-        import_format = html
-        parent_folder_id = "e.gGYT6HSafpMej9bUv306GarglI7GGeAM3yvfZvXHO9u4mV"
-
-# TODO(jenda): Remove this struct.
-struct PaperDocImportResultOld
-    doc_id String
-        "Doc id of the newly created doc."
-
-    example default
-        doc_id = "uaSvRuxvnkFa12PTkBv5q"
-
-# TODO(jenda): Remove this struct.
-union DocImportErrorOld extends DocLookupError
-    content_malformed
-        "The provided content was malformed and cannot be imported to Paper."
-
-route docs/upload (PaperDocImportOld, PaperDocImportResultOld, DocImportErrorOld)
-    "Creates or updates a Paper doc with the provided content.
-
-    In the case of update (the Paper doc id is provided), the document will be completely
-    overwritten.
-
-    NOTE: DO NOT USE! (I will remove this soon).
-    "
-    attrs
-        style="upload"
-        owner="paper-eng"
-        is_preview = true
-        api_group="paper-api-alpha"
-
-# --
-
 route docs/create (PaperDocCreateArgs, PaperDocCreateUpdateResult, PaperDocCreateError)
     "Creates a new Paper doc with the provided content."
     attrs

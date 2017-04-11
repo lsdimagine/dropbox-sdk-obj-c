@@ -87,40 +87,44 @@ struct FilePermission
 struct SharedFileMetadata
     "Properties of the shared file."
 
+    access_type AccessLevel?
+        "The current user's access level for this shared file."
+    id FileId
+        "The ID of the file."
+    expected_link_metadata ExpectedSharedContentLinkMetadata?
+        "The expected metadata of the link associated for the file when it is first shared.
+        Absent if the link already exists. This is for an unreleased feature so it may not be
+        returned yet."
     link_metadata SharedContentLinkMetadata?
         "The metadata of the link associated for the file. This is for an unreleased feature so
         it may not be returned yet."
-    policy FolderPolicy
-        "Policies governing this shared file."
-    permissions List(FilePermission)?
-        "The sharing permissions that requesting user has on this file. This
-        corresponds to the entries given in :field:`GetFileMetadataBatchArg.actions`
-        or :field:`GetFileMetadataArg.actions`."
+    name String
+        "The name of this file."
     owner_team users.Team?
         "The team that owns the file. This field is not present if the file
         is not owned by a team."
     parent_shared_folder_id common.SharedFolderId?
         "The ID of the parent shared folder. This field is present only if the
         file is contained within a shared folder."
-    preview_url String
-        "URL for displaying a web preview of the shared file."
-    path_lower String?
-        "The lower-case full path of this file. Absent for unmounted files."
     path_display String?
         "The cased path to be used for display purposes only. In rare instances
         the casing will not correctly match the user's filesystem, but this
         behavior will match the path provided in the Core API v1.
         Absent for unmounted files."
-    name String
-        "The name of this file."
-    id FileId
-        "The ID of the file."
+    path_lower String?
+        "The lower-case full path of this file. Absent for unmounted files."
+    permissions List(FilePermission)?
+        "The sharing permissions that requesting user has on this file. This
+        corresponds to the entries given in :field:`GetFileMetadataBatchArg.actions`
+        or :field:`GetFileMetadataArg.actions`."
+    policy FolderPolicy
+        "Policies governing this shared file."
+    preview_url String
+        "URL for displaying a web preview of the shared file."
     time_invited common.DropboxTimestamp?
         "Timestamp indicating when the current user was invited to this shared file. If the user was
         not invited to the shared file, the timestamp will indicate when the user was invited to the
         parent shared folder. This value may be absent."
-    access_type AccessLevel?
-        "The current user's access level for this shared file."
 
 
     example default
@@ -206,6 +210,7 @@ route add_file_member(AddFileMemberArgs, List(FileMemberActionResult), AddFileMe
 
     attrs
         owner = "sharing"
+        allow_app_folder_app = true
 
 struct AddFileMemberArgs
     "Arguments for :route:`add_file_member`."
@@ -240,6 +245,7 @@ route change_file_member_access(ChangeFileMemberAccessArgs, FileMemberActionResu
 
     attrs
         owner = "sharing"
+        allow_app_folder_app = true
 
 struct ChangeFileMemberAccessArgs
     "Arguments for :route:`change_file_member_access`."
@@ -269,6 +275,7 @@ route update_file_member(UpdateFileMemberArgs, MemberAccessLevelResult, FileMemb
 
     attrs
         owner = "sharing"
+        allow_app_folder_app = true
 
 # --
 
@@ -278,6 +285,7 @@ route get_file_metadata(GetFileMetadataArg, SharedFileMetadata, GetFileMetadataE
     attrs
         owner = "sharing"
         api_group = "truelink-alpha"
+        allow_app_folder_app = true
 
 struct GetFileMetadataArg
     "Arguments of :route:`get_file_metadata`."
@@ -306,6 +314,7 @@ route get_file_metadata/batch(GetFileMetadataBatchArg, List(GetFileMetadataBatch
 
     attrs
         owner = "sharing"
+        allow_app_folder_app = true
 
 struct GetFileMetadataBatchArg
     "Arguments of :route:`get_file_metadata/batch`."
@@ -358,6 +367,7 @@ route list_file_members(ListFileMembersArg, SharedFileMembers, ListFileMembersEr
 
     attrs
         owner = "sharing"
+        allow_app_folder_app = true
 
 struct ListFileMembersArg
     "Arguments for :route:`list_file_members`."
@@ -416,6 +426,7 @@ route list_file_members/batch(ListFileMembersBatchArg, List(ListFileMembersBatch
 
     attrs
         owner = "sharing"
+        allow_app_folder_app = true
 
 struct ListFileMembersBatchArg
     "Arguments for :route:`list_file_members/batch`."
@@ -477,6 +488,7 @@ route list_file_members/continue(ListFileMembersContinueArg, SharedFileMembers, 
 
     attrs
         owner = "sharing"
+        allow_app_folder_app = true
 
 struct ListFileMembersContinueArg
     "Arguments for :route:`list_file_members/continue`."
@@ -506,6 +518,7 @@ route list_received_files(ListFilesArg, ListFilesResult, SharingUserError)
 
     attrs
         owner = "sharing"
+        allow_app_folder_app = true
 
 struct ListFilesArg
     "Arguments for :route:`list_received_files`."
@@ -541,6 +554,7 @@ route list_received_files/continue (ListFilesContinueArg, ListFilesResult, ListF
 
     attrs
         owner = "sharing"
+        allow_app_folder_app = true
 
 struct ListFilesContinueArg
     "Arguments for :route:`list_received_files/continue`."
@@ -566,12 +580,14 @@ route remove_file_member(RemoveFileMemberArg, FileMemberActionIndividualResult, 
 
     attrs
         owner = "sharing"
+        allow_app_folder_app = true
 
 route remove_file_member_2(RemoveFileMemberArg, FileMemberRemoveActionResult, RemoveFileMemberError)
     "Removes a specified member from the file."
 
     attrs
         owner = "sharing"
+        allow_app_folder_app = true
 
 struct RemoveFileMemberArg
     "Arguments for :route:`remove_file_member_2`."
@@ -598,6 +614,7 @@ route relinquish_file_membership(RelinquishFileMembershipArg, Void, RelinquishFi
 
     attrs
         owner = "sharing"
+        allow_app_folder_app = true
 
 struct RelinquishFileMembershipArg
     file PathOrId
@@ -622,6 +639,7 @@ route unshare_file(UnshareFileArg, Void, UnshareFileError)
     attrs
         owner = "sharing"
         api_group = "truelink-alpha"
+        allow_app_folder_app = true
 
 struct UnshareFileArg
     "Arguments for :route:`unshare_file`."

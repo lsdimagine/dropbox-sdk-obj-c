@@ -381,6 +381,14 @@ struct ParentFolderAccessInfo
         "The identifier of the parent shared folder."
     permissions List(MemberPermission)
         "The user's permissions for the parent shared folder."
+    path String
+        "The full path to the parent shared folder relative to the acting user's root."
+
+    example default
+        folder_name = "Shared Folder"
+        shared_folder_id = "84528192421"
+        permissions = []
+        path = "/Shared Folder"
 
 # --
 

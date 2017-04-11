@@ -44,6 +44,31 @@ route set_multiple_accounts_policy(MultipleAccountsPolicyArg, Void, Administrati
         owner="adminx"
 
 #
+# Set password requirements policy
+#
+
+union PasswordStrengthPolicy
+    minimal_requirements
+        "User passwords will adhere to the minimal password strength policy."
+    standard_password
+        "User passwords will adhere to the standard password strength policy."
+    strong_password
+        "User passwords will adhere to the strong password strength policy."
+
+struct PasswordPolicyArg
+    password_strength_policy PasswordStrengthPolicy
+        "Password strength policy to set."
+
+route set_password_requirements(PasswordPolicyArg, async.LaunchEmptyResult, AdministrationError)
+    "Set password requirements. May require all team member to reset their passwords
+
+    Permission : Team member management"
+
+    attrs
+        auth="team"
+        owner="adminx"
+
+#
 # Reset all passwords
 #
 
@@ -134,40 +159,6 @@ route set_suggest_members_policy(SuggestMembersPolicyArg, Void, AdministrationEr
         auth="team"
         owner="adminx"
 
-
-#
-# Team default initial sync setting for team folders
-#
-
-route set_team_folder_initial_sync_setting(SetTeamFolderInitialSyncSettingArg, Void, AdministrationError)
-
-    attrs
-        auth="team"
-        owner="adminx"
-
-struct SetTeamFolderInitialSyncSettingArg
-    initial_sync_setting DefaultSyncSetting
-        "Whether new team folders should sync by default for members."
-
-    example default
-        initial_sync_setting = sync
-
-#
-# Team default initial sync setting for shared folders
-#
-
-route set_shared_folder_initial_sync_setting(SetSharedFolderInitialSyncSettingArg, Void, AdministrationError)
-
-    attrs
-        auth="team"
-        owner="adminx"
-
-struct SetSharedFolderInitialSyncSettingArg
-    initial_sync_setting DefaultSyncSetting
-        "Whether new shared folders should sync by default for members."
-
-    example default
-        initial_sync_setting = sync
 
 #
 # Policy types for infinite

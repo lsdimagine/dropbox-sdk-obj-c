@@ -55,12 +55,3 @@ struct AlphaLinkSettings
 union AlphaLinkAudience extends LinkAudience
     default_on
         "Link is accessible only by the default audience."
-
-struct ExpectedSharedContentLinkMetadata extends SharedContentLinkMetadataBase
-    "Metadata of a shared link for a file or folder."
-
-    example default
-        audience_options = [public, team, members]
-        current_audience = public
-        link_permissions = [default]
-        password_protected = false

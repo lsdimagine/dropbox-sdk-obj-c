@@ -91,6 +91,15 @@ struct SharedContentLinkMetadata extends SharedContentLinkMetadataBase
         password_protected = false
         url = ""
 
+struct ExpectedSharedContentLinkMetadata extends SharedContentLinkMetadataBase
+    "The expected metadata of a shared link for a file or folder when a link is first created for
+     the content. Absent if the link already exists."
+
+    example default
+        audience_options = [public, team, members]
+        current_audience = public
+        link_permissions = [default]
+        password_protected = false
 
 struct AudienceRestrictingSharedFolder
     "Information about the shared folder that prevents the link audience for this link from being

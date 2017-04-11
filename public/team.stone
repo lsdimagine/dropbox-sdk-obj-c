@@ -177,3 +177,68 @@ route token/get_authenticated_admin(Void, TokenGetAuthenticatedAdminResult, Toke
     attrs
         auth = "team"
         owner = "dev-plat"
+
+#
+# Common types
+#
+
+union Feature
+    "A set of features that Dropbox for Business account support."
+
+    upload_api_rate_limit
+        "The number of upload API calls allowed per month."
+
+union FeatureValue
+    "The values correspond to entries in :type:`Feature`. You may get different value according
+    to your Dropbox for Business plan."
+
+    upload_api_rate_limit UploadApiRateLimitValue
+
+    example uploadRateLimited
+        upload_api_rate_limit = limited
+
+union UploadApiRateLimitValue
+    "The value for :field:`Feature.upload_api_rate_limit`."
+
+    unlimited
+        "This team has unlimited upload API quota. So far both server version account and legacy
+         account type have unlimited monthly upload api quota."
+    limit UInt32
+        "The number of upload API calls allowed per month."
+
+    example limited
+        limit = 25000
+
+#
+# Route: feature/get_value_batch
+#
+
+struct FeaturesGetValuesBatchArg
+    features List(Feature)
+        "A list of features in :type:`Feature`. If the list is empty,
+        this route will return :type:`FeaturesGetValuesBatchError`."
+
+    example uplaodRateLimit
+        features = [upload_api_rate_limit]
+
+
+struct FeaturesGetValuesBatchResult
+    values List(FeatureValue)
+
+    example uplaodRateLimit
+        values = [uploadRateLimited]
+
+union FeaturesGetValuesBatchError
+    empty_features_list
+        "At least one :type:`Feature` must be included in the
+        :type:`FeaturesGetValuesBatchArg`.features list."
+
+route features/get_values(FeaturesGetValuesBatchArg, FeaturesGetValuesBatchResult, FeaturesGetValuesBatchError)
+    "Get the values for one or more featues. This route allows you to check your account's
+    capability for what feature you can access or what value you have for certain features.
+
+    Permission : Team information."
+
+    attrs
+        auth = "team"
+        owner = "dev-plat"

@@ -183,42 +183,43 @@ struct AlphaFilePermission
 struct AlphaSharedFileMetadata
     "Properties of the shared file."
 
-    policy AlphaFolderPolicy
-        "Policies of the parent folder governing this shared file."
-    permissions List(AlphaFilePermission)?
-        "The sharing permissions that requesting user has on this file. This
-        corresponds to the entries given in :field:`AlphaGetFileMetadataBatchArg.actions`
-        or :field:`AlphaGetFileMetadataArg.actions`."
+    access_type AccessLevel?
+        "The current user's access level for this shared file."
+    download_policy DownloadPolicy
+        "DEPRECATED, use file_policy instead"
+    expected_link_metadata ExpectedSharedContentLinkMetadata?
+    id FileId
+        "The ID of the file."
+    link_metadata SharedContentLinkMetadata?
+    name String
+        "The name of this file."
     owner_team users.Team?
         "The team that owns the file. This field is not present if the file
         is not owned by a team."
     parent_shared_folder_id common.SharedFolderId?
         "The ID of the parent shared folder. This field is present only if the
         file is contained within a shared folder."
-    preview_url String
-        "URL for displaying a web preview of the shared file."
-    path_lower String?
-        "The lower-case full path of this file. Absent for unmounted files."
+    pass_policy PassPolicy
+        "DEPRECATED, use file_policy instead"
     path_display String?
         "The cased path to be used for display purposes only. In rare instances
         the casing will not correctly match the user's filesystem, but this
         behavior will match the path provided in the Core API v1.
         Absent for unmounted files."
-    name String
-        "The name of this file."
-    id FileId
-        "The ID of the file."
+    path_lower String?
+        "The lower-case full path of this file. Absent for unmounted files."
+    permissions List(AlphaFilePermission)?
+        "The sharing permissions that requesting user has on this file. This
+        corresponds to the entries given in :field:`AlphaGetFileMetadataBatchArg.actions`
+        or :field:`AlphaGetFileMetadataArg.actions`."
+    policy AlphaFolderPolicy
+        "Policies of the parent folder governing this shared file."
+    preview_url String
+        "URL for displaying a web preview of the shared file."
     time_invited common.DropboxTimestamp?
         "Timestamp indicating when the current user was invited to this shared file. If the user was
         not invited to the shared file, the timestamp will indicate when the user was invited to the
         parent shared folder. This value may be absent."
-    pass_policy PassPolicy
-        "DEPRECATED, use file_policy instead"
-    download_policy DownloadPolicy
-        "DEPRECATED, use file_policy instead"
-    link_metadata SharedContentLinkMetadata?
-    access_type AccessLevel?
-        "The current user's access level for this shared file."
 
 route alpha/get_file_metadata(AlphaGetFileMetadataArg, AlphaSharedFileMetadata, GetFileMetadataError)
     "Similar to get_file_metadata, except for a few additional features.
@@ -242,6 +243,7 @@ route update_file_policy(UpdateFilePolicyArg, SharedFileMetadata, UpdateFilePoli
 
     attrs
         api_group = "truelink-alpha"
+        allow_app_folder_app = true
 
 route alpha/update_file_policy(AlphaUpdateFilePolicyArg, AlphaSharedFileMetadata, UpdateFilePolicyError)
     "Update the policies of a file. This includes both PASS settings and link settings associated with the file."

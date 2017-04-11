@@ -126,6 +126,34 @@ struct CoachmarkInteractionData
     type SeenStateCoachmarkType
     interaction CoachmarkInteraction
 
+struct OnboardingInteractionData
+    owner_id String
+        "The account id corresponding to the content owner"
+
+union OnboardingEventType
+    learn_more
+        "User opened the help center article"
+    open_file
+        "User clicked through to the file"
+    shown
+        "The onboarding was shown"
+
+struct OnboardingEventData
+    event_type OnboardingEventType
+        "The type of event that occurred"
+    owner_id String
+        "The account id of the owner of the content"
+    should_not_show_again Boolean?
+        "Whether or not the onboarding should be shown again"
+    url String
+        "The URL of the content"
+
+struct PassStatusResult
+    file_info FileInfo
+    can_read_presence Boolean
+    can_read_seen_state Boolean
+    can_write_presence Boolean
+
 union SeenStateError
     no_file
         "The file does not exist."
@@ -138,6 +166,9 @@ union GetSeenStateInfoError extends SeenStateError
     seen_state_disabled
         "The user has presence and members access to this file, but not to seen state.
         Should only be returned in the seen_state_error subfield of a SeenStateInfoResult"
+
+route get_pass_status(FileInfoList, List(PassStatusResult), SeenStateError)
+    "Called to determine what permissions a user has for PASS."
 
 route get_seen_state_info(FileInfoList, List(SeenStateInfoResult), SeenStateError)
     "Get the seen state info for multiple files."
@@ -154,3 +185,9 @@ route get_coachmark_info(Void, CoachmarkInfo, SeenStateError)
 
 route log_coachmark_interaction(CoachmarkInteractionData, Void, SeenStateError)
     "Called when the user interacts with the seen state coachmark."
+
+route update_pass_onboarding_status(OnboardingInteractionData, Void, SeenStateError)
+    "Called when the user acknowledges the PASS privacy onboarding flow."
+
+route log_onboarding_event(OnboardingEventData, Void, SeenStateError)
+    "Called when an event related to PASS onboarding occurs."

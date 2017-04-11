@@ -10,9 +10,13 @@ struct TeamMemberPoliciesInternal
     permanent_delete_policy PermanentDeletePolicyInternal
         "Whether non-admin members of a team can permanently delete their team data"
 
+    version_history_retention_policy Int32
+        "Number of days to store version history of file. If -1, version history is unlimited."
+
     example default
         paper = default
         permanent_delete_policy = disabled
+        version_history_retention_policy = 30
 
 union PermanentDeletePolicyInternal
     "Policy used by internal apps governing whether non-admin team members can permanently delete their data"
