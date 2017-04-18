@@ -218,14 +218,14 @@ struct FeaturesGetValuesBatchArg
         "A list of features in :type:`Feature`. If the list is empty,
         this route will return :type:`FeaturesGetValuesBatchError`."
 
-    example uplaodRateLimit
+    example uploadRateLimit
         features = [upload_api_rate_limit]
 
 
 struct FeaturesGetValuesBatchResult
     values List(FeatureValue)
 
-    example uplaodRateLimit
+    example uploadRateLimit
         values = [uploadRateLimited]
 
 union FeaturesGetValuesBatchError

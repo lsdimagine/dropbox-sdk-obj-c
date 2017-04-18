@@ -9,6 +9,8 @@ import common
 alias SkuCode = String(pattern="([A-Z0-9]|\-)*")
     "Any number of A-Z, 0-9, or -"
 
+alias ResellerChain = List(String(min_length=10))
+
 struct Product
     union
         cx_space_pack CxSpacePackProduct
@@ -127,6 +129,8 @@ struct ProvisionNewTeamArgs
         "The Salesforce Opportunity ID associated with this request."
     is_donated Boolean = false
         "If the team has been donated through the Dropbox for Good program."
+    reseller_ids ResellerChain?
+        "The chain of reseller owners of this team (if any)."
 
     example default
         team_name = "Vandelay Industries"
@@ -135,6 +139,16 @@ struct ProvisionNewTeamArgs
         billing_details = default
         external_invoice_id = salesforce_example
         is_donated = false
+
+    example two_tier_reseller_team
+        team_name = "Vandelay Industries"
+        contact_email = "cosmo@vandelay.com"
+        admin_emails = ["newman@vandelay.com"]
+        billing_details = default
+        external_invoice_id = salesforce_example
+        is_donated = false
+        reseller_ids = ["U3TK3F93PO", "PV3YWROF1F"]
+
 
 ########
 # Universal output TeamStatusResponseOrion
@@ -187,6 +201,10 @@ struct ProvisionNewPaidTeamArgs
         provision_new_team_args = default
         subscription_state = default
 
+    example two_tier_reseller_team
+        provision_new_team_args = two_tier_reseller_team
+        subscription_state = default
+
 
 struct ChangeTeamPlanArgs
     "Arguments to upgrade or downgrade an existing team to a different plan, add or remove licenses, and/or add or remove addons."
@@ -202,6 +220,8 @@ struct ChangeTeamPlanArgs
         "Some external ID representing a payment that didn't happen through Cash-Team's systems."
     force_immediate Boolean = false
         "Forces the downgrade transitions to occur immediately instead of being scheduled."
+    reseller_ids ResellerChain?
+        "The chain of reseller owners of this team (if any)."
 
     example default
         team_id = 12345
@@ -209,6 +229,14 @@ struct ChangeTeamPlanArgs
         new_subscription_state = default
         price = seven_hundred_usd
         external_invoice_id = salesforce_example
+
+    example two_tier_reseller_team
+        team_id = 12345
+        old_subscription_state = boring_team
+        new_subscription_state = default
+        price = seven_hundred_usd
+        external_invoice_id = salesforce_example
+        reseller_ids = ["U3TK3F93PO", "PV3YWROF1F"]
 
 
 struct ExtendTrialArgs
@@ -242,6 +270,8 @@ struct RenewArgs
     price Price
     external_invoice_id ExternalInvoiceId
         "Some external ID representing a payment that didn't happen through Cash-Team's systems."
+    reseller_ids ResellerChain?
+        "The chain of reseller owners of this team (if any)."
 
     example trial_convert_to_yearly
         team_id = 12345
@@ -254,6 +284,14 @@ struct RenewArgs
         external_invoice_id = salesforce_example
         old_subscription_state = boring_team_10_licenses
         new_subscription_state = boring_team
+
+    example renew_two_tier_reseller_team
+        team_id = 12345
+        price = seven_hundred_usd
+        external_invoice_id = salesforce_example
+        old_subscription_state = boring_team_10_licenses
+        new_subscription_state = boring_team
+        reseller_ids = ["U3TK3F93PO", "PV3YWROF1F"]
 
 
 ##########

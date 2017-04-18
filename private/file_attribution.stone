@@ -11,8 +11,8 @@ struct Attribution
 
     revision Rev
         "The revision in which the attribution appears."
-    account_id users.AccountId
-        "The account ID of the attributed user."
+    account_id users.AccountId?
+        "The account ID of the attributed user, if known."
     page UInt32
         "The page number on which the attribution appears, zero-based."
     area AttributionArea

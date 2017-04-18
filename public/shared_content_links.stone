@@ -47,6 +47,8 @@ struct LinkPermission
 
 union LinkAction
     "Actions that can be performed on a link."
+    change_access_level
+        "Change the access level of the link."
     change_audience
         "Change the audience of the link."
     remove_expiry

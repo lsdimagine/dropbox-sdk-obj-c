@@ -108,6 +108,11 @@ union PaperDocUpdateError extends DocLookupError
         "The provided revision does not match the document head."
     doc_length_exceeded
         "The newly created Paper doc would be too large, split the content into multiple docs."
+    doc_archived
+        "This operation is not allowed on archived Paper docs."
+    # TODO(jenda): Preventing feature leak. Uncomment this around the time trash is released.
+    # doc_trashed
+    #     "This operation is not allowed on trashed Paper docs."
 
 # --
 

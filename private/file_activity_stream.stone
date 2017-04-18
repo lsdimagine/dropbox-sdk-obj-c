@@ -94,3 +94,17 @@ union FileActivityStreamError
         "The user does not have permission to view this file."
 
 route get_activity_stream (GetActivityStreamRequest, GetActivityStreamResponse, FileActivityStreamError)
+
+struct FeedbackRequest
+    feedback Boolean
+
+struct FeedbackResponse
+    success Boolean
+
+union FeedbackError
+    no_permission
+        "The user does not have permission to view this file."
+    already_provided
+        "The user has already provided feedback."
+
+route feedback (FeedbackRequest, FeedbackResponse, FeedbackError)

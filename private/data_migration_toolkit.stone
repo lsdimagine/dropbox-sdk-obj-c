@@ -36,3 +36,32 @@ route data_migration_toolkit/get_version_for_team(Void, VersionInfoResult, Void)
     attrs
         auth="team"
         owner="adminx"
+
+
+#
+# Route can_use_data_migration_tool
+#
+
+struct CanUseDataMigrationToolResult
+    can_use Boolean
+
+    reason DataMigrationToolDisallowedReason?
+        union
+            unlimited_data_transport_required
+                "This team has a limit on the number of upload API requests it
+                can make per month. Only teams with an unlimited quota can use
+                the tool."
+
+            opt_in_required
+                "This team is on a legacy plan that requires an out-of-band
+                opt-in before the tool can be used."
+
+route data_migration_toolkit/can_use_data_migration_tool(Void, CanUseDataMigrationToolResult, Void)
+    "Get whether the team (identified by the provided authentication token) can
+    use the data migration tool.
+
+    Permission : Team information."
+
+    attrs
+        auth = "team"
+        owner = "dev-plat"

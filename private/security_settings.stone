@@ -168,3 +168,19 @@ route uninstall_app (UninstallAppArg, Void, UninstallAppError)
     attrs
         owner = "prodsec"
         is_preview = true
+
+struct TwofactorInfo
+    status String
+        "Whether enabled and required by admin."
+    primary String
+        "The primary delivery method e.g. SMS or Authenticator app."
+    backup String?
+        "The backup phone number, or none if there's no backup."
+    num_security_keys UInt64
+        "The number of added security keys."
+
+route get_twofactor_info (Void, TwofactorInfo?, Void)
+    "Returns the twofactor info of the user, or null if the user has twofactor disabled."
+    attrs
+        owner = "prodsec"
+        is_preview = true

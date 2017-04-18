@@ -2,6 +2,7 @@ namespace files
     "This namespace contains endpoints and data types for basic file operations."
 
 import async
+import auth
 import common
 import users
 import properties
@@ -323,6 +324,7 @@ route list_folder/longpoll (ListFolderLongpollArg, ListFolderLongpollResult, Lis
     for client-side apps. If you're looking for server-side notifications,
     check out our
     :link:`webhooks documentation https://www.dropbox.com/developers/reference/webhooks`."
+
     attrs
         host = "notify"
         auth = "noauth"
@@ -384,7 +386,12 @@ route list_folder (ListFolderArg, ListFolderResult, ListFolderError)
     :field:`FolderSharingInfo.read_only` and set all its children's read-only statuses to match.
 
     For each :type:`DeletedMetadata`, if your local state has something at the given path, remove it
-    and all its children. If there's nothing at the given path, ignore this entry."
+    and all its children. If there's nothing at the given path, ignore this entry.
+
+    Note: :type:`auth.RateLimitError` may be returned if multiple :route:`list_folder` or
+    :route:`list_folder/continue` calls with same parameters are made simultaneously by same
+    API app for same user. If your app implements retry logic, please hold off the retry until
+    the previous request finishes."
 
     attrs
         owner = "dev-plat"
@@ -484,7 +491,8 @@ struct UploadSessionOffsetError
 
 union UploadSessionLookupError
     not_found
-        "The upload session id was not found."
+        "The upload session ID was not found or has expired. Upload sessions are
+        valid for 48 hours."
     incorrect_offset UploadSessionOffsetError
         "The specified offset was incorrect. See the value for the
         correct offset. This error may occur when a previous request
@@ -533,7 +541,13 @@ route upload_session/start (UploadSessionStartArg, UploadSessionStartResult, Voi
     :route:`upload_session/finish` to save all the data to a file in
     Dropbox.
 
-    A single request should not upload more than 150 MB of file contents."
+    A single request should not upload more than 150 MB.
+
+    An upload session can be used for a maximum of 48 hours. Attempting
+    to use an :field:`UploadSessionStartResult.session_id` with
+    :route:`upload_session/append_v2` or :route:`upload_session/finish` more
+    than 48 hours after its creation will return a
+    :field:`UploadSessionLookupError.not_found`."
 
     attrs
         host = "content"
@@ -558,7 +572,7 @@ route upload_session/append_v2 (UploadSessionAppendArg, Void, UploadSessionLooku
 
     When the parameter close is set, this call will close the session.
 
-    A single request should not upload more than 150 MB of file contents."
+    A single request should not upload more than 150 MB."
 
     attrs
         host = "content"
@@ -583,7 +597,7 @@ struct UploadSessionCursor
 route upload_session/append (UploadSessionCursor, Void, UploadSessionLookupError) deprecated by upload_session/append_v2
     "Append more data to an upload session.
 
-    A single request should not upload more than 150 MB of file contents."
+    A single request should not upload more than 150 MB."
 
     attrs
         host = "content"
@@ -675,7 +689,7 @@ route upload_session/finish (UploadSessionFinishArg, FileMetadata, UploadSession
     "Finish an upload session and save the uploaded data to the given file
     path.
 
-    A single request should not upload more than 150 MB of file contents."
+    A single request should not upload more than 150 MB."
 
     attrs
         host = "content"

@@ -10,7 +10,7 @@ struct SeenStateUserArg
 
     user_ids List(String)
         "List of encoded user_ids."
-    file_info FileInfo?
+    file_info FileInfo
         "The file that is currently being viewed."
 
 struct BeaconInfo

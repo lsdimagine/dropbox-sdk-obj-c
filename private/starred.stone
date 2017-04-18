@@ -83,7 +83,8 @@ struct UpdateItemArgs
 
 
 union UpdateItemError
-    unused
+    file_not_found
+        "The specified file could not be found"
 
 #
 # route check_status
