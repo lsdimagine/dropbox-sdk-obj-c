@@ -1,0 +1,47 @@
+namespace outlook_addin
+    "#OutlookAddin"
+
+struct SafeOriginsListResult
+    safe_origins List(String)
+        "A list of origins which are known to be safe from clickjacking attacks,
+        or have previously been confirmed by the user as safe."
+    cursor String?
+        "Provided to :route:`safe_origins/list/continue` as :field:`SafeOriginsListContinueArg.cursor` for pagination.
+        Not present if there are no more results."
+    example default
+        safe_origins = ["https://outlook.office.com", "https://outlook.live.com", "https://outlook.dropbox.com"]
+        cursor = "U60b6BxT43ySd5sAVQbbIvoteSnWLjUdLU7aR25hbt3ySd5sAVQbbIvoteSnWLjUd"
+
+route safe_origins/list(Void, SafeOriginsListResult, Void)
+    "Used to decide whether or not the Outlook Add-in should show the user a confirmation dialog
+    before they perform a potentially dangerous action."
+
+struct SafeOriginsListContinueArg
+    cursor String
+        "The :field:`SafeOriginsListResult.cursor` returned by a previous call
+        to :route:`safe_origins/list` or :route:`safe_origins/list/continue`."
+    example default
+        cursor = "U60b6BxT43ySd5sAVQbbIvoteSnWLjUdLU7aR25hbt3ySd5sAVQbbIvoteSnWLjUd"
+
+union SafeOriginsListContinueError
+    invalid_cursor
+        ":field:`SafeOriginsListContinueArg.cursor` is invalid."
+
+route safe_origins/list/continue(SafeOriginsListContinueArg, SafeOriginsListResult, SafeOriginsListContinueError)
+    "Allows a client to fetch more origins."
+
+struct SafeOriginsAddArg
+    origin String
+    example default
+        origin = "https://outlook.example.com"
+
+union SafeOriginsAddError
+    invalid_origin
+        ":field:`SafeOriginsAddArg.origin` must be formatted like `https://[subdomain.]domain.tld[:443]`."
+
+route safe_origins/add(SafeOriginsAddArg, Void, SafeOriginsAddError)
+    "Remember that an origin is safe for the current user.
+    :route:`safe_origins/list` will return the new origin from future calls.
+    :route:`safe_origins/add` will succeed (but do nothing) if the origin was already known to be safe.
+    This should only be called after the user has confirmed that the origin is free of clickjacking attacks,
+    e.g. using a popup window."

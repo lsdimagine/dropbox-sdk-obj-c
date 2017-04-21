@@ -19,7 +19,7 @@ route log_impression(CampaignArg, Void, CampaignErr)
 alias CampaignId = Int64
 alias PromptTimestamp = UInt64
 
-union_closed TopNotificationStyle
+union TopNotificationStyle
     info
         "Informational notification style."
     notification
@@ -35,7 +35,7 @@ struct MobilePromptOpenUrlActionParameters
 struct MobilePromptOpenUrlAction
     action_parameters MobilePromptOpenUrlActionParameters
 
-union_closed MobilePromptAction
+union MobilePromptAction
     open_recents_tab
     open_photos_tab
     open_payments_page
@@ -44,7 +44,7 @@ union_closed MobilePromptAction
     open_doc_scanner
     open_url MobilePromptOpenUrlAction
 
-union_closed TopNotificationIcon
+union TopNotificationIcon
     info
 
 struct TopNotification
@@ -69,7 +69,7 @@ struct TopNotificationWithModal
     top_notification TopNotification
     modal Modal
 
-union_closed ModalStyle
+union ModalStyle
     default
         "Modal with a title, subtitle, image, cancel button, action button, and an optional second action button."
     stretched
@@ -87,7 +87,7 @@ struct Modal
     confirm_action_2 MobilePromptAction?
     confirm_text_2 String?
 
-union_closed CampaignContent
+union CampaignContent
     top_notification TopNotification
     top_notification_with_modal TopNotificationWithModal
 
@@ -106,7 +106,7 @@ struct CampaignResult
         campaign_name = "over-quota-top-notification"
         content = default
 
-union_closed RefAction
+union RefAction
     files_personal
     files_work
     recents_personal
@@ -138,7 +138,7 @@ struct CampaignArg
     example default
         campaign_id = 499
 
-union_closed CampaignErr
+union CampaignErr
     not_found String
         "A campaign couldn't be found."
 

@@ -108,7 +108,7 @@ union SeenStateCoachmarkType
         "No coachmark should be shown to the user."
 
 struct GetCoachmarkInfoArg
-    type SeenStateCoachmarkType
+    file_info FileInfo?
 
 struct CoachmarkInfo
     type_with_data SeenStateCoachmarkType?
@@ -125,6 +125,7 @@ union CoachmarkInteraction
 struct CoachmarkInteractionData
     type SeenStateCoachmarkType
     interaction CoachmarkInteraction
+    file_info FileInfo?
 
 struct OnboardingInteractionData
     owner_id String
@@ -179,7 +180,7 @@ route get_seen_state_users(SeenStateUserArg, List(SeenStateUser), SeenStateError
 route update_timestamps_and_mark_offline(BeaconInfoList, Void, SeenStateError)
     "Updates the seen state timestamp of and marks the viewer as offline for the passed-in files."
 
-route get_coachmark_info(Void, CoachmarkInfo, SeenStateError)
+route get_coachmark_info(GetCoachmarkInfoArg, CoachmarkInfo, SeenStateError)
     "Gets the coachmark that, based on current user state, the seen state frontend
     should show the user."
 
