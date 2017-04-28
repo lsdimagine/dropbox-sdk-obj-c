@@ -3,7 +3,7 @@ namespace team_log
 import async
 import team
 import team_common
-import users
+import users_common
 
 ###############################
 # Routes declarations
@@ -12,7 +12,7 @@ import users
 struct GetTeamEventsArg
     limit UInt32(min_value=1, max_value=1000) = 1000
         "Number of results to return per call."
-    account_id users.AccountId?
+    account_id users_common.AccountId?
         "Filter the events by account ID. Return ony events with this account_id as either
         Actor, Context, or Participants."
     time team_common.TimeRange?

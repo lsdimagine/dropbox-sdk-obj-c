@@ -2,7 +2,7 @@ namespace sharing
 
 import common
 import files
-import users
+import users_common
 
 # Note that this should never be made public, as this is mainly for
 # consumption by our desktop client, first-party mobile apps, and our website.
@@ -74,7 +74,7 @@ union ClaimMembershipError
     # joining as viewer
     team_policy_no_editor
         "Your team policy prevents joining as an editor on this content."
-    need_account_switch users.AccountId
+    need_account_switch users_common.AccountId
         "You should switch to this account to request access."
 
 # --
@@ -118,7 +118,7 @@ union RequestAccessError
         "This content can only be accessed by team members."
     team_join_required
         "You must join the content URL owner's team before you can request access."
-    account_switch_required users.AccountId
+    account_switch_required users_common.AccountId
         "You should switch to this account to request access."
 
     example default
@@ -138,7 +138,7 @@ struct GetGrantAccessInfoArg
 struct GetGrantAccessInfoResult
     is_folder Boolean
         "Whether the access request is for a folder (versus for a file)."
-    encoded_account_id users.AccountId
+    encoded_account_id users_common.AccountId
         "The user requesting access."
     display_name String
         "The name to display for the user requesting access."

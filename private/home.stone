@@ -168,3 +168,36 @@ route get_starred (GetStarredArg, GetStarredResponse, GetStarredError)
     attrs
         owner="home"
         is_preview=true
+
+# --
+
+union SectionType
+    "Each section of Home."
+    # keep these in sync with HOME_SECTION in lib/home/constants.py
+
+    unread
+    starred
+    recents
+
+struct SetSectionVisibilityArg
+    "Arguments for :route:`set_section_visibility`."
+
+    section SectionType
+        "The Home section to show/hide."
+
+    visible Boolean
+        "If the given section should be visible."
+
+    example default
+        section = unread
+        visible = false
+
+union SetSectionVisibilityError
+    unused
+
+route set_section_visibility (SetSectionVisibilityArg, Void, SetSectionVisibilityError)
+    "Sets the visibility of a given home section."
+
+    attrs
+        owner="home"
+        is_preview=true

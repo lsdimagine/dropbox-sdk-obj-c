@@ -1,6 +1,7 @@
 namespace files
 
 import async
+import users_common
 
 route delete_with_changeset (DeleteArg, InternalFileOpResult, DeleteError)
     "An internal version of :route:`delete` that returns changeset data for

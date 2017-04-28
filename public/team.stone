@@ -2,9 +2,8 @@ namespace team
 
 import common
 import team_common
-
 import team_policies
-import users
+import users_common
 
 # Note that in the database, we also have members that are in state "deleted"
 # meaning that the User has been permanently removed from the team.
@@ -47,7 +46,7 @@ struct MemberProfile
         "External ID that a team can attach to the user.
         An application using the API may find it easier to use their
         own IDs instead of Dropbox IDs like account_id or team_member_id."
-    account_id users.AccountId?
+    account_id users_common.AccountId?
         "A user's account identifier."
     email String
         "Email address of user."

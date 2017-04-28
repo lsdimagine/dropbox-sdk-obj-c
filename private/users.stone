@@ -2,6 +2,8 @@ namespace users
 
 import common
 
+import users_common
+
 #
 # Sharing preferences
 #
@@ -106,3 +108,71 @@ struct ListOwnedFoldersResult
 
 route list_owned_shared_folders(Void, ListOwnedFoldersResult, Void)
     "Get the list of shared folders that the current user owns."
+
+
+#
+# Route: get_plan_info
+#
+
+struct GetPlanInfoArg
+    account_id users_common.AccountId
+        "A user's account identifier"
+
+    example default
+        account_id = "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
+
+struct PlanInfo
+    "The amount of detail revealed about an account depends on the user being queried."
+    account_id users_common.AccountId
+        "A user's account identifier"
+    account_type users_common.AccountType
+        "What type of account this user has"
+    plan_text String
+        "User facing string for plan name"
+    plan_detail_text String?
+        "User facing string for detailed plan text"
+    is_trial Boolean?
+        "Is the user on a trial plan"
+
+    example default
+        "Basic account"
+        account_id = "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
+        account_type = basic
+        plan_text = "Dropbox Basic"
+
+    example plus_subscriber
+        "A personal account that has a plus subscription"
+        account_id = "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
+        account_type = pro
+        plan_text = "Dropbox Plus"
+
+    example ios_plus_subscriber
+        "A personal account that has a plus subscription on Apple ITunes"
+        account_id = "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
+        account_type = pro
+        plan_text = "Dropbox Plus"
+        plan_detail_text = "Dropbox IOS Plus"
+
+    example ios_plus_trial_subscriber
+        "A personal account that has a plus trial subscription on Apple ITunes"
+        account_id = "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
+        account_type = pro
+        plan_text = "Dropbox Plus"
+        plan_detail_text = "Dropbox IOS Plus Trial"
+        is_trial = true
+
+    example user_on_business_team
+        "A user that's a part of a team"
+        account_id = "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
+        account_type = business
+        plan_text = "Dropbox Business"
+
+union GetPlanInfoError
+    no_account
+        "The specified :field:`GetPlanInfoArg.account_id` does not exist."
+
+route get_plan_info(GetPlanInfoArg, PlanInfo, GetPlanInfoError)
+    "Get information about a user's plan."
+
+    attrs
+        owner = "cash-team"

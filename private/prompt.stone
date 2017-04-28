@@ -29,6 +29,14 @@ union TopNotificationStyle
     promo
         "Promo notification style."
 
+union DesktopTrayStyle
+    info
+        "Informational notification style."
+    notification
+        "Regular notification style."
+    warning
+        "Warning notification style."
+
 struct MobilePromptOpenUrlActionParameters
     url String
 
@@ -69,6 +77,28 @@ struct TopNotificationWithModal
     top_notification TopNotification
     modal Modal
 
+struct PopupModal
+    text String
+    subtext String
+    image_url String
+    dismiss_text String
+    confirm_action MobilePromptAction
+    confirm_text String
+
+struct DesktopTray
+    text String
+    subtext String
+    style DesktopTrayStyle
+    icon_url String?
+    confirm_url String
+
+    example default
+        text = "Your hard drive just got infinitely bigger"
+        subtext = "Learn more about dropbox infinite."
+        style = notification
+        icon_url = "/static/image/prompt/desktop/cloud.svg"
+        confirm_url = "/home"
+
 union ModalStyle
     default
         "Modal with a title, subtitle, image, cancel button, action button, and an optional second action button."
@@ -90,11 +120,14 @@ struct Modal
 union CampaignContent
     top_notification TopNotification
     top_notification_with_modal TopNotificationWithModal
+    popup_modal PopupModal
+    desktop_tray DesktopTray
 
     example default
         top_notification = default
 
 struct CampaignResult
+    matched_user_id Int64?
     campaign_id CampaignId
     prompt_queried_at_ms PromptTimestamp
     campaign_name String
@@ -117,10 +150,12 @@ union RefAction
     photos_work
 
 struct GetBestCampaignsArg
-    action RefAction
+    action RefAction?
+    match_user_ids List(Int64)?
 
     example default
         action = files_personal
+        match_user_ids = [42, 84]
 
 struct CampaignsResult
     campaigns List(CampaignResult)
@@ -145,8 +180,14 @@ union CampaignErr
     bad_platform String
         "The found campaign doesn't belong to the mobile platform."
 
+    bad_match_user_ids String
+        "Campaigns are requested for a user which isn't owned by the authenticated user"
+
     example default
         not_found = "There is no campaign with the id '499'."
 
     example bad_platform
         bad_platform = "A campaign was found for id '499' but it doesn't belong to the mobile platform."
+
+    example bad_match_user_ids
+        bad_match_user_ids = "The user with id '499' is not owned by the requesting user"

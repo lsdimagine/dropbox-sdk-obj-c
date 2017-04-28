@@ -1,7 +1,7 @@
 namespace file_attribution
 
 import files
-import users
+import users_common
 
 alias ReadPath = files.ReadPath
 alias Rev = files.Rev
@@ -11,7 +11,7 @@ struct Attribution
 
     revision Rev
         "The revision in which the attribution appears."
-    account_id users.AccountId?
+    account_id users_common.AccountId?
         "The account ID of the attributed user, if known."
     page UInt32
         "The page number on which the attribution appears, zero-based."

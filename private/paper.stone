@@ -59,6 +59,9 @@ union PaperDocCreateError extends PaperApiBaseError
     doc_length_exceeded
         "The newly created Paper doc would be too large.
         Please split the content into multiple docs."
+    image_size_exceeded
+        "The imported document contains an image that is too large. The current limit is 1MB.
+        Note: This only applies to HTML with data uri."
 
 route docs/update (PaperDocUpdateArgs, PaperDocCreateUpdateResult, PaperDocUpdateError)
     "Updates an existing Paper doc with the provided content."
@@ -108,6 +111,9 @@ union PaperDocUpdateError extends DocLookupError
         "The provided revision does not match the document head."
     doc_length_exceeded
         "The newly created Paper doc would be too large, split the content into multiple docs."
+    image_size_exceeded
+        "The imported document contains an image that is too large. The current limit is 1MB.
+        Note: This only applies to HTML with data uri."
     doc_archived
         "This operation is not allowed on archived Paper docs."
     # TODO(jenda): Preventing feature leak. Uncomment this around the time trash is released.
@@ -156,5 +162,69 @@ struct PaperDocGetMetadataResult
         revision = 56556
         last_updated_date = "2017-01-02T00:00:00Z"
         last_editor = "stephen@example.com"
+
+# --
+
+route graphql (GraphqlArgs, GraphqlResult, GraphqlError)
+    "Allows dropbox teams to query Paper's graphql using APIv2.  Read more at https://paper.dropbox.com/doc/How-to-call-Papers-Graphql-api-iVf6ag5ScF9MSJP8hZLAI ."
+    attrs
+        owner = "paper-eng"
+        is_preview = true
+
+struct GraphqlArgs
+    query_name String(pattern="^[a-zA-Z0-9_\\-]+$")
+        "A human readable name for the query.  This is used so Paper can easily track the performance and qps to specific query types."
+    team_name String(pattern="^[a-zA-Z0-9_\\-]+$")
+        "The name of the engineering team at Dropbox that made the query.  This is used so Paper can know the owner of requests that are hitting the servers and who to contact if necessary."
+    query GraphqlQuery
+        "The graphql query to execute."
+    variables String?
+        "A json string of any variables to run the query with."
+
+    example default
+        "Runs a graphql query to get the id of your recent paper docs.  NOTE: If you copy/paste this into a bash shell, the escaping may be wrong!  You might need to add a backslash before each of the dollar signs, and a third backslash around the 'filter' string."
+        query_name = "list-recent-docs"
+        team_name = "api-demo"
+        query = default
+        variables = "{\"filter\":1}"
+
+union GraphqlQuery
+    query_id String
+        "The id of the graphql query to execute.  Queries can be pre-uploaded to Paper for performance and security, read more here: https://paper.dropbox.com/doc/How-to-call-Papers-Graphql-api-iVf6ag5ScF9MSJP8hZLAI."
+    query_string GraphqlQueryString
+        "A graphql query string and its signature to execute."
+
+    example default
+        query_string = default
+
+struct GraphqlQueryString
+    query_string String
+        "A graphql query string to execute."
+    query_string_signature String
+        "A signature for the query_string.  The signature is used to prevent external users from being able to write their own queries.  Learn more at https://paper.dropbox.com/doc/How-to-call-Papers-Graphql-api-iVf6ag5ScF9MSJP8hZLAI ."
+
+    example default
+        query_string="query($filter:Int){docs(filter:$filter){id}}"
+        query_string_signature="xxxxxxx"
+
+struct GraphqlResult
+    result String
+        "The result as a json string.  The format of this is determined by your graphql query.  Paper will simply JSON stringify the result of the graphql query and return it here.  For a query like {docs{id}}, the format would be a json string of {docs: [{id: '...'}, ...]}."
+
+    example default
+        result = "{\"docs\":[{\"id\":\"tJ1n6hRCdv4iWByewKSck\"}]}"
+
+union GraphqlError extends PaperApiBaseError
+    graphql_errors String
+        "Any errors encountered by the graphql runtime while executing the query.  This is a json string."
+    invalid_query_id
+        "The query id does not exist in the Paper database."
+    invalid_query_signature
+        "The query signature does not match."
+    invalid_variables_json
+        "The json string of the variables was not valid."
+
+    example default
+        graphql_errors = "[{\"sourceLocations\":[{\"line\": 1,\"column\": 6}]}]"
 
 # --

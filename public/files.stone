@@ -4,7 +4,7 @@ namespace files
 import async
 import auth
 import common
-import users
+import users_common
 import properties
 
 alias Id = String(min_length=1)
@@ -66,7 +66,7 @@ struct FileSharingInfo extends SharingInfo
     parent_shared_folder_id common.SharedFolderId
         "ID of shared folder that holds this file."
 
-    modified_by users.AccountId?
+    modified_by users_common.AccountId?
         "The last user who modified the file. This field will be null if
         the user's account has been deleted."
 
@@ -1320,9 +1320,14 @@ union_closed PreviewError
         "The file content is not supported for preview generation."
 
 route get_preview(PreviewArg, FileMetadata, PreviewError)
-    "Get a preview for a file. Currently previews are only generated for the files with
-     the following extensions: .doc, .docx, .docm, .ppt, .pps, .ppsx, .ppsm, .pptx, .pptm,
-     .xls, .xlsx, .xlsm, .rtf."
+    "Get a preview for a file.
+
+    Currently, PDF previews are generated for files with the following extensions:
+    .ai, .doc, .docm, .docx, .eps, .odp, .odt, .pps, .ppsm, .ppsx, .ppt, .pptm, .pptx, .rtf.
+
+    HTML previews are generated for files with the following extensions: .csv, .ods, .xls, .xlsm, .xlsx.
+
+    Other formats will return an unsupported extension error."
 
     attrs
         host = "content"

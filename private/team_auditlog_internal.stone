@@ -2,7 +2,7 @@ namespace team
 
 import team_event_data_types
 import common
-import users
+import users_common
 
 # EventType names should be the same as TeamEvent.EventType key
 alias EventTypeName = String(pattern="[A-Z_]+")
@@ -25,13 +25,13 @@ struct TeamEventArg
     event_type_name EventTypeName
     uuid String
         "Unique identifier of the event"
-    actor_user_id users.AccountId
+    actor_user_id users_common.AccountId
         "ID of the user taking the action (the admin if a user is being assumed)"
     actor_display_name common.DisplayName
         "Name of the actor user. (the admin if a user is being assumed)"
     event_data TeamEventDataSelector
         "Data to be stored for the event"
-    assumed_user_id users.AccountId?
+    assumed_user_id users_common.AccountId?
         "The assumed user if a Team Admin is acting on behalf of a user"
     ip_address String(pattern="^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$")?
         "Used to force set IP for events generated remotely or on the server. Inferred from request if not set."

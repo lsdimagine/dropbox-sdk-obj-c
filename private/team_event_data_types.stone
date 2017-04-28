@@ -2,7 +2,7 @@ namespace team_event_data_types
 
 import paper
 import common
-import users
+import users_common
 
 union_closed DocFolderType
     document PaperDocument
@@ -89,7 +89,7 @@ struct PaperRecipient
     "Information about the Paper doc and recipient."
 
     doc_type DocFolderType
-    recipient_user_id users.AccountId?
+    recipient_user_id users_common.AccountId?
     recipient_email common.EmailAddress
 
     example default
