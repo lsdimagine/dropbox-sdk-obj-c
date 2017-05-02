@@ -158,10 +158,8 @@ union PermissionDeniedReason
         "The user does not have permission to perform this action on the link."
     restricted_by_team
         "The user's team policy prevents performing this action on the link."
-    user_account_type UserAccountTypeError
-        "The user's account type does not support this action. An example of
-        this is when adding a password or expiration to link. This action can only be
-        performed can only be performed by users with a different account type."
+    user_account_type
+        "The user's account type does not support this action."
     user_not_on_team
         "The user needs to be on a Dropbox team to perform this action."
     folder_is_inside_shared_folder
@@ -858,12 +856,6 @@ union UpdateFolderPolicyError
     team_folder
         "This action cannot be performed on a team shared folder."
 
-struct UserAccountTypeError
-    message String
-        "A message to tell the user to upgrade in order to support expected action."
-    upsell_url String?
-        "A URL to send the user to in order to obtain the account type they need, e.g. upgrading.
-        Absent if there is no action the user can take to upgrade."
 # --
 
 route add_folder_member(AddFolderMemberArg, Void, AddFolderMemberError)

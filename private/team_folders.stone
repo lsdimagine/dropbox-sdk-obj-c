@@ -59,49 +59,6 @@ struct TeamFolderListResultInternal
         entries = [default]
 
 #
-# Sync management routes
-#
-
-route team_folder/update_default_sync_setting(TeamFolderSyncSettingArg, TeamFolderMetadataInternal, TeamFolderSyncSettingError)
-    "Changes the default sync setting for a team folder."
-
-    attrs
-        owner = "company-dropbox-team"
-        auth = "team"
-
-struct TeamFolderSyncSettingArg
-    team_folder_id common.SharedFolderId
-        "ID of the team folder."
-
-    default_sync_setting DefaultSyncSetting
-        "Whether this folder syncs by default for members."
-
-    target_path String?
-        "Relative path (name) to a direct subfolder of team_folder_id to set sync settings for."
-
-    example default
-        team_folder_id = "84528192421"
-        default_sync_setting = sync
-
-union TeamFolderSyncSettingError extends BaseTeamFolderError
-    empty_membership
-        "Can't change default sync setting because parent folder has no active members."
-
-route team_folder/update_all_default_sync_settings(TeamFolderAllSyncSettingsArg, Void, TeamFolderSyncSettingError)
-    "Changes the default sync setting for all of the team's team folders."
-
-    attrs
-        owner = "company-dropbox-team"
-        auth = "team"
-
-struct TeamFolderAllSyncSettingsArg
-    default_sync_setting DefaultSyncSetting
-        "Whether all current team folders should sync by default for members."
-
-    example default
-        default_sync_setting = sync
-
-#
 # Team folder metadata endpoints (private)
 #
 
