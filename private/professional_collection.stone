@@ -1,0 +1,46 @@
+namespace professional_collection
+
+#
+# Private endpoints for professional sharing.
+# For now, we just expose an endpoint to list all the professional collections
+# created by an user.
+#
+
+struct ProfessionalCollectionMetadata
+    collection_gid String
+    user_id UInt64
+    creation_time UInt64
+    last_modified_time UInt64
+    title String
+    thumbnail_urls List(String)
+        "Populated only if :field:`ListProfessionalCollectionsArg.include_thumbnail`=true, otherwise is an empty array."
+    items_count UInt32
+    collection_url String
+
+struct ListProfessionalCollectionsResult
+    entries List(ProfessionalCollectionMetadata)
+    has_more Boolean
+    cursor String?
+
+struct ListProfessionalCollectionsArg
+    limit UInt32?
+    include_thumbnail Boolean?
+
+struct ListProfessionalCollectionsContinueArg
+    cursor String
+
+union ListProfessionalCollectionsContinueError
+    invalid_cursor
+        ":field:`ListProfessionalCollectionsContinueArg.cursor` is invalid."
+
+route list(ListProfessionalCollectionsArg, ListProfessionalCollectionsResult, Void)
+    attrs
+        api_group = "premium-labs"
+        is_preview = true
+        owner = "premium-labs"
+
+route list/continue(ListProfessionalCollectionsContinueArg, ListProfessionalCollectionsResult, ListProfessionalCollectionsContinueError)
+    attrs
+        api_group = "premium-labs"
+        is_preview = true
+        owner = "premium-labs"

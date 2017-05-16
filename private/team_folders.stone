@@ -4,60 +4,6 @@ import common
 import files
 import sharing
 
-# Common structs
-
-union_closed DefaultSyncSetting
-    sync
-        "The folder will sync for members by default."
-    no_sync
-        "The folder will not be synced for members by default."
-
-struct TeamFolderMetadataInternal extends TeamFolderMetadata
-    "temporary extension needed to support sync management in admin console until full deprecation."
-
-    default_sync_setting DefaultSyncSetting
-        "Whether this folder syncs by default for members."
-
-    example default
-        name = "Marketing"
-        team_folder_id = "123456789"
-        status = active
-        default_sync_setting = sync
-
-#
-# Internal versions of public routes - temporarily needed to support sync management
-#
-
-route team_folder/create_internal(TeamFolderCreateArgInternal, TeamFolderMetadataInternal, TeamFolderCreateError)
-    "temporary variant required to support sync management in admin console until full deprecation."
-
-    attrs
-        owner = "company-dropbox-team"
-        auth = "team"
-
-struct TeamFolderCreateArgInternal extends TeamFolderCreateArg
-    default_sync_setting DefaultSyncSetting?
-        "Whether this folder syncs by default."
-
-    example default
-        name = "Marketing"
-        default_sync_setting = sync
-
-route team_folder/list_internal(TeamFolderListArg, TeamFolderListResultInternal, TeamFolderListError)
-    "temporary variant required to support sync management in admin console until full deprecation."
-    attrs
-        owner = "company-dropbox-team"
-        auth = "team"
-
-struct TeamFolderListResultInternal
-    "Result for :route:`team_folder/list_internal`."
-
-    entries List(TeamFolderMetadataInternal)
-        "List of all team folders in the authenticated team."
-
-    example default
-        entries = [default]
-
 #
 # Team folder metadata endpoints (private)
 #

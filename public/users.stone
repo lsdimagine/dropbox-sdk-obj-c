@@ -167,10 +167,14 @@ struct FullTeam extends Team
     sharing_policies team_policies.TeamSharingPolicies
         "Team policies governing sharing."
 
+    office_addin_policy team_policies.OfficeAddInPolicy
+        "Team policy governing the use of the Office Add-In."
+
     example default
         id = "dbtid:AAFdgehTzw7WlXhZJsbGCLePe8RvQGYDr-I"
         name = "Acme, Inc."
         sharing_policies = default
+        office_addin_policy = disabled
 
 struct Name
     "Representations for a person's name to assist with internationalization."

@@ -666,8 +666,6 @@ union SharePathError
         "We do not support sharing a Mac OS X package."
     inside_osx_package
         "We do not support sharing a folder inside a Mac OS X package."
-    invalid_path_root files.PathRootError
-        "The path root parameter provided is invalid."
 
 # --
 

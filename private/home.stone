@@ -6,8 +6,12 @@ struct FetchIncomingArg
     cursor String?
         "Optional. A string representing the cursor. Use this to fetch additional pages."
 
+    count UInt64?
+        "Optional. The max number of events to return."
+
     example default
         cursor = "Returned from previous fetch_incoming calls."
+        count = 100
 
 struct FetchIncomingResult
     "The returned object from retrieve."

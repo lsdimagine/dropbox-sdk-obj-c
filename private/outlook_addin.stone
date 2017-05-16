@@ -8,6 +8,10 @@ struct SafeOriginsListResult
     cursor String?
         "Provided to :route:`safe_origins/list/continue` as :field:`SafeOriginsListContinueArg.cursor` for pagination.
         Not present if there are no more results."
+
+    # TODO(danielp) has_more Boolean
+    # https://phabricator.dropboxer.net/T155320
+
     example default
         safe_origins = ["https://outlook.office.com", "https://outlook.live.com", "https://outlook.dropbox.com"]
         cursor = "U60b6BxT43ySd5sAVQbbIvoteSnWLjUdLU7aR25hbt3ySd5sAVQbbIvoteSnWLjUd"

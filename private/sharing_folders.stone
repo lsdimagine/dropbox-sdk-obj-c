@@ -6,6 +6,8 @@ import files
 struct ExpectedSharedFolderMetadata extends SharedFolderMetadataBase
     "Properties the shared folder will have upon creation."
 
+    is_confidential Boolean = false
+        "Specifies that the folder is invite only. Matches the value sent from the client."
     link_metadata ExpectedSharedContentLinkMetadata?
         "The link metadata for this shared folder."
     policy FolderPolicy
@@ -56,6 +58,10 @@ route validate_folder_path(ValidateFolderPathArg, ExpectedSharedFolderMetadata, 
 struct ValidateFolderPathArg
     path files.WritePath
         "Folder path to validate for shared folder creation."
+    confidentiality ConfidentialityArgs = not_confidential
+        "Specifies the confidentiality settings for the new shared folder.
+        Relevant only when the client is creating a new folder directly as a confidential folder and
+        wants to the metadata to reflect that."
     actions List(InternalFolderAction)?
         "Folder actions to query."
     list_members_arg ListFolderMembersCursorArg?
@@ -64,6 +70,7 @@ struct ValidateFolderPathArg
 
     example default
         path = "/example/workspace"
+        confidentiality = not_confidential
         actions = []
         list_members_arg = default
 

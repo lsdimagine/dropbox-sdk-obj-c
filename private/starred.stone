@@ -8,11 +8,15 @@ union FileIdType
     encoded_file_obj_id
     fq_path
 
-union ItemIdType extends FileIdType
-    paper_document_id
+union ItemIdTypeV2 extends FileIdType
     paper_document_id_path
-    paper_folder_id
     paper_folder_id_path
+
+
+# These types are functionally equivalent to the corresponding ItemIdTypeV2 types with `path` suffix
+union ItemIdType extends ItemIdTypeV2
+    paper_document_id
+    paper_folder_id
 
 struct FileQuery
     "A file to query."
@@ -39,7 +43,7 @@ struct FileStarredStatus extends FileQuery
 #
 # route update_item
 #
-route update_item (UpdateItemArgs, Void, UpdateItemError)
+route update_item (UpdateItemArgs, Void, UpdateItemError) deprecated by update_item_v2
     "Change the starred status of a file."
 
     attrs
@@ -48,6 +52,31 @@ route update_item (UpdateItemArgs, Void, UpdateItemError)
 
 struct UpdateItemArgs
     "Arguments for :route:`update_item`."
+
+    id String
+        "file_obj_id or fq_path of the item to operate on."
+
+    id_type ItemIdType = encoded_file_obj_id
+        "What kind of identifier has been supplied, defaults to encoded_file_obj_id if none is specified.
+        Note: `paper_document_id` and `paper_document_id_path` are functionally equivalent, and both mean `paper_document_id_path`.
+        Note: `paper_folder_id` and `paper_folder_id_path` are functionally equivalent, and both mean `paper_folder_id_path`.
+        "
+
+    is_starred Boolean
+        "Whether the item is starred."
+
+#
+# route update_item_v2
+#
+route update_item_v2 (UpdateItemArgsV2, Void, UpdateItemError)
+    "Change the starred status of a file."
+
+    attrs
+        owner="home"
+        is_preview=true
+
+struct UpdateItemArgsV2
+    "Arguments for :route:`update_item_v2`."
 
     id String
         "file_obj_id or fq_path of the item to operate on."
@@ -77,8 +106,8 @@ struct UpdateItemArgs
         is_starred = true
 
     example with_paper_type
-        id = "Xejfg92mx"
-        id_type = paper_folder_id
+        id = "/Xejfg92mx"
+        id_type = paper_folder_id_path
         is_starred = true
 
 

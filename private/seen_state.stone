@@ -19,6 +19,8 @@ struct BeaconInfo
     auth_key String
     context String
     identifier String
+    beacon_user_id String?
+        "The user_id that is going offline in Beacon. TODO: Make this non-optional after client code is updated."
 
 struct BeaconInfoList
     "List of BeaconInfo objects that represent a list of files for Beacon."
@@ -154,6 +156,7 @@ struct PassStatusResult
     can_read_presence Boolean
     can_read_seen_state Boolean
     can_write_presence Boolean
+    can_write_anonymous_presence Boolean
 
 union SeenStateError
     no_file

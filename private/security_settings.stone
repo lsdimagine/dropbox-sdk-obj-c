@@ -62,6 +62,8 @@ struct HostInfo
     id UInt64
     last_activity String
         "Last activity with hour ago granularity."
+    last_activity_raw UInt64
+        "The raw timestamp for last activity."
     location String
         "A canonicalized location, or 'Unknown Location' if none found."
     platform String
@@ -105,6 +107,8 @@ struct MobileDeviceInfo
         "The name of the device given."
     last_activity String
         "The last known activity from the device, with an hour granularity, or empty string if none exists."
+    last_activity_raw UInt64
+        "The raw timestamp for last activity."
     location String
         "A canonicalized location, or 'Unknown Location' if none found."
     icon String
@@ -142,6 +146,8 @@ struct AppInfo
         "The URL of the app's publisher's page, or empty string if none exists."
     icon_url String
         "The URL of the app icon, or empty string if none exists."
+    access_type_desc String
+        "A description of what permissions this app has."
 
 route get_linked_apps (Void, List(AppInfo), Void)
     "Returns a list of linked third party apps."

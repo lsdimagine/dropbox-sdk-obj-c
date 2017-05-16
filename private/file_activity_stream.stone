@@ -97,6 +97,10 @@ route get_activity_stream (GetActivityStreamRequest, GetActivityStreamResponse, 
 
 struct FeedbackRequest
     feedback Boolean
+    file_preview_session_id String
+    file_viewer_session_id String
+    file_ns_id UInt32
+    file_sjid UInt32
 
 struct FeedbackResponse
     success Boolean

@@ -279,6 +279,7 @@ route get_metadata (GetMetadataArg, Metadata, GetMetadataError)
     attrs
         owner = "dev-plat"
         allow_app_folder_app = true
+        takes_path_root = true
 
 #
 # List folder routes
@@ -512,6 +513,9 @@ union UploadSessionFinishError
     too_many_shared_folder_targets
         "The batch request commits files into too many different shared folders.
         Please limit your batch request to files contained in a single shared folder."
+    too_many_write_operations
+        "There are too many write operations happening in the user's Dropbox. You should
+        retry uploading this file."
 
 # Req/Resp
 
@@ -710,6 +714,7 @@ route upload (CommitInfo, FileMetadata, UploadError)
         owner = "dev-plat"
         feature = "upload_api_rate_limit"
         allow_app_folder_app = true
+        takes_path_root = true
 
 #
 # Batch Upload
@@ -885,10 +890,6 @@ route search (SearchArg, SearchResult, SearchError)
 
 alias MalformedPathError = String?  # TODO: Maybe a user_message-like thing?
 
-struct PathRootError
-    path_root String?
-        "The user's latest path root value. None if the user no longer has a path root."
-
 union LookupError
     malformed_path MalformedPathError
     not_found
@@ -900,8 +901,6 @@ union LookupError
     restricted_content
         "The file cannot be transferred because the content is restricted.  For example,
         sometimes there are legal restrictions due to copyright claims."
-    invalid_path_root PathRootError
-        "The path root parameter provided is invalid."
 
 union WriteError
     malformed_path MalformedPathError
@@ -1075,6 +1074,9 @@ struct RelocationArg extends RelocationPath
     autorename Boolean = false
         "If there's a conflict, have the Dropbox server try to autorename
         the file to avoid the conflict."
+    allow_ownership_transfer Boolean = true
+        "Allow moves by owner even if it would result in an ownership transfer
+        for the content being moved. This does not apply to copies."
 
     example default
         from_path = "/Homework/math"
@@ -1096,6 +1098,10 @@ union RelocationError
     duplicated_or_nested_paths
         "There are duplicated/nested paths among :field:`RelocationArg.from_path`
         and :field:`RelocationArg.to_path`."
+    cant_transfer_ownership
+        "Your move operation would result in an ownership transfer.
+        You may reissue the request with
+        the field :field:`RelocationArg.allow_ownership_transfer` to true."
 
 struct RelocationBatchArg
     entries List(RelocationPath)
@@ -1108,6 +1114,9 @@ struct RelocationBatchArg
     autorename Boolean = false
         "If there's a conflict with any file, have the Dropbox server try to
         autorename that file to avoid the conflict."
+    allow_ownership_transfer Boolean = true
+        "Allow moves by owner even if it would result in an ownership transfer
+        for the content being moved. This does not apply to copies"
 
     example default
         entries = [default]
