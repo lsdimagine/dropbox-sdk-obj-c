@@ -15,7 +15,7 @@ route get_account (GetAccountArg, BasicAccount, GetAccountError)
     "Get information about a user's account."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 struct GetAccountArg
@@ -93,7 +93,7 @@ route get_current_account (Void, FullAccount, Void)
     "Get information about the current user's account."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 struct FullAccount extends Account
@@ -208,7 +208,7 @@ route get_space_usage(Void, SpaceUsage, Void)
     "Get the space usage information for the current user's account."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 struct SpaceUsage
@@ -260,7 +260,7 @@ route get_account_batch (GetAccountBatchArg, GetAccountBatchResult, GetAccountBa
     per request."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 struct GetAccountBatchArg

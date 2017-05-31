@@ -40,6 +40,15 @@ struct FileStarredStatus extends FileQuery
     is_starred Boolean
         "Whether the file is starred."
 
+struct FileObjWithPath
+    "Both of the identifiers (file_obj_id and fq_path) for a file."
+
+    encoded_file_obj_id String
+        "The encoded file_obj_id of the file."
+
+    fq_path String
+        "The fully qualified path to the file."
+
 #
 # route update_item
 #
@@ -113,7 +122,7 @@ struct UpdateItemArgsV2
 
 union UpdateItemError
     file_not_found
-        "The specified file could not be found"
+        "The specified file could not be found."
 
 #
 # route check_status
@@ -137,3 +146,25 @@ struct CheckStatusResponse
 
 union CheckStatusError
     unused
+
+#
+# route in_directory
+#
+route in_directory(InDirectoryArgs, InDirectoryResponse, InDirectoryError)
+    "Fetches the starred items in a directory."
+
+    attrs
+        owner="home"
+        is_preview=true
+
+struct InDirectoryArgs extends FileQuery
+    "Arguments for :route:`in_directory`."
+
+struct InDirectoryResponse
+    "Response for :route:`in_directory`."
+
+    files List(FileObjWithPath)
+
+union InDirectoryError
+    directory_not_found
+        "The specified directory could not be found."

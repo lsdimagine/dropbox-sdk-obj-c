@@ -41,7 +41,7 @@ route get_root_info(Void, RootInfo, Void)
     "Temporary private route to expose CDM information."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
 
 union RootInfo
     cdm_team CDMInfo

@@ -55,13 +55,13 @@ struct MoveActivity extends Activity
     "Activity for moved files."
 
     path String
-    last_path String
+    last_path String?
 
 struct RenameActivity extends Activity
     "Activity for renamed files."
 
     filename String
-    last_filename String
+    last_filename String?
 
 struct ViewActivity extends Activity
     "Activity for viewed files."
@@ -85,6 +85,7 @@ struct GetActivityStreamRequest
     cursor String?
 
 struct GetActivityStreamResponse
+    enabled Boolean
     activity List(Activity)
 
 union FileActivityStreamError
@@ -96,7 +97,7 @@ union FileActivityStreamError
 route get_activity_stream (GetActivityStreamRequest, GetActivityStreamResponse, FileActivityStreamError)
 
 struct FeedbackRequest
-    feedback Boolean
+    feedback UInt32
     file_preview_session_id String
     file_viewer_session_id String
     file_ns_id UInt32

@@ -23,7 +23,7 @@ route data_migration_toolkit/get_version_for_app(Void, VersionInfoResult, Void)
 
     attrs
         auth="app"
-        owner="adminx"
+        owner = "teams-and-groups"
 
 #
 # Route get_version_for_team
@@ -35,7 +35,7 @@ route data_migration_toolkit/get_version_for_team(Void, VersionInfoResult, Void)
 
     attrs
         auth="team"
-        owner="adminx"
+        owner = "teams-and-groups"
 
 
 #
@@ -64,4 +64,4 @@ route data_migration_toolkit/can_use_data_migration_tool(Void, CanUseDataMigrati
 
     attrs
         auth = "team"
-        owner = "dev-plat"
+        owner = "api-platform"

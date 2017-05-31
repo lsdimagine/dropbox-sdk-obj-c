@@ -323,7 +323,7 @@ route modify_shared_link_settings(ModifySharedLinkSettingsArgs, SharedLinkMetada
     :field:`LinkPermissions.requested_visibility` will reflect the requested visibility."
 
     attrs
-        owner = "adminx"
+        owner = "sharing"
         allow_app_folder_app = true
 
 #
@@ -345,7 +345,7 @@ union_closed CreateSharedLinkWithSettingsError
     email_not_verified
         "User's email should be verified"
     shared_link_already_exists
-        "The shared link already exists"
+        "The shared link already exists. You can call :route:`list_shared_links` to get the existing link."
     settings_error SharedLinkSettingsError
         "There is an error with the given settings"
     access_denied

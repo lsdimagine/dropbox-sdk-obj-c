@@ -13,12 +13,20 @@ alias ResellerChain = List(String(min_length=10))
 
 struct Product
     union
+        addon AddonProduct
         cx_space_pack CxSpacePackProduct
         space_pack SpacePackProduct
 
     example space_pack_500gb
         space_pack = space_pack_500gb
 
+struct AddonProduct extends Product
+    sku_code SkuCode
+    quantity UInt64
+
+    example addon_unlimited_evh
+        sku_code = "TEAMADD-EVU1M"
+        quantity = 1
 
 struct SpacePackProduct extends Product
     sku_code SkuCode

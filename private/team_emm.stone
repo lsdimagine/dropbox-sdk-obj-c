@@ -35,7 +35,7 @@ route emm/configure_settings(EmmSettingsArgs, EmmSettingsResult, ConfigureSettin
 
     attrs
         auth="team"
-        owner="adminx"
+        owner="tools-and-insights"
 
 
 #
@@ -59,7 +59,7 @@ route emm/refresh_token(Void, RefreshEmmTokenResult, RefreshTokenError)
 
     attrs
         auth="team"
-        owner="adminx"
+        owner="tools-and-insights"
 
 #
 # route emm/generate_report
@@ -103,4 +103,4 @@ route emm/generate_report(GenerateReportArgs, Void, AdministrationError)
 
     attrs
         auth="team"
-        owner="adminx"
+        owner="tools-and-insights"

@@ -19,8 +19,8 @@ struct BeaconInfo
     auth_key String
     context String
     identifier String
-    beacon_user_id String?
-        "The user_id that is going offline in Beacon. TODO: Make this non-optional after client code is updated."
+    beacon_user_id String
+        "Either an account ID or an encoded session ID."
 
 struct BeaconInfoList
     "List of BeaconInfo objects that represent a list of files for Beacon."
@@ -110,7 +110,7 @@ union SeenStateCoachmarkType
         "No coachmark should be shown to the user."
 
 struct GetCoachmarkInfoArg
-    file_info FileInfo?
+    file_info FileInfo
 
 struct CoachmarkInfo
     type_with_data SeenStateCoachmarkType?
@@ -127,7 +127,7 @@ union CoachmarkInteraction
 struct CoachmarkInteractionData
     type SeenStateCoachmarkType
     interaction CoachmarkInteraction
-    file_info FileInfo?
+    file_info FileInfo
 
 struct OnboardingInteractionData
     owner_id String
@@ -195,3 +195,16 @@ route update_pass_onboarding_status(OnboardingInteractionData, Void, SeenStateEr
 
 route log_onboarding_event(OnboardingEventData, Void, SeenStateError)
     "Called when an event related to PASS onboarding occurs."
+
+
+route logged_out/get_pass_status(FileInfoList, List(PassStatusResult), SeenStateError)
+    "Called to determine what permissions a user has for PASS."
+
+    attrs
+        auth = "app"
+
+route logged_out/mark_offline(BeaconInfoList, Void, SeenStateError)
+    "Marks an anonymous viewer as offline for the passed-in files."
+
+    attrs
+        auth = "app"

@@ -16,5 +16,4 @@ route nts/set_block_traffic_policy(BlockTrafficPolicyArg, Void, AdministrationEr
 
     attrs
         auth="team"
-        owner="adminx"
-
+        owner = "tools-and-insights"

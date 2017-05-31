@@ -13,7 +13,7 @@ route groups/get_summary(GroupSelector, team_common.GroupSummary, GroupSelectorE
 
     attrs
         auth="team"
-        owner="adminx"
+        owner = "teams-and-groups"
 
 
 #
@@ -41,4 +41,4 @@ route groups/set_creation_policy(GroupCreationPolicyArg, Void, AdministrationErr
 
     attrs
         auth="team"
-        owner="adminx"
+        owner = "teams-and-groups"

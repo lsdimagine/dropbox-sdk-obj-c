@@ -6,7 +6,7 @@ route members_add(team.MembersAddArg,  List(team.MemberAddResult), Void)
     "Async task signature. Adds members to a team."
 
     attrs
-        owner="adminx"
+        owner = "teams-and-groups"
 
 
 # send_reminder_email_to_self
@@ -40,4 +40,4 @@ route send_reminder_email_to_self(ReminderEmailArgs, Void, ReminderEmailError)
     "
 
     attrs
-        owner="adminx"
+        owner = "user-journeys"

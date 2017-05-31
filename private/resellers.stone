@@ -375,6 +375,11 @@ route team/token (GetTeamTokenArg, TeamAuthToken, GetTeamError)
     attrs
         auth="app"
 
+route team/token/unlink (GetTeamWithResellerChainArg, Void, GetTeamError)
+    "Invalidates all the old tokens which were generated to make calls to the Dropbox Business API on behalf of the team."
+    attrs
+        auth="app"
+
 route team/cancel (GetTeamArg, TeamWithState, CancelTeamError)
     "Cancels the current billing agreement for the team.
      Suspends the team, but preserves the team structure so it can be reinstated using team/reinstate."

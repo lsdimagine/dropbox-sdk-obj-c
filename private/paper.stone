@@ -165,6 +165,77 @@ struct PaperDocGetMetadataResult
 
 # --
 
+route docs/search (PaperDocSearchArgs, PaperDocSearchResults, PaperApiBaseError)
+    "Returns a list of Paper docs that match the query string."
+    attrs
+        owner = "paper-eng"
+        is_preview = true
+        api_group = "paper-api-alpha"
+
+struct PaperDocSearchArgs
+    query String
+        "The query string."
+    limit Int32(min_value=0) = 10
+        "The maximum number of search results to return."
+
+    example default
+        query = "paper"
+        limit = 3
+
+struct PaperDocSearchResultMeta
+    doc_id String
+        "The Paper doc ID."
+    title String
+        "The Paper doc title."
+    snippets List(String)
+        "The snippets of this Paper doc that contain the query string. It will be a list of HTML strings and the matches will be <b class=\"hit\">keyword</b>."
+    created_date common.DropboxTimestamp
+        "The date that this Paper doc was created."
+    creator_name String
+        "The name of the person who created this Paper doc."
+    last_edited_date common.DropboxTimestamp
+        "The date that this Paper doc was last edited."
+    last_editor_name String
+        "The name of the person who last edited this Paper doc."
+
+    example default
+        doc_id = "ckwpocm928fnciwcdmo2i"
+        title = "Paper is awesome!"
+        snippets = ["<b class=\"hit\">keyword</b>"]
+        created_date = "2017-05-10T07:07:03Z"
+        creator_name = "Dropbox Panda"
+        last_edited_date = "2017-05-11T08:20:46Z"
+        last_editor_name = "Dropbox Panda"
+
+struct PaperDocSearchResults
+    docs List(PaperDocSearchResultMeta)
+        "A list of Paper docs that match the query string."
+    total_matches Int32
+        "Total number of Paper docs that match this query string."
+    has_more Boolean
+        "True if there are some more matched results that are not returned."
+    cursor String?
+        "Pass this cursor into :route:`docs/search/continue` to paginate through all users."
+
+    example default
+        docs = [default]
+        total_matches = 37
+        has_more = true
+        cursor = "dn2oicjwd89m4lgkve098wencdn2"
+
+route docs/search/continue (PaperDocSearchContinueArgs, PaperDocSearchResults, PaperApiCursorError)
+    "Returns a list of Paper docs that match the query string. Starts from the given cursor."
+    attrs
+        owner = "paper-eng"
+        is_preview = true
+        api_group = "paper-api-alpha"
+
+struct PaperDocSearchContinueArgs
+    cursor String
+        "The cursor obtained from :route:`docs/search` or :route:`docs/search/continue`. Allows for pagination."
+
+# --
+
 route graphql (GraphqlArgs, GraphqlResult, GraphqlError)
     "Allows dropbox teams to query Paper's graphql using APIv2.  Read more at https://paper.dropbox.com/doc/How-to-call-Papers-Graphql-api-iVf6ag5ScF9MSJP8hZLAI ."
     attrs

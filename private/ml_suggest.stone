@@ -1,0 +1,94 @@
+namespace ml
+
+import paper
+
+union SuggestType
+    "Describes the type of suggest request"
+
+    fast
+        "Do a fast suggest using cached data"
+
+    full
+        "Do full suggest logic"
+
+struct SuggestResult
+    "Describes one suggested folder/project"
+
+    path String
+        "The path of the recommendation"
+
+    is_project Boolean
+        "Is result project or folder"
+
+    score Float64
+        "The score of the suggestion (higher is better)"
+
+struct DocEditor
+    "Describes one editor and the editing times"
+
+    id UInt64
+        "The user id of the editor"
+
+    edits_ts List(UInt64)
+        "List of edits timestamps (seconds since epoch)"
+
+struct SuggestPaperFoldersRequest
+    "Request struct for suggest_paper_folder route"
+
+    doc_id paper.PaperDocId
+        "The id of the pad that you want suggestions for"
+
+    title String
+        "Current title of the doc"
+
+    create_time UInt64
+        "Creation time of document (seconds since epoch)"
+
+    creator UInt64
+        "User id of the creator of the doc"
+
+    editors List(DocEditor)
+        "User ids of all editors of the doc, which map to list of times that each editor edited the doc"
+
+    viewers List(UInt64)
+        "User ids of all viewers of the doc"
+
+    sharing_policy paper.SharingPolicy?
+        "What kind of permission does doc have"
+
+    location String?
+        "Where the doc is currently filed"
+
+    invites List(UInt64)
+        "list of people that have been explicitly invited to doc"
+
+    recent_projects List(String)
+        "Recent projects list for the viewer"
+
+    recent_folders List(String)
+        "Recent folders list for the viewer"
+
+    req_type SuggestType
+        "Do fast suggest or run full logic"
+
+struct SuggestPaperFoldersResponse
+    "Response struct for suggest_paper_folder route"
+
+    suggestions List(SuggestResult)
+        "Ordered list of suggestions (sorted by score). this includes both folders and projects."
+
+    req_type SuggestType
+        "Whether we used fast or full method"
+
+    elapsed_ms UInt64
+        "Time taken for request, in mili seconds"
+
+struct SuggestError
+    "Error struct for suggest_paper_folder route"
+    error String
+
+route suggest_paper_folders (SuggestPaperFoldersRequest, SuggestPaperFoldersResponse, SuggestError)
+    "Internal endpoint to suggest a Paper folder to a doc."
+    attrs
+        auth = "app"
+        owner = "machine-learning-team"

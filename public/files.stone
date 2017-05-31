@@ -277,7 +277,7 @@ route get_metadata (GetMetadataArg, Metadata, GetMetadataError)
     Note: Metadata for the root folder is unsupported."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
         takes_path_root = true
 
@@ -329,7 +329,7 @@ route list_folder/longpoll (ListFolderLongpollArg, ListFolderLongpollResult, Lis
     attrs
         host = "notify"
         auth = "noauth"
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 struct ListFolderArg
@@ -395,7 +395,7 @@ route list_folder (ListFolderArg, ListFolderResult, ListFolderError)
     the previous request finishes."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 struct ListFolderContinueArg
@@ -418,7 +418,7 @@ route list_folder/continue (ListFolderContinueArg, ListFolderResult, ListFolderC
     :route:`list_folder`."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 struct ListFolderGetLatestCursorResult
@@ -436,7 +436,7 @@ route list_folder/get_latest_cursor (ListFolderArg, ListFolderGetLatestCursorRes
     files that already exist in Dropbox."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 #
@@ -467,7 +467,7 @@ route download (DownloadArg, FileMetadata, DownloadError)
     attrs
         host = "content"
         style = "download"
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 #
@@ -556,7 +556,7 @@ route upload_session/start (UploadSessionStartArg, UploadSessionStartResult, Voi
     attrs
         host = "content"
         style = "upload"
-        owner = "dev-plat"
+        owner = "api-platform"
         feature = "upload_api_rate_limit"
         allow_app_folder_app = true
 
@@ -581,7 +581,7 @@ route upload_session/append_v2 (UploadSessionAppendArg, Void, UploadSessionLooku
     attrs
         host = "content"
         style = "upload"
-        owner = "dev-plat"
+        owner = "api-platform"
         feature = "upload_api_rate_limit"
         allow_app_folder_app = true
 
@@ -606,7 +606,7 @@ route upload_session/append (UploadSessionCursor, Void, UploadSessionLookupError
     attrs
         host = "content"
         style = "upload"
-        owner = "dev-plat"
+        owner = "api-platform"
         feature = "upload_api_rate_limit"
         allow_app_folder_app = true
 
@@ -698,7 +698,7 @@ route upload_session/finish (UploadSessionFinishArg, FileMetadata, UploadSession
     attrs
         host = "content"
         style = "upload"
-        owner = "dev-plat"
+        owner = "api-platform"
         feature = "upload_api_rate_limit"
         allow_app_folder_app = true
 
@@ -711,7 +711,7 @@ route upload (CommitInfo, FileMetadata, UploadError)
     attrs
         host = "content"
         style = "upload"
-        owner = "dev-plat"
+        owner = "api-platform"
         feature = "upload_api_rate_limit"
         allow_app_folder_app = true
         takes_path_root = true
@@ -779,7 +779,7 @@ route upload_session/finish_batch (UploadSessionFinishBatchArg, UploadSessionFin
     the next job before current job finishes. We allow up to 1000 entries in a single request."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         feature = "upload_api_rate_limit"
         allow_app_folder_app = true
 
@@ -788,7 +788,7 @@ route upload_session/finish_batch/check(async.PollArg, UploadSessionFinishBatchJ
     success, it returns list of result for each entry."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 #
@@ -881,7 +881,7 @@ route search (SearchArg, SearchResult, SearchError)
     Note: Recent changes may not immediately be reflected in search results due to a short delay in indexing."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 #
@@ -944,7 +944,7 @@ route create_folder (CreateFolderArg, FolderMetadata, CreateFolderError)
     "Create a folder at a given path."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 #
@@ -1023,7 +1023,7 @@ route delete (DeleteArg, Metadata, DeleteError)
     deletion, and not a :type:`DeletedMetadata` object."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 route delete_batch (DeleteBatchArg, DeleteBatchLaunch, Void)
@@ -1034,7 +1034,7 @@ route delete_batch (DeleteBatchArg, DeleteBatchLaunch, Void)
     the job status."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 route delete_batch/check (async.PollArg, DeleteBatchJobStatus, async.PollError)
@@ -1042,7 +1042,7 @@ route delete_batch/check (async.PollArg, DeleteBatchJobStatus, async.PollError)
     success, it returns list of result for each entry."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 route permanently_delete (DeleteArg, Void, DeleteError)
@@ -1169,7 +1169,7 @@ route copy (RelocationArg, Metadata, RelocationError)
     If the source path is a folder all its contents will be copied."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 
@@ -1187,7 +1187,7 @@ route copy_batch (RelocationBatchArg, RelocationBatchLaunch, Void)
     background. Please use :route:`copy_batch/check` to check the job status."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 route copy_batch/check(async.PollArg, RelocationBatchJobStatus, async.PollError)
@@ -1195,7 +1195,7 @@ route copy_batch/check(async.PollArg, RelocationBatchJobStatus, async.PollError)
     success, it returns list of results for each entry."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 #
@@ -1208,7 +1208,7 @@ route move (RelocationArg, Metadata, RelocationError)
     If the source path is a folder all its contents will be moved."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 route move_batch (RelocationBatchArg, RelocationBatchLaunch, Void)
@@ -1222,7 +1222,7 @@ route move_batch (RelocationBatchArg, RelocationBatchLaunch, Void)
     background. Please use :route:`move_batch/check` to check the job status."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 route move_batch/check(async.PollArg, RelocationBatchJobStatus, async.PollError)
@@ -1230,7 +1230,7 @@ route move_batch/check(async.PollArg, RelocationBatchJobStatus, async.PollError)
     success, it returns list of results for each entry."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 #
@@ -1295,7 +1295,7 @@ route get_thumbnail(ThumbnailArg, FileMetadata, ThumbnailError)
     attrs
         host = "content"
         style = "download"
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 #
@@ -1341,7 +1341,7 @@ route get_preview(PreviewArg, FileMetadata, PreviewError)
     attrs
         host = "content"
         style = "download"
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 #
@@ -1378,7 +1378,7 @@ route list_revisions(ListRevisionsArg, ListRevisionsResult, ListRevisionsError)
     "Return revisions of a file."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 #
@@ -1407,7 +1407,7 @@ route restore(RestoreArg, FileMetadata, RestoreError)
     "Restore a file to a specific revision."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 #
@@ -1440,7 +1440,7 @@ route get_temporary_link(GetTemporaryLinkArg, GetTemporaryLinkResult, GetTempora
     the file's mime type."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 #
@@ -1477,7 +1477,7 @@ route copy_reference/get(GetCopyReferenceArg, GetCopyReferenceResult, GetCopyRef
     :route:`copy_reference/save`."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 struct SaveCopyReferenceArg
@@ -1515,7 +1515,7 @@ route copy_reference/save(SaveCopyReferenceArg, SaveCopyReferenceResult, SaveCop
     "Save a copy reference returned by :route:`copy_reference/get` to the user's Dropbox."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 #
@@ -1550,7 +1550,7 @@ route save_url(SaveUrlArg, SaveUrlResult, SaveUrlError)
     exists, the file will be renamed to avoid the conflict (e.g. myfile (1).txt)."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true
 
 #
@@ -1566,5 +1566,5 @@ route save_url/check_job_status(async.PollArg, SaveUrlJobStatus, async.PollError
     "Check the status of a :route:`save_url` job."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         allow_app_folder_app = true

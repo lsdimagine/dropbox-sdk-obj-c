@@ -22,7 +22,7 @@ route set_permanent_delete_policy(SetPermanentDeletePolicyArg, Void, Administrat
 
     attrs
         auth="team"
-        owner="adminx"
+        owner = "tools-and-insights"
 
 #
 # Multiple accounts
@@ -41,7 +41,7 @@ route set_multiple_accounts_policy(MultipleAccountsPolicyArg, Void, Administrati
 
     attrs
         auth="team"
-        owner="adminx"
+        owner = "tools-and-insights"
 
 #
 # Set password requirements policy
@@ -66,7 +66,7 @@ route set_password_requirements(PasswordPolicyArg, async.LaunchEmptyResult, Admi
 
     attrs
         auth="team"
-        owner="adminx"
+        owner = "tools-and-insights"
 
 #
 # Reset all passwords
@@ -79,7 +79,7 @@ route reset_all_passwords(Void, async.LaunchEmptyResult, AdministrationError)
 
     attrs
         auth="team"
-        owner="adminx"
+        owner = "tools-and-insights"
 
 #
 # Getting the status of a reset all passwords job
@@ -97,7 +97,7 @@ route reset_all_passwords/job_status/check(async.PollArg, ResetAllPasswordsJobSt
 
     attrs
         auth = "team"
-        owner = "adminx"
+        owner = "tools-and-insights"
 
 #
 # Set request membership policy.
@@ -135,7 +135,7 @@ route set_request_membership_policy(RequestMembershipPolicyArg, Void, RequestMem
 
     attrs
         auth="team"
-        owner="adminx"
+        owner = "tools-and-insights"
 
 #
 # Set suggest members policy.
@@ -157,7 +157,7 @@ route set_suggest_members_policy(SuggestMembersPolicyArg, Void, AdministrationEr
 
     attrs
         auth="team"
-        owner="adminx"
+        owner = "user-journeys"
 
 
 #
@@ -181,7 +181,7 @@ route set_infinite_policy(SetInfinitePolicyArg, Void, AdministrationError)
 
     attrs
         auth="team"
-        owner="adminx" # TODO: switch to infinite, after finding where we can add infinite to the owner enum
+        owner = "tools-and-insights" # TODO: switch to infinite, after finding where we can add infinite to the owner enum
 
 struct SetInfinitePolicyArg
     setting InfinitePolicySetting
@@ -189,6 +189,35 @@ struct SetInfinitePolicyArg
 
     example default
         setting = default
+
+#
+# Smart Sync Desktop Policy types
+#
+
+union SmartSyncDesktopPolicySetting
+    optout
+        "Team admin has opted out of Smart Sync for team members."
+    no_optout
+        "Team admin has not opted out of Smart Sync for team members."
+    default
+        "Team admin has not opted out of Smart Sync for team members."
+
+struct SetSmartSyncDesktopPolicyArg
+    setting SmartSyncDesktopPolicySetting
+        "Whether team admin has opted out Smart Sync for members."
+
+    example default
+        setting = default
+
+#
+# Set smart sync desktop policy setting
+#
+
+route set_smart_sync_desktop_policy(SetSmartSyncDesktopPolicyArg, Void, AdministrationError)
+
+    attrs
+        auth="team"
+        owner = "tools-and-insights"
 
 #
 # route change_reseller_support
@@ -215,7 +244,7 @@ route change_reseller_support(ChangeResellerSupportArg, Void, ChangeResellerSupp
 
     attrs
         auth="team"
-        owner="adminx"
+        owner = "teams-and-groups"
 
 #
 # route configure_sso
@@ -300,8 +329,7 @@ route configure_sso(ConfigureSsoArg, ConfigureSsoResult, ConfigureSsoError)
 
     attrs
         auth="team"
-        owner="adminx"
-
+        owner = "tools-and-insights"
 
 
 #
@@ -321,7 +349,7 @@ route configure_google_login_policy(ConfigureGoogleLoginPolicyArg, Void, Adminis
 
     attrs
         auth="team"
-        owner="adminx"
+        owner = "tools-and-insights"
 
 
 #
@@ -341,4 +369,4 @@ route set_office_addin_policy(OfficeAddInPolicyArg, Void, AdministrationError)
 
     attrs
         auth="team"
-        owner="adminx"  # TODO: switch to file-collab-desktop, after adding to the owner enum
+        owner = "ecosystem"

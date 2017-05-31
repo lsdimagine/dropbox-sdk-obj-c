@@ -139,7 +139,7 @@ route get_info(Void, TeamGetInfoResult, Void)
 
     attrs
         auth = "team"
-        owner = "adminx"
+        owner = "teams-and-groups"
 
 
 #
@@ -175,7 +175,7 @@ route token/get_authenticated_admin(Void, TokenGetAuthenticatedAdminResult, Toke
 
     attrs
         auth = "team"
-        owner = "dev-plat"
+        owner = "api-platform"
 
 #
 # Common types
@@ -240,4 +240,4 @@ route features/get_values(FeaturesGetValuesBatchArg, FeaturesGetValuesBatchResul
 
     attrs
         auth = "team"
-        owner = "dev-plat"
+        owner = "api-platform"

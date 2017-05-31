@@ -22,7 +22,7 @@ route sharing/set_commenting_policy(CommentingPolicyArg, Void, AdministrationErr
 
     attrs
         auth="team"
-        owner="adminx"
+        owner = "sharing"
 
 #
 # Set team's file request policy
@@ -44,7 +44,7 @@ route sharing/set_file_request_policy(FileRequestPolicyArg, Void, Administration
 
     attrs
         auth="team"
-        owner="adminx"
+        owner = "sharing"
 
 #
 # Set team's shared link policy
@@ -74,7 +74,7 @@ route sharing/set_shared_link_policy(SharedLinkPolicyArg, Void, SharedLinkError)
 
     attrs
         auth="team"
-        owner="adminx"
+        owner = "sharing"
 
 #
 # Set team's shared folder sharing policy
@@ -96,7 +96,7 @@ route sharing/set_shared_folder_sharing_policy(SharedFolderSharingPolicyArg, Voi
 
     attrs
         auth="team"
-        owner="adminx"
+        owner = "sharing"
 
 #
 # Set team's shared folder joining policy
@@ -118,7 +118,7 @@ route sharing/set_shared_folder_joining_policy(SharedFolderJoiningPolicyArg, Voi
 
     attrs
         auth="team"
-        owner="adminx"
+        owner = "sharing"
 
 #
 # Set allow download shared policy
@@ -139,4 +139,4 @@ route sharing/set_shared_allow_download_policy(SharedAllowDownloadPolicyArg, Voi
 
     attrs
         auth="team"
-        owner="sharing"
+        owner = "sharing"

@@ -59,7 +59,7 @@ route get_events(GetTeamEventsArg, GetTeamEventsResult, GetTeamEventsError)
 
     attrs
         auth = "team"
-        owner = "adminx"
+        owner = "audit-log-team"
         is_preview = true
 
 struct GetTeamEventsContinueArg
@@ -86,5 +86,5 @@ route get_events/continue(GetTeamEventsContinueArg, GetTeamEventsResult, GetTeam
 
     attrs
         auth = "team"
-        owner = "adminx"
+        owner = "audit-log-team"
         is_preview = true

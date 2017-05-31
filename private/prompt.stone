@@ -6,6 +6,9 @@ namespace prompt
 route get_best_campaigns(GetBestCampaignsArg, CampaignsResult, Void)
     "Get the best PROMPT campaigns for the given user."
 
+route get_campaigns(GetCampaignsArg, CampaignsResult, CampaignErr)
+    "Get the PROMPT campaigns that match campaign names in GetCampaignsArg for the user."
+
 route confirm(CampaignArg, Void, CampaignErr)
     "Mark a campaign as confirmed."
 
@@ -117,11 +120,21 @@ struct Modal
     confirm_action_2 MobilePromptAction?
     confirm_text_2 String?
 
+struct UpgradePage
+    title String
+    image_url String
+    text String
+    subtext String
+    benefit_list List(String)
+    action_text String
+
 union CampaignContent
     top_notification TopNotification
     top_notification_with_modal TopNotificationWithModal
     popup_modal PopupModal
     desktop_tray DesktopTray
+
+    upgrade_page UpgradePage
 
     example default
         top_notification = default
@@ -157,6 +170,12 @@ struct GetBestCampaignsArg
         action = files_personal
         match_user_ids = [42, 84]
 
+struct GetCampaignsArg
+    campaign_names List(String)
+
+    example default
+        campaign_names = ["mobile-dropbox-plus", "mobile-dropbox-free-trial"]
+
 struct CampaignsResult
     campaigns List(CampaignResult)
     valid_for UInt64
@@ -181,7 +200,7 @@ union CampaignErr
         "The found campaign doesn't belong to the mobile platform."
 
     bad_match_user_ids String
-        "Campaigns are requested for a user which isn't owned by the authenticated user"
+        "Campaigns are requested for a user which isn't owned by the authenticated user."
 
     example default
         not_found = "There is no campaign with the id '499'."
@@ -190,4 +209,4 @@ union CampaignErr
         bad_platform = "A campaign was found for id '499' but it doesn't belong to the mobile platform."
 
     example bad_match_user_ids
-        bad_match_user_ids = "The user with id '499' is not owned by the requesting user"
+        bad_match_user_ids = "The user with id '499' is not owned by the requesting user."

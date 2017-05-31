@@ -104,7 +104,7 @@ route members/list(MembersListArg, MembersListResult, MembersListError)
 
     attrs
         auth = "team"
-        owner = "adminx"
+        owner = "teams-and-groups"
 
 
 #
@@ -130,7 +130,7 @@ route members/list/continue(MembersListContinueArg, MembersListResult, MembersLi
 
     attrs
         auth = "team"
-        owner = "adminx"
+        owner = "teams-and-groups"
 
 
 #
@@ -178,7 +178,7 @@ route members/get_info(MembersGetInfoArgs, MembersGetInfoResult, MembersGetInfoE
 
     attrs
         auth = "team"
-        owner = "adminx"
+        owner = "teams-and-groups"
 
 
 ##########################
@@ -284,7 +284,7 @@ route members/add(MembersAddArg, MembersAddLaunch, Void)
 
     attrs
         auth = "team"
-        owner = "adminx"
+        owner = "teams-and-groups"
 
 #
 # Route members/add/job_status/get
@@ -309,7 +309,7 @@ route members/add/job_status/get(async.PollArg, MembersAddJobStatus, async.PollE
 
     attrs
         auth = "team"
-        owner = "adminx"
+        owner = "teams-and-groups"
 
 #
 # Route members/set_profile
@@ -366,7 +366,7 @@ route members/set_profile(MembersSetProfileArg, TeamMemberInfo, MembersSetProfil
 
     attrs
         auth = "team"
-        owner = "adminx"
+        owner = "identity"
 
 #
 # Route members/set_admin_permissions
@@ -413,7 +413,7 @@ route members/set_admin_permissions(MembersSetPermissionsArg, MembersSetPermissi
 
     attrs
         auth = "team"
-        owner = "adminx"
+        owner = "teams-and-groups"
 
 
 #
@@ -434,7 +434,7 @@ route members/send_welcome_email(UserSelectorArg, Void, MembersSendWelcomeError)
 
     attrs
         auth = "team"
-        owner = "adminx"
+        owner = "user-journeys"
 
 
 #
@@ -521,7 +521,7 @@ route members/remove(MembersRemoveArg, async.LaunchEmptyResult, MembersRemoveErr
 
     attrs
         auth = "team"
-        owner = "adminx"
+        owner = "teams-and-groups"
 
 #
 # Route members/remove/job_status/get
@@ -535,7 +535,7 @@ route members/remove/job_status/get(async.PollArg, async.PollEmptyResult, async.
 
     attrs
         auth = "team"
-        owner = "adminx"
+        owner = "teams-and-groups"
 
 #
 # Route members/suspend
@@ -558,7 +558,7 @@ route members/suspend(MembersDeactivateArg, Void, MembersSuspendError)
 
     attrs
         auth = "team"
-        owner = "adminx"
+        owner = "teams-and-groups"
 
 #
 # Route members/unsuspend
@@ -589,7 +589,7 @@ route members/unsuspend(MembersUnsuspendArg, Void, MembersUnsuspendError)
 
     attrs
         auth = "team"
-        owner = "adminx"
+        owner = "teams-and-groups"
 
 #
 # Route members/recover
@@ -622,4 +622,4 @@ route members/recover(MembersRecoverArg, Void, MembersRecoverError)
 
     attrs
         auth = "team"
-        owner = "adminx"
+        owner = "tools-and-insights"

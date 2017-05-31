@@ -133,7 +133,7 @@ route list(Void, ListFileRequestsResult, ListFileRequestsError)
     changes."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         is_preview = true
         allow_app_folder_app = true
 
@@ -162,7 +162,7 @@ route get(GetFileRequestArgs, FileRequest, GetFileRequestError)
     changes."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         is_preview = true
         allow_app_folder_app = true
 
@@ -190,7 +190,7 @@ route create(CreateFileRequestArgs, FileRequest, CreateFileRequestError)
     changes."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         is_preview = true
         allow_app_folder_app = true
 
@@ -236,7 +236,7 @@ route update(UpdateFileRequestArgs, FileRequest, UpdateFileRequestError)
     changes."
 
     attrs
-        owner = "dev-plat"
+        owner = "api-platform"
         is_preview = true
         allow_app_folder_app = true
 

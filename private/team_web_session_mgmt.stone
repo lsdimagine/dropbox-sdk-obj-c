@@ -26,4 +26,4 @@ route web_session_management/configure_settings(WebSessionManagementArg, Void, W
 
     attrs
         auth="team"
-        owner="adminx"
+        owner = "tools-and-insights"

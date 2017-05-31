@@ -35,7 +35,7 @@ route member_space_limits/set_default_limit(SetMemberSpaceDefaultLimitArg, Void,
 
     attrs
         auth="team"
-        owner="adminx"
+        owner = "tools-and-insights"
 
 
 route member_space_limits/update_excluded_users(UpdateExcludedUsersArg, GetExcludedUsersResult, ExclusionListError)
@@ -43,4 +43,4 @@ route member_space_limits/update_excluded_users(UpdateExcludedUsersArg, GetExclu
 
     attrs
         auth="team"
-        owner="adminx"
+        owner = "tools-and-insights"

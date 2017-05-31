@@ -64,7 +64,7 @@ route device_management/configure_settings(ConfigureSettingsDeviceManagementArg,
 
     attrs
         auth="team"
-        owner="adminx"
+        owner = "tools-and-insights"
 
 route device_management/get_excluded_users(Void, GetExcludedUsersResult, DeviceManagementError)
     "Get list of excluded users.
@@ -73,7 +73,7 @@ route device_management/get_excluded_users(Void, GetExcludedUsersResult, DeviceM
 
     attrs
         auth="team"
-        owner="adminx"
+        owner = "tools-and-insights"
 
 struct RemoveDeviceArg
     user_id UInt64
@@ -110,7 +110,7 @@ route device_management/remove_device(RemoveDeviceArg, RemoveDeviceResult, Devic
 
     attrs
         auth="team"
-        owner="adminx"
+        owner = "tools-and-insights"
 
 struct RemoveClientArg
     user_id UInt64
@@ -150,4 +150,4 @@ route device_management/remove_client(RemoveClientArg, RemoveClientResult, Devic
 
     attrs
         auth="team"
-        owner="adminx"
+        owner = "tools-and-insights"

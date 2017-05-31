@@ -30,4 +30,4 @@ union GetWopiMetadataError
 
 route get_wopi_metadata(GetWopiMetadataArg, GetWopiMetadataResult, GetWopiMetadataError)
     attrs
-        owner="productivity-infra-team"
+        owner="ecosystem"

@@ -40,7 +40,7 @@ route get_info_internal(Void, TeamGetInfoResultInternal, Void)
 
     attrs
         auth="team"
-        owner="adminx"
+        owner = "teams-and-groups"
 
 #
 # Route members/suggest_to_dfb_admin
@@ -62,7 +62,7 @@ route members/suggest_to_dfb_admin(SuggestMembers, Void, Void)
 
     attrs
         auth="team"
-        owner="adminx"
+        owner = "user-journeys"
 
 #
 # Route get_suggested_members_for_user
@@ -100,4 +100,4 @@ route members/get_suggested_members_for_user(SuggestedMembersForUserArgs, Sugges
 
     attrs
         auth="team"
-        owner="adminx"
+        owner = "user-journeys"

@@ -53,7 +53,7 @@ route validate_folder_path(ValidateFolderPathArg, ExpectedSharedFolderMetadata, 
     - currently many mobile clients are using this endpoint"
 
     attrs
-        owner = "sfi"
+        owner = "sharing-platform"
 
 struct ValidateFolderPathArg
     path files.WritePath
@@ -82,7 +82,7 @@ route validate_folder_path/batch(ValidateFolderPathBatchArg, ValidateFolderPathB
     or an error explaining why a shared folder cannot be created at that path."
 
     attrs
-        owner = "sfi"
+        owner = "sharing-platform"
 
 struct ValidateFolderPathBatchArg
     paths List(files.WritePath)
@@ -142,7 +142,7 @@ route get_folder_member_counts(GetFolderMemberCountsArgs, MemberCounts, SharedFo
     Apps must have full Dropbox access to use this endpoint."
 
     attrs
-        owner = "sfi"
+        owner = "sharing-platform"
 
 struct GetFolderMemberCountsArgs
     shared_folder_id common.SharedFolderId
@@ -222,7 +222,7 @@ route get_folder_metadata_2(InternalGetMetadataArgs, InternalSharedFolderMetadat
     "Returns internal shared folder metadata by its folder ID."
 
     attrs
-        owner = "sfi"
+        owner = "sharing-platform"
 
 struct InternalGetMetadataArgs
     shared_folder_id common.SharedFolderId
@@ -589,7 +589,7 @@ route alpha/get_folder_metadata(AlphaGetMetadataArgs, AlphaSharedFolderMetadata,
     attrs
         api_group = "sharing"
         is_preview = true
-        owner = "sfi"
+        owner = "sharing-platform"
 
 struct AlphaUpdateFolderPolicyArg
     "If any of the policy's are unset, then they retain their current setting."
@@ -619,7 +619,7 @@ route alpha/update_folder_policy(AlphaUpdateFolderPolicyArg, AlphaSharedFolderMe
     User must have :field:`AccessLevel.owner` access to the shared folder to update its policies."
 
     attrs
-        owner = "sfi"
+        owner = "sharing-platform"
         is_preview = true
 
 union_closed AlphaShareFolderLaunch extends async.LaunchResultBase
@@ -661,7 +661,7 @@ route alpha/list_folders(AlphaListFoldersArgs, AlphaListFoldersResult, Void)
     Apps must have full Dropbox access to use this endpoint."
 
     attrs
-        owner = "sfi"
+        owner = "sharing-platform"
         is_preview = true
 
 struct AlphaListFoldersResult
@@ -702,7 +702,7 @@ route alpha/list_folders/continue(ListFoldersContinueArg, AlphaListFoldersResult
     Apps must have full Dropbox access to use this endpoint."
 
     attrs
-        owner = "sfi"
+        owner = "sharing-platform"
         is_preview = true
 
 
@@ -715,7 +715,7 @@ route alpha/list_mountable_folders(AlphaListFoldersArgs, AlphaListFoldersResult,
     Apps must have full Dropbox access to use this endpoint."
 
     attrs
-        owner = "sfi"
+        owner = "sharing-platform"
         is_preview = true
 
 
@@ -730,5 +730,5 @@ route alpha/list_mountable_folders/continue(ListFoldersContinueArg, AlphaListFol
     Apps must have full Dropbox access to use this endpoint."
 
     attrs
-        owner = "sfi"
+        owner = "sharing-platform"
         is_preview = true
