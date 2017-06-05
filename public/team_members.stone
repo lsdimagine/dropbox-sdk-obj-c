@@ -350,7 +350,7 @@ union MembersSetProfileError extends MemberSelectorError
     external_id_used_by_other_user
         "The external ID is already in use by another team member."
     set_profile_disallowed
-        "Pending team member's email cannot be modified."
+        "Modifying deleted users is not allowed."
     param_cannot_be_empty
         "Parameter new_email cannot be empty."
     persistent_id_disabled

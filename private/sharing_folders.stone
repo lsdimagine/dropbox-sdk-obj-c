@@ -67,6 +67,9 @@ struct ValidateFolderPathArg
     list_members_arg ListFolderMembersCursorArg?
         "If this field is provided, the return value will include a cursor
         for listing inherited folder members."
+    is_containing_path Boolean = false
+        "If the path provided is the containing path to a new shared folder. Used if metadata is
+        needed before the client knows what the path of the new shared folder will be."
 
     example default
         path = "/example/workspace"
@@ -368,6 +371,9 @@ route share_folder_internal (ShareFolderInternalArg, ShareFolderInternalLaunch, 
 struct ShareFolderInternalArg extends AlphaShareFolderArg
     confidentiality ConfidentialityArgs = not_confidential
         "Specifies the confidentiality settings on the folder"
+    should_be_new_path Boolean = false
+        "Whether an error should be returned if the path already exists. Used when the client
+        wants to ensure that the shared folder being created is at a new path."
 
     example default
         path = "/example/workspace"

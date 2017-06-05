@@ -190,3 +190,9 @@ route get_twofactor_info (Void, TwofactorInfo?, Void)
     attrs
         owner = "prodsec"
         is_preview = true
+
+route mark_sct_completed (Void, Void, Void)
+    "Marks a user as having completed the Security Checkup Tool."
+    attrs
+        owner = "prodsec"
+        is_preview = true

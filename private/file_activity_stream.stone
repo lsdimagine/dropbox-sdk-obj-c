@@ -3,6 +3,7 @@ namespace file_activity_stream
 import common
 
 union FileActivityStreamAccessType
+    no_access
     view_name_only
     traverse
     reader_no_comment
@@ -34,6 +35,7 @@ struct Activity
         move                         MoveActivity
         rename                       RenameActivity
         shared_content_invite        SharedContentInviteActivity
+        shared_content_change        SharedContentChangeActivity
         shared_link                  SharedLinkActivity
         view                         ViewActivity
 
@@ -73,6 +75,14 @@ struct SharedContentInviteActivity extends Activity
     shared_groups List(FileActivityStreamGroup)
     shared_users List(FileActivityStreamUser)
     access_type FileActivityStreamAccessType
+
+struct SharedContentChangeActivity extends Activity
+    "Activity for shared files."
+
+    access_type FileActivityStreamAccessType
+    changed_email String?
+    changed_group FileActivityStreamGroup?
+    changed_user FileActivityStreamUser?
 
 struct SharedLinkActivity extends Activity
     "Activity for shared links."

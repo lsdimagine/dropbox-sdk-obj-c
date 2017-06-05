@@ -267,6 +267,37 @@ struct GetTeamStatusArgs
         team_id = 98765
 
 
+struct MigrateToChannelArgs
+    "Arguments to instantly convert a direct team to channnel on a new term. Can include upsells, downsells, upgrades or downgrades."
+
+    team_id UInt64
+        "The ID of the team being migrated."
+    old_subscription_state SubscriptionState
+        "The current state of the team"
+    new_subscription_state SubscriptionState
+        "The state of the team after the migration. Include any upsells, downsells, upgrades or downgrades here."
+    price Price
+    external_invoice_id ExternalInvoiceId
+        "Some external ID representing a payment that didn't happen through Cash-Team's systems."
+    reseller_ids ResellerChain
+        "The chain of reseller owners of this team."
+
+    example migrate_team_to_channel
+        team_id = 12345
+        price = seven_hundred_usd
+        external_invoice_id = salesforce_example
+        old_subscription_state = boring_team
+        new_subscription_state = boring_team
+        reseller_ids = ["U3TK3F93PO", "PV3YWROF1F"]
+
+    example migrate_team_to_channel_with_upsell
+        team_id = 12345
+        price = seven_hundred_usd
+        external_invoice_id = salesforce_example
+        old_subscription_state = boring_team
+        new_subscription_state = boring_team_10_licenses
+        reseller_ids = ["U3TK3F93PO", "PV3YWROF1F"]
+
 struct RenewArgs
     "Arguments to instantly renew (or trial-convert) a team. Can include upsells."
     team_id UInt64
@@ -327,6 +358,11 @@ route extend_trial(ExtendTrialArgs, TeamStatusResponseOrion, InternalProvisioner
 
 route get_team_status(GetTeamStatusArgs, TeamStatusResponseOrion, InternalProvisionerError)
     "No-op. Returns the state of the requested team."
+    attrs
+        auth="app"
+
+route migrate_team_to_channel(MigrateToChannelArgs, TeamStatusResponseOrion, InternalProvisionerError)
+    "Migrate an existing direct team onto channel."
     attrs
         auth="app"
 
