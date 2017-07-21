@@ -15,7 +15,10 @@ route add_file_members(AddFileMemberArgs, List(FileMemberActionResult), AddFileM
 # --
 
 route share_file(ShareFileArg, SharedFileMetadata, ShareFileError)
-    "Share a file. This is used when copying the link to a file."
+    "Share a file. This is used when copying the link to a file.
+
+    This should probably not be used if you want to query permissions via the
+    actions field. See :route:`alpha/share_file` instead."
 
     attrs
         owner = "sharing"
@@ -25,7 +28,7 @@ struct ShareFileArg
 
     file PathOrId
         "The file to share."
-    actions List(AlphaFileAction)?
+    actions List(FileAction)?
         "File actions to query."
 
     example default
@@ -39,6 +42,30 @@ union ShareFileError
 
     example default
         user_error = email_unverified
+
+# --
+
+route alpha/share_file(AlphaShareFileArg, AlphaSharedFileMetadata, ShareFileError)
+    "Share a file. This is used when copying the link to a file.
+
+    This should be used for Truelink, as this handles the full complement of
+    actions needed to know what Truelink settings are allowed. This is also
+    the endpoint that can handle PASS and no-download settings."
+
+    attrs
+        owner = "sharing"
+
+struct AlphaShareFileArg
+    "Arguments for :route:`alpha/share_file`."
+
+    file PathOrId
+        "The file to share."
+    actions List(AlphaFileAction)?
+        "File actions to query."
+
+    example default
+        file = "id:3kmLmQFnf1AAAAAAAAAAAw"
+        actions = []
 
 # --
 
@@ -121,6 +148,8 @@ struct GetFileMemberCountsArg
         "The file of interest."
     limit UInt32(max_value=300) = 100
         "The maximum count to return."
+    count_groups_as_members Boolean?
+        "Whether to count groups as members exlicitly"
     url String?
         "The shared link URL that the user is viewing the content on when the file is not in their dropbox."
 
@@ -193,6 +222,10 @@ struct AlphaSharedFileMetadata
     link_metadata SharedContentLinkMetadata?
     name String
         "The name of this file."
+    owner_display_names List(String)?
+        "The display names of the users that own the file. If the file is part
+        of a team folder, the display names of the team admins are also
+        included. Absent if the owner display names cannot be fetched."
     owner_team users.Team?
         "The team that owns the file. This field is not present if the file
         is not owned by a team."

@@ -306,6 +306,10 @@ struct SharedFolderMetadataBase
     is_team_folder Boolean
         "Whether this folder is a
         :link:`team folder https://www.dropbox.com/en/help/986`."
+    owner_display_names List(String)?
+        "The display names of the users that own the folder. If the folder is
+        part of a team folder, the display names of the team admins are also
+        included. Absent if the owner display names cannot be fetched."
     owner_team users.Team?
         "The team that owns the folder. This field is not present if the folder
         is not owned by a team."
@@ -319,6 +323,7 @@ struct SharedFolderMetadataBase
         access_type = owner
         is_inside_team_folder = false
         is_team_folder = false
+        owner_display_names = ["Jane Doe"]
         owner_team = default
 
 # NOTE: If you modify this struct, also modify InternalSharedFolderMetadata,
@@ -600,30 +605,37 @@ route share_folder(ShareFolderArg, ShareFolderLaunch, ShareFolderError )
         owner = "sharing-platform"
         api_group = "truelink-alpha"
 
-struct ShareFolderArg
-    path files.WritePath
-        "The path to the folder to share. If it does not exist, then a new one
-        is created."
+# As of 2017-05, there are three kinds of arg:
+# ShareFolderArg: The public stable version. We cannot make backwards-incompatible changes at all.
+# ShareFolderInternalArg: The private stable version. We cannot make backwards-incompatible changes
+#   unless we are sure no clients in the wild are using the endpoint.
+# AlphaShareFolderArg: The private experimental version. We can do what we want as long as it
+#   doesn't break web.
+struct ShareFolderArgBase
+    acl_update_policy AclUpdatePolicy?
+        "Who can add and remove members of this shared folder."
+    force_async Boolean = false
+        "Whether to force the share to happen asynchronously."
     member_policy MemberPolicy?
         "Who can be a member of this shared folder. Only applicable if the
         current user is on a team."
-    acl_update_policy AclUpdatePolicy?
-        "Who can add and remove members of this shared folder."
+    path files.WritePath
+        "The path to the folder to share. If it does not exist, then a new one
+        is created."
     shared_link_policy SharedLinkPolicy?
         "The policy to apply to shared links created for content inside this
         shared folder.  The current user must be on a team to set this policy to
         :field:`SharedLinkPolicy.members`."
-    force_async Boolean = false
-        "Whether to force the share to happen asynchronously."
+    viewer_info_policy ViewerInfoPolicy?
+        "Who can enable/disable viewer info for this shared folder."
+
+struct ShareFolderArg extends ShareFolderArgBase
     actions List(FolderAction)?
         "A list of `FolderAction`s corresponding to `FolderPermission`s that should appear in the
          response's :field:`SharedFolderMetadata.permissions` field describing the actions the
          authenticated user can perform on the folder."
     link_settings LinkSettings?
         "Settings on the link for this folder."
-    viewer_info_policy ViewerInfoPolicy?
-        "Who can enable/disable viewer info for this shared folder."
-
 
     example default
         path = "/example/workspace"

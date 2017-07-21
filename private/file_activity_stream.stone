@@ -1,6 +1,7 @@
 namespace file_activity_stream
 
 import common
+import sharing
 
 union FileActivityStreamAccessType
     no_access
@@ -10,11 +11,6 @@ union FileActivityStreamAccessType
     reader
     writer
     owner
-
-union SharedLinkAudience
-    off
-    team
-    public
 
 struct FileActivityStreamUser
     id String
@@ -36,8 +32,7 @@ struct Activity
         rename                       RenameActivity
         shared_content_invite        SharedContentInviteActivity
         shared_content_change        SharedContentChangeActivity
-        shared_link                  SharedLinkActivity
-        view                         ViewActivity
+        shared_link_change           SharedLinkChangeActivity
 
     id String
     timestamp common.DropboxTimestamp
@@ -65,9 +60,6 @@ struct RenameActivity extends Activity
     filename String
     last_filename String?
 
-struct ViewActivity extends Activity
-    "Activity for viewed files."
-
 struct SharedContentInviteActivity extends Activity
     "Activity for shared files."
 
@@ -84,10 +76,14 @@ struct SharedContentChangeActivity extends Activity
     changed_group FileActivityStreamGroup?
     changed_user FileActivityStreamUser?
 
-struct SharedLinkActivity extends Activity
+struct SharedLinkChangeActivity extends Activity
     "Activity for shared links."
 
-    link_audience SharedLinkAudience
+    changed_access_level sharing.AccessLevel?
+    changed_audience sharing.LinkAudience?
+    changed_expiration sharing.LinkExpiry?
+    # This handles setting, changing, and removing the password.
+    changed_is_password_required sharing.LinkPassword?
 
 
 struct GetActivityStreamRequest
@@ -107,7 +103,8 @@ union FileActivityStreamError
 route get_activity_stream (GetActivityStreamRequest, GetActivityStreamResponse, FileActivityStreamError)
 
 struct FeedbackRequest
-    feedback UInt32
+    rating UInt32
+    feedback String
     file_preview_session_id String
     file_viewer_session_id String
     file_ns_id UInt32

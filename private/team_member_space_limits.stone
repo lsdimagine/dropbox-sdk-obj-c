@@ -23,11 +23,34 @@ struct SetMemberSpaceDefaultLimitArg
     example default
         limit_level = default
 
+
 union SetMemberSpaceDefaultLimitError extends team_administration.AdministrationError
     "Error returned by setting member space limit."
 
     invalid_value
         "Invalid limit value."
+
+
+union CapsType
+    "The enumerator value of the team caps type."
+
+    off
+        "Off."
+    soft
+        "Soft caps."
+    hard
+        "Hard caps."
+
+
+struct SetCapsTypeArg
+    caps_type CapsType
+
+
+union SetCapsTypeError extends team_administration.AdministrationError
+    "Error returned by setting space caps type."
+
+    invalid_value
+        "Invalid caps value."
 
 
 route member_space_limits/set_default_limit(SetMemberSpaceDefaultLimitArg, Void, SetMemberSpaceDefaultLimitError)
@@ -40,6 +63,14 @@ route member_space_limits/set_default_limit(SetMemberSpaceDefaultLimitArg, Void,
 
 route member_space_limits/update_excluded_users(UpdateExcludedUsersArg, GetExcludedUsersResult, ExclusionListError)
     "Updates space limits exclusion users list by adding or removing users."
+
+    attrs
+        auth="team"
+        owner = "tools-and-insights"
+
+
+route member_space_limits/set_caps_type(SetCapsTypeArg, Void, SetCapsTypeError)
+    "Updates space caps type for the team."
 
     attrs
         auth="team"

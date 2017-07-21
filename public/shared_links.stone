@@ -493,7 +493,7 @@ route get_shared_links(GetSharedLinksArg, GetSharedLinksResult, GetSharedLinksEr
     including collection links.
 
     If no path is given, returns a list of all shared links for the current
-    user, including collection links.
+    user, including collection links, up to a maximum of 1000 links.
 
     If a non-empty path is given, returns a list of all shared links
     that allow access to the given path.  Collection links are never

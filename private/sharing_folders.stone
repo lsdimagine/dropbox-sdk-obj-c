@@ -262,6 +262,11 @@ struct InternalFolderPermission
         allow = false
         reason = user_not_same_team_as_owner
 
+# SharedFolderMetadata: public stable version
+# InternalSharedFolderMetadata: private stable version used by our mobile/desktop clients. api is
+#   frozen which means we can't make backwards-incompatible change
+# AlphaSharedFolderMetadata: private unstable version used by web. api is not frozen, we can do
+#   whatever we want as long as it doesn't break web
 struct InternalSharedFolderMetadata extends SharedFolderMetadataBase
     "The metadata which includes internal information about the shared folder."
 
@@ -366,11 +371,14 @@ route share_folder_internal (ShareFolderInternalArg, ShareFolderInternalLaunch, 
     "An internal version of :route:share_folder that can mark a folder Confidential."
 
     attrs
-        owner = "company-dropbox-team"
+        owner = "sharing-platform"
 
-struct ShareFolderInternalArg extends AlphaShareFolderArg
+struct ShareFolderInternalArg extends ShareFolderArgBase
+    actions List(InternalFolderAction)?
     confidentiality ConfidentialityArgs = not_confidential
         "Specifies the confidentiality settings on the folder"
+    link_settings LinkSettings?
+        "Settings on the link for this folder."
     should_be_new_path Boolean = false
         "Whether an error should be returned if the path already exists. Used when the client
         wants to ensure that the shared folder being created is at a new path."
@@ -443,7 +451,7 @@ route check_share_internal_job_status (async.PollArg, ShareFolderInternalJobStat
     "Check the status of tasks that are expected to return InternalSharedFolderMetadata"
 
     attrs
-        owner = "company-dropbox-team"
+        owner = "sharing-platform"
 
 # --
 
@@ -474,7 +482,7 @@ route unshare_folder/batch(UnshareFoldersBatchArg, async.LaunchEmptyResult, Unsh
     Apps must have full Dropbox access to use this endpoint."
 
     attrs
-        owner = "sub-growth"
+        owner = "sharing-platform"
 
 struct UnshareFoldersBatchArg
     shared_folder_ids List(common.SharedFolderId)
@@ -524,7 +532,7 @@ struct AlphaFolderPolicy
         pass_policy = enabled
         viewer_info_policy = enabled
 
-union AlphaFolderAction extends FolderAction
+union AlphaFolderAction extends InternalFolderAction
     disable_pass
         "Whether the user has permission to disable the viewer list information on the folder."
     enable_pass
@@ -555,11 +563,21 @@ struct AlphaFolderPermission
         allow = false
         reason = user_not_same_team_as_owner
 
+# SharedFolderMetadata: public stable version
+# InternalSharedFolderMetadata: private stable version used by our mobile/desktop clients. api is
+#   frozen which means we can't make backwards-incompatible change
+# AlphaSharedFolderMetadata: private unstable version used by web. api is not frozen, we can do
+#   whatever we want as long as it doesn't break web
 struct AlphaSharedFolderMetadata extends SharedFolderMetadataBase
     "Extended version of SharedFolderMetadata with link metadata and extended folder policy"
+    is_confidential Boolean = false
+        "Specifies that the folder is invite only."
     link_metadata SharedContentLinkMetadata?
     name String
         "The name of the this shared folder."
+    managed_by String?
+        "A human-readable string telling the user how to manage the folder or who can manage
+        it if they don't have permission."
     permissions List(AlphaFolderPermission)?
         "Actions the current user may perform on the folder and its contents.
         The set of permissions corresponds to the FolderActions in the request."
@@ -600,18 +618,20 @@ route alpha/get_folder_metadata(AlphaGetMetadataArgs, AlphaSharedFolderMetadata,
 struct AlphaUpdateFolderPolicyArg
     "If any of the policy's are unset, then they retain their current setting."
 
-    shared_folder_id common.SharedFolderId
-        "The ID for the shared folder."
-    member_policy MemberPolicy?
-        "Who can be a member of this shared folder. Only applicable if the
-        current user is on a team."
     acl_update_policy AclUpdatePolicy?
         "Who can add and remove members of this shared folder."
     actions List(AlphaFolderAction)?
     download_policy DownloadPolicy?
-    pass_policy PassPolicy?
-    shared_link_policy SharedLinkPolicy?
     link_settings AlphaLinkSettings?
+    member_policy MemberPolicy?
+        "Who can be a member of this shared folder. Only applicable if the
+        current user is on a team."
+    pass_policy PassPolicy?
+        "Deprecated(davy): use viewer_info_policy instead."
+    shared_folder_id common.SharedFolderId
+        "The ID for the shared folder."
+    shared_link_policy SharedLinkPolicy?
+    viewer_info_policy ViewerInfoPolicy?
 
     example default
         shared_folder_id = "84528192421"
@@ -635,28 +655,16 @@ route alpha/share_folder(AlphaShareFolderArg, AlphaShareFolderLaunch, ShareFolde
     attrs
         is_preview = true
 
-struct AlphaShareFolderArg
-    path files.WritePath
-        "The path to the folder to share. If it does not exist, then a new one
-        is created."
-    member_policy MemberPolicy?
-        "Who can be a member of this shared folder. Only applicable if the
-        current user is on a team."
-    acl_update_policy AclUpdatePolicy?
-        "Who can add and remove members of this shared folder."
-    shared_link_policy SharedLinkPolicy?
-        "The policy to apply to shared links created for content inside this
-        shared folder.  The current user must be on a team to set this policy to
-        :field:`SharedLinkPolicy.members` or
-        :field:`SharedLinkPolicy.team`."
-    force_async Boolean = false
-        "Whether to force the share to happen asynchronously."
+struct AlphaShareFolderArg extends ShareFolderArgBase
     actions List(AlphaFolderAction)?
+    confidentiality ConfidentialityArgs = not_confidential
+        "Specifies the confidentiality settings on the folder"
     download_policy DownloadPolicy?
     link_settings AlphaLinkSettings?
     pass_policy PassPolicy?
-    viewer_info_policy ViewerInfoPolicy?
-
+    should_be_new_path Boolean = false
+        "Whether an error should be returned if the path already exists. Used when the client
+        wants to ensure that the shared folder being created is at a new path."
 
 # --
 

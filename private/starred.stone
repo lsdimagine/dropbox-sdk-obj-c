@@ -1,5 +1,7 @@
 namespace starred
 
+import home
+
 #
 # generic types
 #
@@ -11,7 +13,6 @@ union FileIdType
 union ItemIdTypeV2 extends FileIdType
     paper_document_id_path
     paper_folder_id_path
-
 
 # These types are functionally equivalent to the corresponding ItemIdTypeV2 types with `path` suffix
 union ItemIdType extends ItemIdTypeV2
@@ -39,6 +40,9 @@ struct FileStarredStatus extends FileQuery
 
     is_starred Boolean
         "Whether the file is starred."
+
+    display_type home.DisplayType
+        "The type of file/folder, for setting the icon and logging"
 
 struct FileObjWithPath
     "Both of the identifiers (file_obj_id and fq_path) for a file."

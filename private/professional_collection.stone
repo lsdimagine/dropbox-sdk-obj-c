@@ -6,40 +6,113 @@ namespace professional_collection
 # created by an user.
 #
 
-struct ProfessionalCollectionMetadata
-    collection_gid String
-    user_id UInt64
-    creation_time UInt64
-    last_modified_time UInt64
-    title String
-    thumbnail_urls List(String)
-        "Populated only if :field:`ListProfessionalCollectionsArg.include_thumbnail`=true, otherwise is an empty array."
-    items_count UInt32
+struct SelectedFileInfo
+    ns_id UInt64
+    ns_path String
+
+struct CreateProfessionalCollectionArg
+    selected_files List(SelectedFileInfo)
+
+struct CreateProfessionalCollectionResult
+    collection_id String
     collection_url String
 
-struct ListProfessionalCollectionsResult
-    entries List(ProfessionalCollectionMetadata)
-    has_more Boolean
-    cursor String?
+    example result
+        "A successful collection creation result"
+        collection_id = "abcde123455"
+        collection_url = "/collection/Untitled-abcde123455"
 
-struct ListProfessionalCollectionsArg
+union CreateProfessionalCollectionError
+    insufficient_permissions
+        "You do not have sufficient permissions to create Collections."
+    invalid_path
+        "The selected files are not present in the user's namespace"
+    paper_return_error
+        "Paper RPC failed with some status"
+    collections_not_accessible
+        "Paper is not accessible for this user"
+    unknown_error
+        "Some other error occurred"
+
+struct AppendToProfessionalCollectionArg
+    selected_files List(SelectedFileInfo)
+    collection_id String
+
+struct AppendToProfessionalCollectionResult
+    collection_url String
+
+    example result
+        "A successful collection append result"
+        collection_url = "/collection/Untitled-abcde123456"
+
+alias AppendToProfessionalCollectionError = CreateProfessionalCollectionError
+
+struct CollectionUser
+    id String
+    email String
+    name String
+    pic String?
+
+    example user
+        id = "d.aX86Va0bCNNJDjPP9iZ9Trnq6oLRfbG9N5hq9jbxhhtbPEaDr4"
+        email = "sai@example.com"
+        name = "Sai Teja"
+        pic = "https://link to profile pic"
+
+    example invitee
+        id = "d.4ABl57KypBfr2lWwYnuj9w1Wx7YSW3CDqmn5pAub6bO3q80Un"
+        email = "henry@example.com"
+        name = "Henry Liu"
+        pic = "https://link to profile pic"
+
+struct CollectionMetadata
+    collection_id String
+    collection_url String
+    creator CollectionUser
+    title String
+    invitees List(CollectionUser)?
+    thumbnail_urls List(String)?
+    items_count UInt32
+    created_date String
+    last_edited_date String
+
+    example collection
+        collection_id = "wLvyImNlD3Cw4eNv3eUJs"
+        collection_url = "/collection/Untitled-wLvyImNlD3Cw4eNv3eUJs"
+        creator = user
+        title = "Untitled"
+        invitees = [invitee]
+        thumbnail_urls = ["https://link-to-thumbnail-url"]
+        items_count = 10
+        created_date = "Mon, 03 Jul 2017 15:27:19 GMT"
+        last_edited_date = "Mon, 03 Jul 2017 15:28:20 GMT"
+
+struct ListCollectionsArg
     limit UInt32?
-    include_thumbnail Boolean?
 
-struct ListProfessionalCollectionsContinueArg
-    cursor String
+struct ListCollectionsResult
+    prof_collections List(CollectionMetadata)
+    has_used_prof_collections Boolean
 
-union ListProfessionalCollectionsContinueError
-    invalid_cursor
-        ":field:`ListProfessionalCollectionsContinueArg.cursor` is invalid."
+union ListCollectionsError
+    collections_not_accessible
+        "Collections are not enabled/available for the user"
+    collections_not_used
+        "User has not used Collection before"
 
-route list(ListProfessionalCollectionsArg, ListProfessionalCollectionsResult, Void)
+route create(CreateProfessionalCollectionArg, CreateProfessionalCollectionResult, CreateProfessionalCollectionError)
     attrs
         api_group = "premium-labs"
         is_preview = true
         owner = "premium-labs"
 
-route list/continue(ListProfessionalCollectionsContinueArg, ListProfessionalCollectionsResult, ListProfessionalCollectionsContinueError)
+route list(ListCollectionsArg, ListCollectionsResult, ListCollectionsError)
+    attrs
+        api_group = "premium-labs"
+        is_preview = true
+        owner = "premium-labs"
+
+route append(AppendToProfessionalCollectionArg, AppendToProfessionalCollectionResult, AppendToProfessionalCollectionError)
     attrs
         api_group = "premium-labs"
         is_preview = true

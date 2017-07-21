@@ -7,6 +7,28 @@ import users_common
 # EventType names should be the same as TeamEvent.EventType key
 alias EventTypeName = String(pattern="[A-Z_]+")
 
+# TODO: given the complexity of matching IPv6 addresses, it could be better to move this to controller level.
+# The pattern matches to both IPv4 and IPv6 addresses in different formats, including compression, zone ID, and IPv4 embedding.
+# This is a shortened version of the one described in: https://stackoverflow.com/a/17871737/855254.
+# Due to current limitation we have to keep this in a single line.
+# If put into multiple lines the pattern would look like below:
+# ^(
+#     ((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9])|
+#     ([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|
+#     ([0-9a-fA-F]{1,4}:){1,7}:|
+#     ([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|
+#     ([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|
+#     ([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|
+#     ([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|
+#     ([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|
+#     [0-9a-fA-F]{1,4}:(:[0-9a-fA-F]{1,4}){1,6}|
+#     :((:[0-9a-fA-F]{1,4}){1,7}|:)|
+#     fe80:(:[0-9a-fA-F]{0,4}){0,4}%\\w+|
+#     ::(ffff(:0{1,4})?:)?((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9])|
+#     ([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9])
+# )$
+alias IpAddress = String(pattern="^(((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9])|([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(:[0-9a-fA-F]{1,4}){1,6}|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%\\w+|::(ffff(:0{1,4})?:)?((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9]))$")
+
 union_closed TeamEventDataSelector
     paper_document team_event_data_types.PaperDocument
     paper_document_with_sharing_policy team_event_data_types.PaperDocumentWithSharingPolicy
@@ -33,7 +55,7 @@ struct TeamEventArg
         "Data to be stored for the event"
     assumed_user_id users_common.AccountId?
         "The assumed user if a Team Admin is acting on behalf of a user"
-    ip_address String(pattern="^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$")?
+    ip_address IpAddress?
         "Used to force set IP for events generated remotely or on the server. Inferred from request if not set."
     timestamp common.DropboxTimestamp?
         "Timestamp of the event"
@@ -46,6 +68,16 @@ struct TeamEventArg
         event_data = document
         assumed_user_id = "dbid:BBH4f99T0taONIb-OurWxbNQ6ywGRopRynx"
         ip_address = "10.0.0.1"
+        timestamp = "2016-09-16T21:59:26Z"
+
+    example ipv6
+        event_type_name = "PAPER_DOC_CREATED"
+        uuid = "aBC123def"
+        actor_user_id = "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
+        actor_display_name = "John Smith"
+        event_data = document
+        assumed_user_id = "dbid:BBH4f99T0taONIb-OurWxbNQ6ywGRopRynx"
+        ip_address = "2001:db8::8a2e:370:7334"
         timestamp = "2016-09-16T21:59:26Z"
 
 struct TeamEventResult
@@ -66,4 +98,4 @@ route log/log_event (TeamEventArg, TeamEventResult, TeamEventError)
     "Log Team events into the team activity log"
     attrs
         auth="team"
-        owner="company-dropbox-team"
+        owner="audit-log-team"

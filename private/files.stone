@@ -3,23 +3,151 @@ namespace files
 import async
 import users_common
 
-route delete_with_changeset (DeleteArg, InternalFileOpResult, DeleteError)
-    "An internal version of :route:`delete` that returns changeset data for
-    undoing file operations."
+#
+# Patches
+#
+
+#
+# Supported extensions
+#
+
+union PreviewType
+    audio
+        "Audio preview."
+    file_tree
+        "Archive preview."
+    hls
+        "HTTP Live Streaming preview."
+    html
+        "HTML preview."
+    link_file
+        "Link file (e.g. file representing web URL) preview."
+    pdf
+        "PDF preview."
+    text
+        "Text preview."
+    thumbnail
+        "Thumbnail preview."
+
+    example default
+        pdf = null
+
+struct PreviewableExtensionInfo
+    supported_preview_formats List(PreviewType)
+        "The preview formats that are supported."
+    full_content_preference List(PreviewType)
+        "An ordered subset of supported extensions, used to determine client-side
+        rendering behavior."
+
+    example default
+        supported_preview_formats = [default]
+        full_content_preference = [default]
+
+struct PreviewableExtensionsResult
+    file_extension_to_previewable_info Map(String, PreviewableExtensionInfo)
+        "Mapping from file extension to data that describes whether the extension
+        is supported for previewing."
+
+    example default
+        file_extension_to_previewable_info = {"ai": default}
+
+route get_previewable_extensions (Void, PreviewableExtensionsResult, Void)
+    "Get supported file extensions for previewing."
+
+    attrs
+        owner = "api-platform"
+        allow_app_folder_app = true
+
+#
+# Changesets
+#
+
+struct ChangesetData
+    ns_id UInt64
+        "The namespace that was affected by the changes. Should only
+        be used by internal clients."
+    changeset_id UInt64
+        "ID of the change that maps to our internal bookkeeping.
+        Should only be used by internal clients."
+
+    example default
+        ns_id = 1
+        changeset_id = 2
+
+patch struct FileOpsResult
+    changeset_data List(ChangesetData)
+        "A list of changeset data entries associated with a given file
+        operation(s), used to undo the file operation(s). Sometimes, a valid
+        file operation(s) cannot be undone, in which case, no :type:`ChangesetData`
+        objects will be returned. This data should only be used by our internal clients."
+
+    example default
+        changeset_data = [default]
+
+patch struct CreateFolderResult
+    example default
+        changeset_data = [default]
+
+patch struct DeleteResult
+    example default
+        changeset_data = [default]
+
+patch struct DeleteBatchResult
+    example default
+        changeset_data = [default]
+
+patch struct RelocationResult
+    example default
+        changeset_data = [default]
+
+patch struct RelocationBatchResult
+    example default
+        changeset_data = [default]
+
+#
+# Patches end
+#
+
+struct RollbackArg
+    entries List(ChangesetData, min_items=1)
+        "A list of changeset namespace data entries associated with a given file
+        operation(s), used to undo the file operation(s)."
+
+struct RollbackResult
+    success Boolean
+        "Whether the rollback was successful."
+
+union RollbackError
+    no_write_permission
+        "Unable to rollback because user does not have the necessary write permissions."
+    undo_operation_not_permitted
+        "Unable to rollback because operation requires a namespace nest that is
+        disallowed or unsupported."
+    too_many_files
+        "User is trying to undo an operation involving too many files."
+
+route rollback_with_changesets (RollbackArg, RollbackResult, RollbackError)
+    "Used to undo actions based on the supplied list of changesets."
+
+struct Changeset
+    ns_id UInt64
+        "The namespace that was affected by the changes. Should only be used
+        by out internal clients."
+    changes List(UInt64)
+        "IDs of the changes that map to our internal bookkeeping. Should only be
+        used by our internal clients."
+
+    example default
+        ns_id = 1
+        changes = [2]
 
 struct InternalFileOpResult
     changesets List(Changeset)
     metadata Metadata
 
-struct Changeset
-    ns_id UInt64
-        "The namespace that was affected by the change."
-    changes List(UInt64)
-        "IDs of the changes that map to our internal bookkeeping."
-
-    example default
-        ns_id = 1
-        changes = [2]
+route delete_with_changeset (DeleteArg, InternalFileOpResult, DeleteError) deprecated by delete_v2
+    "An internal version of :route:`delete` that returns changeset data for
+    undoing file operations."
 
 route upload_session/check_finish_batch_job_status(async.PollArg, UploadSessionFinishBatchJobStatus, async.PollError) deprecated by upload_session/finish_batch/check
     "An alias of :route:`upload_session/finish_batch/check`."
@@ -84,7 +212,7 @@ route upload_session/finish_processed/check(async.PollArg, UploadSessionFinishPr
     attrs
         is_preview = true
 
-route delete_batch_with_changeset_sync (DeleteBatchArg, InternalFileOpBatchResult, DeleteError)
+route delete_batch_with_changeset_sync (DeleteBatchArg, InternalFileOpBatchResult, DeleteError) deprecated by delete_batch
     "This route helps you to delete multiple files/folders at once.
 
     Input should not contain duplicated/nested entries. If input contains

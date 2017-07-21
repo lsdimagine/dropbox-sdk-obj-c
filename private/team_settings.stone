@@ -50,10 +50,10 @@ route set_multiple_accounts_policy(MultipleAccountsPolicyArg, Void, Administrati
 union PasswordStrengthPolicy
     minimal_requirements
         "User passwords will adhere to the minimal password strength policy."
-    standard_password
-        "User passwords will adhere to the standard password strength policy."
+    moderate_password
+        "User passwords will adhere to the moderate password strength policy."
     strong_password
-        "User passwords will adhere to the strong password strength policy."
+        "User passwords will adhere to the very strong password strength policy."
 
 struct PasswordPolicyArg
     password_strength_policy PasswordStrengthPolicy
@@ -157,7 +157,7 @@ route set_suggest_members_policy(SuggestMembersPolicyArg, Void, AdministrationEr
 
     attrs
         auth="team"
-        owner = "user-journeys"
+        owner = "onboarding-intent"
 
 
 #

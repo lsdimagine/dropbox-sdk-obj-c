@@ -40,4 +40,4 @@ route send_reminder_email_to_self(ReminderEmailArgs, Void, ReminderEmailError)
     "
 
     attrs
-        owner = "user-journeys"
+        owner = "onboarding-intent"

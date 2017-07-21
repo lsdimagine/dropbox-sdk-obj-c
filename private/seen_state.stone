@@ -52,20 +52,39 @@ struct SeenStateUser
     photo_circle_url String?
     sharing_access_type SharingAccessType?
 
+struct SeenEvent
+    ts UInt64
+
 struct SeenStateLastSeen
-    "Seen State object consists of a timestamp of when the user last viewed as well as
-    a SeenStateUser object holding user information. If when_last_seen is null, then it means
-    that the user has not seen the object. Typically, this would happen only for
-    the SeenStateLastSeen which corresponds to the actor themselves."
+    "Seen State object consists of a timestamp of when the user last viewed, a SeenState User
+    object holding user information, and a list of SeenEvent representing the user's history of
+    views on this file. If when_last_seen is null, then it means that the user has not seen the
+    object. Typically, this would happen only for the SeenStateLastSeen which corresponds to the
+    actor themselves."
 
     when_last_seen UInt64?
     seen_state_user SeenStateUser
+    seen_events List(SeenEvent)?
 
 struct SeenStateInfo
     "Holds a list of seen states representing a list of views that unique users have on
     the object."
 
     seen_states List(SeenStateLastSeen)
+
+struct GetSeenStateInfoArg
+    "TODO(tinading): make limit non-optional, after making client side call with explicit number"
+    file_infos List(FileInfo)
+    limit UInt32 = 103
+
+struct GetSeenStateInfoContinueArg
+    file_infos List(FileInfo)
+    cursor String
+    limit UInt32
+
+struct SeenStateCursor
+    cursor_state String?
+    has_next Boolean?
 
 struct SeenStateInfoResult
     "Seen state info appended with file info. We return a list of these in fetching seen
@@ -76,11 +95,14 @@ struct SeenStateInfoResult
 
     If the user does not have permission to see seen state, the seen_state_error field will be
     populated.
+
+    TODO(tinading): make get_seen_state_info return one cursor for a list of SeenStateInfoResult
     "
 
     file_info FileInfo
     seen_state_info SeenStateInfo
     seen_state_error GetSeenStateInfoError?
+    seen_state_cursor SeenStateCursor?
 
 union SharingAccessType
     "Possible levels of access that the user has when viewing the content. If the user has access of
@@ -129,28 +151,6 @@ struct CoachmarkInteractionData
     interaction CoachmarkInteraction
     file_info FileInfo
 
-struct OnboardingInteractionData
-    owner_id String
-        "The account id corresponding to the content owner"
-
-union OnboardingEventType
-    learn_more
-        "User opened the help center article"
-    open_file
-        "User clicked through to the file"
-    shown
-        "The onboarding was shown"
-
-struct OnboardingEventData
-    event_type OnboardingEventType
-        "The type of event that occurred"
-    owner_id String
-        "The account id of the owner of the content"
-    should_not_show_again Boolean?
-        "Whether or not the onboarding should be shown again"
-    url String
-        "The URL of the content"
-
 struct PassStatusResult
     file_info FileInfo
     can_read_presence Boolean
@@ -174,8 +174,11 @@ union GetSeenStateInfoError extends SeenStateError
 route get_pass_status(FileInfoList, List(PassStatusResult), SeenStateError)
     "Called to determine what permissions a user has for PASS."
 
-route get_seen_state_info(FileInfoList, List(SeenStateInfoResult), SeenStateError)
+route get_seen_state_info(GetSeenStateInfoArg, List(SeenStateInfoResult), SeenStateError)
     "Get the seen state info for multiple files."
+
+route get_seen_state_info/continue(GetSeenStateInfoContinueArg, List(SeenStateInfoResult), SeenStateError)
+    "Continue to get the seen state info for multiple file, starting from where the cursor left."
 
 route get_seen_state_users(SeenStateUserArg, List(SeenStateUser), SeenStateError)
     "Gets extra seen state info for a set of users."
@@ -189,12 +192,6 @@ route get_coachmark_info(GetCoachmarkInfoArg, CoachmarkInfo, SeenStateError)
 
 route log_coachmark_interaction(CoachmarkInteractionData, Void, SeenStateError)
     "Called when the user interacts with the seen state coachmark."
-
-route update_pass_onboarding_status(OnboardingInteractionData, Void, SeenStateError)
-    "Called when the user acknowledges the PASS privacy onboarding flow."
-
-route log_onboarding_event(OnboardingEventData, Void, SeenStateError)
-    "Called when an event related to PASS onboarding occurs."
 
 
 route logged_out/get_pass_status(FileInfoList, List(PassStatusResult), SeenStateError)

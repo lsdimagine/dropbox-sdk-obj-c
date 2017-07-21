@@ -62,7 +62,7 @@ route members/suggest_to_dfb_admin(SuggestMembers, Void, Void)
 
     attrs
         auth="team"
-        owner = "user-journeys"
+        owner = "onboarding-intent"
 
 #
 # Route get_suggested_members_for_user
@@ -100,4 +100,4 @@ route members/get_suggested_members_for_user(SuggestedMembersForUserArgs, Sugges
 
     attrs
         auth="team"
-        owner = "user-journeys"
+        owner = "onboarding-intent"

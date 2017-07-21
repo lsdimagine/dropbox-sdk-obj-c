@@ -1,0 +1,81 @@
+namespace folders
+
+struct SizeTuple
+    "Maps a folder path to its size in bytes"
+
+    fq_path String
+        "A folder path"
+
+    size UInt64
+        "The size of the folder in bytes"
+
+    example default
+        fq_path = "/foo/bar"
+        size = 27182818284
+
+
+#TODO (xiaov): Add more descriptive errors
+union Error
+    default_error
+        "An error occurred"
+
+    no_folder
+        "Requested folder does not exist"
+
+    no_permission
+        "User does not have permission to use this API call"
+
+# --
+
+struct MountPointFolderSizesInput
+    fq_path String
+        "Path to a folder, relative to user's root directory"
+
+    example default
+        fq_path = "/foo/bar"
+
+
+struct MountPointFolderSizesOutput
+    sizes_dict List(SizeTuple)
+        "List of mappings between a folder path and its size in bytes"
+
+    example default
+        sizes_dict = [default]
+
+route get_shared_subfolder_sizes (MountPointFolderSizesInput, MountPointFolderSizesOutput, Error)
+
+# --
+
+struct SameNamespaceFolderSizesInput
+    fq_path String
+        "Path to a folder, relative to user's root directory"
+
+    folder_limit UInt64
+        "The maximum number of new folders that should be examined in this iteration of the function
+        call"
+
+    queue List(String)?
+        "A list of folder paths in the frontier of the BFS, following the previous call to this
+        function"
+
+    example default
+        fq_path = "/foo/bar"
+        folder_limit = 500
+        queue = ["/foo/bar/baz", "/foo/bar/quux"]
+
+
+struct SameNamespaceFolderSizesOutput
+    sizes_dict List(SizeTuple)
+        "List of mappings between a folder path and its size in bytes"
+
+    queue List(String)
+        "A list of folder paths in the frontier of the BFS, following the current call to this
+        function"
+
+    example default
+        sizes_dict = [default]
+        queue = ["/foo/bar/baz", "/foo/bar/quux"]
+
+# --
+
+route get_subfolder_sizes_in_same_namespace (SameNamespaceFolderSizesInput, SameNamespaceFolderSizesOutput, Error)

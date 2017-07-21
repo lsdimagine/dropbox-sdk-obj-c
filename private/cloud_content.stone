@@ -1,0 +1,24 @@
+namespace cloud_content
+    "Endpoints and datatypes for cloud content objects."
+
+import files
+
+struct CreateArg
+    path files.WritePath
+        "The path in the user's Dropbox at which to create the cloud content object. The file
+        extension component of the path must be one of '.paper', '.gdoc', '.gsheet', or '.gslide'"
+
+    example default
+        path = "/Projects/ACME Corp/Kickoff Meeting"
+
+
+union CreateError
+    path files.WriteError
+
+
+route alpha/create (CreateArg, files.FileMetadata, CreateError)
+    "Create a new cloud content object."
+
+    attrs
+        is_preview = true
+        owner = "partner-platform"
