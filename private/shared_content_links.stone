@@ -4,6 +4,7 @@ import common
 
 
 struct GetLinkMetadataArg
+    @common.UrlRedactor
     url String
         "The URL of the link."
 
@@ -14,8 +15,10 @@ union GetLinkMetadataError
 struct SetLinkSettingsArg
     "Modifies the link settings of the link."
     link_settings AlphaLinkSettings
+
+    @common.UrlRedactor
     url String
-        "The URL of the link"
+        "The URL of the link."
 
 union SetLinkSettingsError
     access_denied
@@ -30,6 +33,7 @@ route alpha/get_link_metadata(GetLinkMetadataArg, SharedContentLinkMetadata, Get
         api_group="sharing"
         is_preview = true
         owner = "sharing"
+        is_legacy_alpha = true
 
 route alpha/set_link_settings(SetLinkSettingsArg, SharedContentLinkMetadata, SetLinkSettingsError) deprecated
     "DEPRECATED: talk to davy@, use alpha/update_file_policy and alpha/update_folder_policy instead
@@ -40,6 +44,7 @@ route alpha/set_link_settings(SetLinkSettingsArg, SharedContentLinkMetadata, Set
         api_group="sharing"
         is_preview = true
         owner = "sharing"
+        is_legacy_alpha = true
 
 struct AlphaLinkSettings
     "Settings that apply to a link."

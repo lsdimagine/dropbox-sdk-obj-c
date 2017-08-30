@@ -37,12 +37,12 @@ struct ExternalInvoiceId
         "Within the above source, the identifier that maps to this provision request."
 
     example salesforce_example
-        "Salesforce example"
+        "Salesforce example."
         source = salesforce_opportunity_id
         identifier = "ed8c84SomeIdFromSalesforce23c98"
 
     example tails_example
-        "Tails example"
+        "Tails example."
         source = tails_task
         identifier = "T123456"
 
@@ -51,7 +51,7 @@ struct Interval
     end common.DropboxTimestamp
 
     example default
-        "Sample interval"
+        "Sample interval."
         start = "2016-01-20T00:00:00Z"
         end = "2016-02-20T00:00:00Z"
 

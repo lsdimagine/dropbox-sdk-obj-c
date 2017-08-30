@@ -1,5 +1,5 @@
 namespace outlook_addin
-    "#OutlookAddin"
+    "#OutlookAddin."
 
 struct SafeOriginsListResult
     safe_origins List(String)

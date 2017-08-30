@@ -2,13 +2,13 @@ namespace team
 
 
 struct TeamMemberPoliciesInternal
-    "Policies governing teams that are not externally shared"
+    "Policies governing teams that are not externally shared."
 
     paper PaperPolicies
-        "Policies concerning the Paper product"
+        "Policies concerning the Paper product."
 
     permanent_delete_policy PermanentDeletePolicyInternal
-        "Whether non-admin members of a team can permanently delete their team data"
+        "Whether non-admin members of a team can permanently delete their team data."
 
     version_history_retention_policy Int32
         "Number of days to store version history of file. If -1, version history is unlimited."
@@ -19,18 +19,18 @@ struct TeamMemberPoliciesInternal
         version_history_retention_policy = 30
 
 union PermanentDeletePolicyInternal
-    "Policy used by internal apps governing whether non-admin team members can permanently delete their data"
+    "Policy used by internal apps governing whether non-admin team members can permanently delete their data."
 
     disabled
-        "Non-admin members of a team cannot permanently delete their team data"
+        "Non-admin members of a team cannot permanently delete their team data."
     enabled
-        "Non-admin members of a team can permanently delete their team data"
+        "Non-admin members of a team can permanently delete their team data."
 
 struct PaperPolicies
-    "Policies governing Paper access for a given team"
+    "Policies governing Paper access for a given team."
 
     paper_doc_link_policy PaperDocLinkPolicy
-        "Who can view Paper doc links"
+        "Who can view Paper doc links."
     paper_enabled_policy PaperEnabledPolicy
         "Whether Paper is enabled for this team or not."
     paper_doc_share_policy PaperDocSharePolicy
@@ -52,11 +52,11 @@ union PaperDocLinkPolicy
 
 union PaperEnabledPolicy
     disabled
-        "Paper is disabled"
+        "Paper is disabled."
     enabled
-        "Paper is enabled"
+        "Paper is enabled."
     unspecified
-        "Unspecified policy"
+        "Unspecified policy."
 
 union PaperDocSharePolicy
     only_team

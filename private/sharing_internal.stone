@@ -90,9 +90,12 @@ struct RequestAccessArg
     # file_obj_id or ns_id values and randomly request access. They should have
     # some sort of URL to indicate that they received access via an email or
     # notification, at least indirectly.
+
     content_url String
         "The invitation or link preview URL of the file or folder for which
          you want to request access."
+
+    @common.DefaultRedactor
     custom_message String?
         "An optional message from the requester to the content owner to give
         context or more information about why they are requesting access."
@@ -128,6 +131,8 @@ route get_grant_access_info(GetGrantAccessInfoArg, GetGrantAccessInfoResult, Get
     "Route to get the info necessary to display the grant access page on mobile."
 
 struct GetGrantAccessInfoArg
+
+    @common.DefaultRedactor
     email_link String
         "The link sent in the grant access email (which should contain info about the access
          requester and the content being requested)."
@@ -138,22 +143,32 @@ struct GetGrantAccessInfoArg
 struct GetGrantAccessInfoResult
     is_folder Boolean
         "Whether the access request is for a folder (versus for a file)."
+
     encoded_account_id users_common.AccountId
         "The user requesting access."
+
+    @common.DefaultRedactor
     display_name String
         "The name to display for the user requesting access."
+
     email common.EmailAddress
         "The email to display for the user requesting access."
+
     content_name String
         "The name of the file or folder that is being requested."
+
     content_link String
         "The SCL to the requested content."
+
     content_id FileOrFolderContentId
         "The ID for the requested content."
+
     content_path files.Path
         "The path (relative to the root namespace) of the requested content."
+
     content_size UInt64
         "The size (in bytes) of the requested file or folder."
+
     target_object_key GrantAccessNotificationTargetObjectKey
         "The target_object_key of the notification that should have been sent along with the
          grant-access email."
@@ -185,6 +200,8 @@ union GetGrantAccessInfoError
         "The folder is not shared and must be shared before access can be granted."
     content_not_found_error
         "The requested content cannot be found."
+    unmounted_error
+        "The folder must be mounted before access can be granted."
 
 route ack_grant_access_notification(AckGrantAccessNotificationArg, Void, AckGrantAccessNotificationError)
     "Route to acknowledge a grant-access notification (marking it as read on all devices)."
@@ -200,3 +217,41 @@ union AckGrantAccessNotificationError
     ack_notification_error
         "There was an error while acknowledging the notification. This usually means that no
          notification with that target_object_key was sent."
+
+route get_grant_access_action(GrantAccessActionArg, GrantAccessActionResult, GrantAccessActionError)
+    "Route to obtain the next action to be taken for granting access to the content."
+
+struct GrantAccessActionArg
+    grant_access_link String
+        "Link for the grant access request."
+
+    example default
+        grant_access_link = "https://www.dropbox.com/ga/abcd1234"
+
+union GrantAccessActionResult
+    "The action to be taken to grant access."
+
+    share_mounted_content_with_user ShareMountedContentWithUserAction
+        "Metadata for mounted content which is to be shared with other users."
+
+union GrantAccessActionError
+    generic_error
+        "There was an error with the grant access action."
+
+struct ShareMountedContentWithUserAction
+    "The action to share mounted content with a specific recipient."
+
+    recipient_display_name String
+        "The display name of the recipient of the content."
+    recipient_email common.EmailAddress
+        "The email of the recipient of the content."
+    path_lower files.Path
+        "The path (relative to the root namespace) of the content to be shared."
+    content_id ContentId
+        "The type of the content to be shared."
+
+union ContentId
+    "The Id of a particular piece of content, e.g. a file or a shared folder."
+
+    file_id FileId
+    shared_folder_id common.SharedFolderId

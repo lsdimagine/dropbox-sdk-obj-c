@@ -1,11 +1,15 @@
 namespace oem
 
+import common
+
 struct GetInstallerUrlArg
+    @common.DefaultRedactor
     oemcode String?
-        "Also known as dealcode"
+        "Also known as dealcode."
 
 struct GetInstallerUrlResult
+    @common.UrlRedactor
     url String
 
 route get_installer_url(GetInstallerUrlArg, GetInstallerUrlResult, Void)
-    "Retrieves the url to install a pre-authenticated Dropbox client"
+    "Retrieves the url to install a pre-authenticated Dropbox client."

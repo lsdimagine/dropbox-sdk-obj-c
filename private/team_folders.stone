@@ -78,6 +78,8 @@ route team_folder/get_file_metadata(TeamFolderFileMetadataArg, TeamFolderFileMet
 
 struct TeamFolderFileMetadataArg
     team_folder_id common.SharedFolderId
+
+    @common.PathRedactor
     path String = ""
         "Path to a file or folder in the team folder. Default is path to team folder."
 

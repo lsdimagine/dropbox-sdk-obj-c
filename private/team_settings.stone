@@ -62,7 +62,7 @@ struct PasswordPolicyArg
 route set_password_requirements(PasswordPolicyArg, async.LaunchEmptyResult, AdministrationError)
     "Set password requirements. May require all team member to reset their passwords
 
-    Permission : Team member management"
+    Permission : Team member management."
 
     attrs
         auth="team"
@@ -75,7 +75,7 @@ route set_password_requirements(PasswordPolicyArg, async.LaunchEmptyResult, Admi
 route reset_all_passwords(Void, async.LaunchEmptyResult, AdministrationError)
     "Reset all passwords. All team members will need to reset their passwords.
 
-    Permission : Team member management"
+    Permission : Team member management."
 
     attrs
         auth="team"
@@ -93,7 +93,7 @@ route reset_all_passwords/job_status/check(async.PollArg, ResetAllPasswordsJobSt
     "Once an async_job_id is returned from :route:`reset_all_passwords` ,
     use this to poll the status of the asynchronous request.
 
-    Permission : Team member management"
+    Permission : Team member management."
 
     attrs
         auth = "team"
@@ -131,7 +131,7 @@ route set_request_membership_policy(RequestMembershipPolicyArg, Void, RequestMem
     Only coworkers with a verified company email address can find or join your team.
 
 
-    Permission : Team member management"
+    Permission : Team member management."
 
     attrs
         auth="team"
@@ -153,7 +153,7 @@ route set_suggest_members_policy(SuggestMembersPolicyArg, Void, AdministrationEr
     "Allow team members to suggest other coworkers to add to the team.
     Admins can accept or dismiss suggestions.
 
-    Permission : Team member management"
+    Permission : Team member management."
 
     attrs
         auth="team"
@@ -170,7 +170,7 @@ union InfinitePolicySetting
     on_demand
         "The specified content will be synced as on-demand files by default."
     default
-        "The specified content will take the default setting (policy specific)"
+        "The specified content will take the default setting (policy specific)."
 
 
 #
@@ -240,7 +240,7 @@ union_closed ChangeResellerSupportError extends team_administration.Administrati
 route change_reseller_support(ChangeResellerSupportArg, Void, ChangeResellerSupportError)
     "Determines to allow access for resellers into Admin Console as Administrator.
 
-    Permission : Team member management"
+    Permission : Team member management."
 
     attrs
         auth="team"
@@ -325,7 +325,7 @@ union_closed ConfigureSsoError extends team_administration.AdministrationError
 route configure_sso(ConfigureSsoArg, ConfigureSsoResult, ConfigureSsoError)
     "Set SSO policy for the team.
 
-    Permission : Team member management"
+    Permission : Team member management."
 
     attrs
         auth="team"
@@ -345,7 +345,7 @@ struct ConfigureGoogleLoginPolicyArg
 route configure_google_login_policy(ConfigureGoogleLoginPolicyArg, Void, AdministrationError)
     "Set google login policy for the team.
 
-    Permission : Team member management"
+    Permission : Team member management."
 
     attrs
         auth="team"
@@ -370,3 +370,25 @@ route set_office_addin_policy(OfficeAddInPolicyArg, Void, AdministrationError)
     attrs
         auth="team"
         owner = "ecosystem"
+
+#
+# Viewer info controls
+#
+
+union ViewerInfoPolicy
+    enabled
+        "Files and folders for every team account with no explicit PASS setting will have PASS on."
+    allow
+        "Files and folders for every team account with no explicit PASS setting will have PASS off, but users may override this per-folder and per-file."
+    disabled
+        "Files and folders for every team account will have PASS off."
+
+struct ViewerInfoPolicyArg
+    viewer_info_policy ViewerInfoPolicy
+        "PASS policy to set."
+
+route set_viewer_info_policy(ViewerInfoPolicyArg, Void, AdministrationError)
+
+    attrs
+        auth="team"
+        owner = "tools-and-insights"

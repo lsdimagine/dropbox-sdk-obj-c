@@ -51,7 +51,7 @@ union_closed PaperError extends team_administration.AdministrationError
 route paper/set_paper_policy(PaperPolicyArg, Void, PaperError)
     "Settings the paper policy.
 
-    Permission : Team member management"
+    Permission : Team member management."
 
     attrs
         auth="team"
@@ -73,7 +73,7 @@ alias PaperLinkPolicyArg = PaperLinkPolicy
 route paper/set_paper_link_policy(PaperLinkPolicyArg, Void, AdministrationError)
     "Settings the default paper link policy.
 
-    Permission : Team member management"
+    Permission : Team member management."
 
     attrs
         auth="team"
@@ -96,7 +96,7 @@ struct PaperSharingPolicyArg
 route paper/set_paper_sharing_policy(PaperSharingPolicyArg, Void, team_administration.AdministrationError)
     "Setting the paper sharing policy.
 
-    Permission : Team member management"
+    Permission : Team member management."
 
     attrs
         auth="team"

@@ -1,5 +1,6 @@
 namespace wopi
 
+import common
 import files
 
 alias Path = files.Path
@@ -17,6 +18,7 @@ struct GetWopiMetadataResult
         For more information about what exactly a WopiSrc is, see:
         http://wopi.readthedocs.io/projects/wopirest/en/latest/concepts.html?highlight=wopisrc ."
 
+    @common.DefaultRedactor
     user_id String
         "The numeric ID of the user, as a string."
 

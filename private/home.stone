@@ -59,7 +59,7 @@ struct UpdateIncomingReadStatusArgEntry
         "Whether the entry should be marked as read (true) or unread (false)."
 
     example default
-        "The paper notification with ID paper-noti-1 should be marked as read"
+        "The paper notification with ID paper-noti-1 should be marked as read."
         entry_id = "paper-noti-1"
         entry_id_type = paper_notification_id
         read_status = true
@@ -85,13 +85,13 @@ route update_incoming_read_status (UpdateIncomingReadStatusArg, Void, UpdateInco
 # --
 
 struct StarredItemDetails
-    "Additional information about a starred item"
+    "Additional information about a starred item."
 
     fq_path String
-        "The path to the file (empty if not applicable)"
+        "The path to the file (empty if not applicable)."
 
     target_ns_id UInt64
-        "The target namespace for the file (zero if not applicable)"
+        "The target namespace for the file (zero if not applicable)."
 
 union DisplayType
     "The type of item, used in selecting an icon for display."
@@ -116,25 +116,25 @@ union ItemIdType
     paper_folder_id_path
 
 struct StarredItem
-    "A starred item"
+    "A starred item."
 
     id String
-        "id of the item (file/folder/doc) to operate on"
+        "id of the item (file/folder/doc) to operate on."
 
     id_type ItemIdType
-        "What kind of identifier has been supplied"
+        "What kind of identifier has been supplied."
 
     display_type DisplayType
-        "The type of icon to present when displaying the item"
+        "The type of icon to present when displaying the item."
 
     title String
-        "The item's title"
+        "The item's title."
 
     url String
-        "The URL to access the starred item"
+        "The URL to access the starred item."
 
     time UInt64
-        "The last access time for the item, in ms"
+        "The last access time for the item, in ms."
 
     details StarredItemDetails
 
@@ -152,22 +152,22 @@ struct GetStarredResponse
     "Response for :route:`get_starred`."
 
     status GetStarredStatus
-        "Status information about the request"
+        "Status information about the request."
 
     has_more Boolean
-        "If there are more starred items available, above `limit`"
+        "If there are more starred items available, above `limit`."
 
     hide_section Boolean
-        "Should an empty starred section be hidden from the user?"
+        "Whether an empty starred section shoul be hidden from the user."
 
     items List(StarredItem)
-        "The starred items"
+        "The starred items."
 
 union GetStarredError
     unused
 
 route get_starred (GetStarredArg, GetStarredResponse, GetStarredError)
-    "Fetch starred items (files and paper docs) for the current user"
+    "Fetch starred items (files and paper docs) for the current user."
 
     attrs
         owner="home"

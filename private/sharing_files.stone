@@ -4,6 +4,7 @@ import common
 import files
 import users
 
+@common.PathRedactor
 alias FqPathOrNsPath = String(pattern="(\/.*|nspath:[0-9]+:.*)|ns:[0-9]+(/.*)?", min_length=1)
 
 route add_file_members(AddFileMemberArgs, List(FileMemberActionResult), AddFileMemberError) deprecated by add_file_member
@@ -54,6 +55,7 @@ route alpha/share_file(AlphaShareFileArg, AlphaSharedFileMetadata, ShareFileErro
 
     attrs
         owner = "sharing"
+        is_legacy_alpha = true
 
 struct AlphaShareFileArg
     "Arguments for :route:`alpha/share_file`."
@@ -103,23 +105,34 @@ struct TempPathBasedFileMetadata
 
     policy FolderPolicy
         "Policies governing this shared file."
+
     owner_team users.Team?
         "The team that owns the file. This field is not present if the file
         is not owned by a team."
+
     parent_shared_folder_id common.SharedFolderId?
         "The ID of the parent shared folder. This field is present only if the
         file is contained within a shared folder."
+
+    @common.UrlRedactor
     preview_url String
         "URL for displaying a web preview of the shared file."
+
+    @common.PathRedactor
     path_lower String?
         "The lower-case full path of this file. Absent for unmounted files."
+
+    @common.PathRedactor
     path_display String?
         "The cased path to be used for display purposes only. In rare instances
         the casing will not correctly match the user's filesystem, but this
         behavior will match the path provided in the Core API v1.
         Absent for unmounted files."
+
+    @common.FilenameRedactor
     name String
         "The name of this file."
+
     time_created common.DropboxTimestamp
         "Timestamp indicating when the current user created this shared file."
 
@@ -146,10 +159,14 @@ struct GetFileMemberCountsArg
 
     file PathOrId
         "The file of interest."
+
     limit UInt32(max_value=300) = 100
         "The maximum count to return."
+
     count_groups_as_members Boolean?
-        "Whether to count groups as members exlicitly"
+        "Whether to count groups as members exlicitly."
+
+    @common.UrlRedactor
     url String?
         "The shared link URL that the user is viewing the content on when the file is not in their dropbox."
 
@@ -171,28 +188,45 @@ union GetFileMemberCountsError
 
 # --
 
-union AlphaFileAction extends FileAction
-    change_options
-        "Change file options, such as whether presence and seen state is enabled for the file.
-        DEPRECATED: Use enable_viewer_info and disable_viewer_info instead."
-    disable_pass
-        "Whether the user has permission to disable the presence and seen state information on the
-        file. DEPRECATED: Use disable_viewer_info instead."
-    enable_pass
-        "Whether the user has permission to enable presence and seen state information on the file.
-        DEPRECATED: Use enable_viewer-info instead."
+patch union FileAction
+
+    @common.AlphaOnly
     remove_download_policy
         "Whether the user has permission to remove the download policy and allow downloads on the
         file.
 
         NOTE: This policy is probably subject to removal sometime soon. Talk to davy@ before using
         it."
+
+    @common.AlphaOnly
     set_download_policy
         "Whether the user has permission to set the download policy and disallow downloads on the
         file.
 
         NOTE: This policy is probably subject to removal sometime soon. Talk to davy@ before using
         it."
+
+union AlphaFileAction extends FileAction
+    "Sharing actions that may be taken on files."
+
+    @common.Deprecate
+    change_options
+        "Use enable_viewer_info and disable_viewer_info instead. Change file options, such as whether
+        presence and seen state is enabled for the file."
+
+    @common.Deprecate
+    disable_pass
+        "Use disable_viewer_info instead. Whether the user has permission to disable the presence and
+        seen state information on the file."
+
+    @common.Deprecate
+    enable_pass
+        "Use enable_viewer-info instead. Whether the user has permission to enable presence and seen
+        state information on the file."
+
+    example default
+        edit_contents = null
+
 struct AlphaFilePermission
     "Whether the user is allowed to take the sharing action on the file."
 
@@ -214,41 +248,62 @@ struct AlphaSharedFileMetadata
 
     access_type AccessLevel?
         "The current user's access level for this shared file."
+
+    @common.Deprecate
     download_policy DownloadPolicy
-        "DEPRECATED, use file_policy instead"
+        "Use file_policy instead."
+
     expected_link_metadata ExpectedSharedContentLinkMetadata?
+
     id FileId
         "The ID of the file."
+
     link_metadata SharedContentLinkMetadata?
+
+    @common.FilenameRedactor
     name String
         "The name of this file."
+
     owner_display_names List(String)?
         "The display names of the users that own the file. If the file is part
         of a team folder, the display names of the team admins are also
         included. Absent if the owner display names cannot be fetched."
+
     owner_team users.Team?
         "The team that owns the file. This field is not present if the file
         is not owned by a team."
+
     parent_shared_folder_id common.SharedFolderId?
         "The ID of the parent shared folder. This field is present only if the
         file is contained within a shared folder."
-    pass_policy PassPolicy
-        "DEPRECATED, use file_policy instead"
+
+    @common.Deprecate
+    pass_policy PassPolicy?
+        "Use file_policy instead."
+
+    @common.PathRedactor
     path_display String?
         "The cased path to be used for display purposes only. In rare instances
         the casing will not correctly match the user's filesystem, but this
         behavior will match the path provided in the Core API v1.
         Absent for unmounted files."
+
+    @common.PathRedactor
     path_lower String?
         "The lower-case full path of this file. Absent for unmounted files."
+
     permissions List(AlphaFilePermission)?
         "The sharing permissions that requesting user has on this file. This
         corresponds to the entries given in :field:`AlphaGetFileMetadataBatchArg.actions`
         or :field:`AlphaGetFileMetadataArg.actions`."
+
     policy AlphaFolderPolicy
         "Policies of the parent folder governing this shared file."
+
+    @common.UrlRedactor
     preview_url String
         "URL for displaying a web preview of the shared file."
+
     time_invited common.DropboxTimestamp?
         "Timestamp indicating when the current user was invited to this shared file. If the user was
         not invited to the shared file, the timestamp will indicate when the user was invited to the
@@ -266,10 +321,12 @@ route alpha/get_file_metadata(AlphaGetFileMetadataArg, AlphaSharedFileMetadata, 
 
     attrs
         is_preview = true
+        is_legacy_alpha = true
 
 route alpha/get_file_metadata/batch(AlphaGetFileMetadataBatchArg, List(AlphaGetFileMetadataBatchResult), SharingUserError)
     attrs
         is_preview = true
+        is_legacy_alpha = true
 
 route update_file_policy(UpdateFilePolicyArg, SharedFileMetadata, UpdateFilePolicyError)
     "Update the policies of a file. This includes both PASS settings and link settings associated with the file."
@@ -283,6 +340,7 @@ route alpha/update_file_policy(AlphaUpdateFilePolicyArg, AlphaSharedFileMetadata
 
     attrs
         is_preview = true
+        is_legacy_alpha = true
 
 route internal_test_only/get_file_shared_content_link(GetFileSharedContentLinkArg, List(String), AddFileMemberError)
     "Get the file shared content link for the given file and member information. Note: This is used ONLY for mobile integration test.
@@ -295,8 +353,7 @@ route internal_test_only/get_file_shared_content_link(GetFileSharedContentLinkAr
         the r=? parameter in the url generated from this endpt will not be exactly the same
         as in the link in the email. However, we make sure that the decoded recipient information
         will be exactly the same between the two URLs.
-    Note 4: The output URLs might not be in the same order as the input members. So if this order matters, you might want to pass in one member every time.
-    "
+    Note 4: The output URLs might not be in the same order as the input members. So if this order matters, you might want to pass in one member every time."
 
     attrs
         owner = "sharing"
@@ -304,6 +361,7 @@ route internal_test_only/get_file_shared_content_link(GetFileSharedContentLinkAr
 route alpha/list_file_members(AlphaListFileMembersArg, AlphaSharedFileMembers, ListFileMembersError)
     attrs
         is_preview = true
+        is_legacy_alpha = true
 
 route alpha/list_file_members/continue(AlphaListFileMembersContinueArg, AlphaSharedFileMembers, ListFileMembersContinueError)
     "Once a cursor has been retrieved from :route:`alpha/list_file_members` or
@@ -313,24 +371,27 @@ route alpha/list_file_members/continue(AlphaListFileMembersContinueArg, AlphaSha
     attrs
         owner = "sharing"
         is_preview = true
+        is_legacy_alpha = true
 
 struct AlphaListFileMembersArg extends ListFileMembersArg
+    @common.UrlRedactor
     url String?
         "The shared link URL that the user is viewing the content on when the file is not in their dropbox."
 
 struct AlphaListFileMembersContinueArg extends ListFileMembersContinueArg
+    @common.UrlRedactor
     url String?
         "The shared link URL that the user is viewing the content on when the file is not in their dropbox."
 
 struct GetFileSharedContentLinkArg
-    "Arguments of :route:`internal_test_only/get_file_shared_content_link`"
+    "Arguments of :route:`internal_test_only/get_file_shared_content_link`."
 
     file PathOrId
         "File on which the scl url is generated."
     members List(MemberSelector)
         "The target members that will end up in the 'r=' query param of the output urls."
     gen_email_link Boolean
-        "Whether we generate a email tracking link (/l/*) or just the scl link /scl/fi/*"
+        "Whether we generate a email tracking link (/l/*) or just the scl link /scl/fi/*."
 
     example default
         file = "id:3kmLmQFnf1AAAAAAAAAAAw"
@@ -338,11 +399,13 @@ struct GetFileSharedContentLinkArg
         gen_email_link = false
 
 union PassPolicy
-    "DEPRECATED: use ViewerInfoPolicy instead."
+    @common.Deprecate
     enabled
-        "Presence and seen state information is available on this file."
+        "Use ViewerInfoPolicy instead. Presence and seen state information is available on this file."
+
+    @common.Deprecate
     disabled
-        "Presence and seen state information is disabled on this file."
+        "Use ViewerInfoPolicy instead. Presence and seen state information is disabled on this file."
 
 union DownloadPolicy
     "This policy is probably subject to removal sometime soon. Talk to davy@ before using it."
@@ -356,8 +419,11 @@ struct AlphaGetFileMetadataArg
 
     file PathOrId
         "The file to query."
+
+    @common.UrlRedactor
     url String?
         "The shared link URL that the user is viewing the content on when the file is not in their dropbox."
+
     actions List(AlphaFileAction)?
         "File actions to query."
 
@@ -378,7 +444,7 @@ struct AlphaGetFileMetadataBatchArg
         actions = []
 
 struct AlphaGetFileMetadataBatchResult
-    "Per file results of :route:`alpha/get_file_metadata/batch`"
+    "Per file results of :route:`alpha/get_file_metadata/batch`."
 
     file PathOrId
         "This is the input file identifier corresponding to one of
@@ -413,17 +479,24 @@ struct UpdateFilePolicyArg
 struct AlphaUpdateFilePolicyArg
     file PathOrId
         "File that we are changing the policy for."
+
     actions List(AlphaFileAction)?
         "File actions to query."
+
+    @common.Deprecate
     file_settings FileSettings?
-        "Settings for the file. DEPRECATED: use download_policy and pass_policy instead."
+        "Use download_policy and pass_policy instead. Settings for the file."
+
     link_settings AlphaLinkSettings?
         "Settings on the link for the file."
+
     download_policy DownloadPolicy?
         "The download policy on the file."
+
+    @common.Deprecate
     pass_policy PassPolicy?
-        "The presence and seen state policy on the file. DEPRECATED: use viewer_info_policy
-        instead."
+        "Use viewer_info_policy instead. The presence and seen state policy on the file."
+
     viewer_info_policy ViewerInfoPolicy?
         "The presence and seen state policy on the file."
 

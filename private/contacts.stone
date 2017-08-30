@@ -1,5 +1,6 @@
 namespace contacts
 
+import common
 import async
 
 union_closed ContactsError
@@ -56,19 +57,27 @@ struct GetContactsResult
     "Result struct which contains information about whether the client has
     the most up to date contacts. If the client has stale contacts, this struct
     will contain the updated contacts."
+
     server_digest String?
         "The digest of the server's contacts. It should be passed to the server
         on future calls of :route:`get`. This parameter will not be present
         if the server doesn't have any cached contacts."
+
+    @common.DefaultRedactor
     compressed_server_contacts String?
         "The server's compressed cached contacts. This field won't exist
         if no contacts need to be downloaded."
+
     contacts_cache_revision String?
         "The revision of the server's ContactsCacheEntity for the given user.
         Used to subscribe to a Bolt channel for Bolt contacts updates."
+
+    @common.DefaultRedactor
     bolt_token String?
         "The token necessary to subscribe to a Bolt channel for this user and
         the current state of their contacts."
+
+    @common.DefaultRedactor
     bolt_unique_id String?
         "The unique_id of this user to subscribe to the appropriate Bolt
         channel. The user needs to get this information from the server to
@@ -88,16 +97,19 @@ route get(GetContactsArg, GetContactsResult, GetContactsError)
 
     attrs
         cluster = "meta-peeps"
+        owner = "identity"
 
 # --
 
 alias ServerLocalContactsUpToDate = Boolean
 
 struct ContactsArg
+    @common.DefaultRedactor
     compressed_local_contacts String
         "A compressed list of the client's local contacts. This parameter
         should be used when the client has determined that the server's
         copy of local contacts is out of date."
+
     version UInt32
         "The version of the contacts schema that the compressed_local_contacts
         are using."
@@ -168,6 +180,7 @@ route add(AddContactsArg, AddContactsLaunchResult, AddContactsError)
 
     attrs
         cluster = "meta-peeps"
+        owner = "identity"
 
 route check_add(async.PollArg, AddContactsJobStatus, async.PollError)
     "This endpoint should be used to check whether a merge task launched from
@@ -176,3 +189,4 @@ route check_add(async.PollArg, AddContactsJobStatus, async.PollError)
 
     attrs
         cluster = "meta-peeps"
+        owner = "identity"

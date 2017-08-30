@@ -50,7 +50,7 @@ route validate_folder_path(ValidateFolderPathArg, ExpectedSharedFolderMetadata, 
     Apps must have full Dropbox access to use this endpoint.
 
     Warning: Do not make backwards-incompatible changes to this endpoint without talking to mobile
-    - currently many mobile clients are using this endpoint"
+    - currently many mobile clients are using this endpoint."
 
     attrs
         owner = "sharing-platform"
@@ -176,6 +176,8 @@ struct SharedFolderListMembersArg
 
 struct GroupToUsers
     group_id String
+
+    @common.DefaultRedactor
     user_ids List(String)?
         "List of user ids for the specified group. No list is present if the API caller
         does not have privileges to view group members."
@@ -272,23 +274,33 @@ struct InternalSharedFolderMetadata extends SharedFolderMetadataBase
 
     is_confidential Boolean = false
         "Specifies that the folder is invite only."
+
     link_metadata SharedContentLinkMetadata?
         "The metadata of the shared content link to this shared folder. Absent if there is no
         link on the folder."
+
+    @common.FilenameRedactor
     name String
         "The name of the this shared folder."
+
     managed_by String?
         "A human-readable string telling the user how to manage the folder or who can manage
         it if they don't have permission."
+
     permissions List(InternalFolderPermission)?
         "Actions the current user may perform on the folder and its contents.
         The set of permissions corresponds to the InternalFolderActions in the request."
+
     policy FolderPolicy
         "Policies governing this shared folder."
+
+    @common.UrlRedactor
     preview_url String
         "URL for displaying a web preview of the shared folder."
+
     shared_folder_id common.SharedFolderId
         "The ID of the shared folder."
+
     time_invited common.DropboxTimestamp
         "Timestamp indicating when the current user was invited to this shared folder."
 
@@ -319,8 +331,7 @@ route internal_test_only/get_folder_shared_content_link(GetFolderSharedContentLi
         the r=? parameter in the url generated from this endpt will not be exactly the same
         as in the link in the email. However, we make sure that the decoded recipient information
         will be exactly the same between the two URLs.
-    Note 4: The output URLs might not be in the same order as the input members. So if this order matters, you might want to pass in one member every time time.
-    "
+    Note 4: The output URLs might not be in the same order as the input members. So if this order matters, you might want to pass in one member every time time."
 
     attrs
         owner = "sharing"
@@ -331,7 +342,7 @@ struct GetFolderSharedContentLinkArg
     members List(AddMember)
         "The target members that will end up in the 'r=' query param of the output urls."
     gen_email_link Boolean
-        "Whether we generate a email tracking link (/l/*) or just the scl link /scl/fo/*"
+        "Whether we generate a email tracking link (/l/*) or just the scl link /scl/fo/*."
 
     example default
         shared_folder_id = "84528192421"
@@ -376,7 +387,7 @@ route share_folder_internal (ShareFolderInternalArg, ShareFolderInternalLaunch, 
 struct ShareFolderInternalArg extends ShareFolderArgBase
     actions List(InternalFolderAction)?
     confidentiality ConfidentialityArgs = not_confidential
-        "Specifies the confidentiality settings on the folder"
+        "Specifies the confidentiality settings on the folder."
     link_settings LinkSettings?
         "Settings on the link for this folder."
     should_be_new_path Boolean = false
@@ -402,15 +413,14 @@ route set_confidentiality (SetConfidentialityArgs, ShareFolderInternalLaunch, Se
 
     If a :field:`ShareFolderLaunch.async_job_id` is returned, you'll need to
     call :route:`check_share_job_status` until the action completes to get the
-    metadata for the folder.
-    "
+    metadata for the folder."
 
     attrs
         owner = "company-dropbox-team"
 
 struct SetConfidentialityArgs
     confidentiality ConfidentialityArgs = not_confidential
-        "The Confidentiality settings for the folder"
+        "The Confidentiality settings for the folder."
 
     shared_folder_id common.SharedFolderId
         "The ID for the shared folder."
@@ -448,7 +458,7 @@ union_closed ShareFolderInternalJobStatus extends async.PollResultBase
         complete = default
 
 route check_share_internal_job_status (async.PollArg, ShareFolderInternalJobStatus, async.PollError)
-    "Check the status of tasks that are expected to return InternalSharedFolderMetadata"
+    "Check the status of tasks that are expected to return InternalSharedFolderMetadata."
 
     attrs
         owner = "sharing-platform"
@@ -498,30 +508,29 @@ struct UnshareFoldersBatchArg
 
 union UnshareFoldersBatchError
     some_folders_not_unshared
-        "Some folders are not correctly unshared"
+        "Some folders are not correctly unshared."
 
 # --
+patch struct FolderPolicy
 
-struct AlphaFolderPolicy
+    @common.AlphaOnly
+    download_policy DownloadPolicy
+
+    example default
+        member_policy = anyone
+        resolved_member_policy = team
+        acl_update_policy = owner
+        shared_link_policy = anyone
+        download_policy = allow
+
+
+struct AlphaFolderPolicy extends FolderPolicy
     "A set of policies governing membership and privileges for a shared
     folder."
 
-    member_policy MemberPolicy?
-        "Who can be a member of this shared folder, as set on the folder itself.
-        The effective policy may differ from this value if the team-wide policy
-        is more restrictive. Present only if the folder is owned by a team."
-    resolved_member_policy MemberPolicy?
-        "Who can be a member of this shared folder, taking into account both the
-        folder and the team-wide policy. This value may differ from that of
-        member_policy if the team-wide policy is more restrictive than the folder
-        policy. Present only if the folder is owned by a team."
-    acl_update_policy AclUpdatePolicy
-        "Who can add and remove members from this shared folder."
-    download_policy DownloadPolicy
-    pass_policy PassPolicy
-        "DEPRECATED: use viewer_info_policy instead"
-    viewer_info_policy ViewerInfoPolicy
-    shared_link_policy SharedLinkPolicy
+    @common.Deprecate
+    pass_policy PassPolicy?
+        "Use viewer_info_policy instead."
 
     example default
         member_policy = anyone
@@ -569,24 +578,35 @@ struct AlphaFolderPermission
 # AlphaSharedFolderMetadata: private unstable version used by web. api is not frozen, we can do
 #   whatever we want as long as it doesn't break web
 struct AlphaSharedFolderMetadata extends SharedFolderMetadataBase
-    "Extended version of SharedFolderMetadata with link metadata and extended folder policy"
+    "Extended version of SharedFolderMetadata with link metadata and extended folder policy."
+
     is_confidential Boolean = false
         "Specifies that the folder is invite only."
+
     link_metadata SharedContentLinkMetadata?
+
+    @common.FilenameRedactor
     name String
         "The name of the this shared folder."
+
     managed_by String?
         "A human-readable string telling the user how to manage the folder or who can manage
         it if they don't have permission."
+
     permissions List(AlphaFolderPermission)?
         "Actions the current user may perform on the folder and its contents.
         The set of permissions corresponds to the FolderActions in the request."
+
     policy AlphaFolderPolicy
         "Policies governing this shared folder."
+
+    @common.UrlRedactor
     preview_url String
         "URL for displaying a web preview of the shared folder."
+
     shared_folder_id common.SharedFolderId
         "The ID of the shared folder."
+
     time_invited common.DropboxTimestamp
         "Timestamp indicating when the current user was invited to this shared folder."
 
@@ -607,30 +627,39 @@ route alpha/get_folder_metadata(AlphaGetMetadataArgs, AlphaSharedFolderMetadata,
 
     Apps must have full Dropbox access to use this endpoint.
 
-    The same as get_folder_metadata, but also includes link metadata
-    "
+    The same as get_folder_metadata, but also includes link metadata."
 
     attrs
         api_group = "sharing"
         is_preview = true
         owner = "sharing-platform"
+        is_legacy_alpha = true
 
 struct AlphaUpdateFolderPolicyArg
     "If any of the policy's are unset, then they retain their current setting."
 
     acl_update_policy AclUpdatePolicy?
         "Who can add and remove members of this shared folder."
+
     actions List(AlphaFolderAction)?
+
     download_policy DownloadPolicy?
+
     link_settings AlphaLinkSettings?
+
     member_policy MemberPolicy?
         "Who can be a member of this shared folder. Only applicable if the
         current user is on a team."
+
+    @common.Deprecate
     pass_policy PassPolicy?
-        "Deprecated(davy): use viewer_info_policy instead."
+        "Use viewer_info_policy instead."
+
     shared_folder_id common.SharedFolderId
         "The ID for the shared folder."
+
     shared_link_policy SharedLinkPolicy?
+
     viewer_info_policy ViewerInfoPolicy?
 
     example default
@@ -647,6 +676,7 @@ route alpha/update_folder_policy(AlphaUpdateFolderPolicyArg, AlphaSharedFolderMe
     attrs
         owner = "sharing-platform"
         is_preview = true
+        is_legacy_alpha = true
 
 union_closed AlphaShareFolderLaunch extends async.LaunchResultBase
     complete AlphaSharedFolderMetadata
@@ -654,11 +684,12 @@ union_closed AlphaShareFolderLaunch extends async.LaunchResultBase
 route alpha/share_folder(AlphaShareFolderArg, AlphaShareFolderLaunch, ShareFolderError)
     attrs
         is_preview = true
+        is_legacy_alpha = true
 
 struct AlphaShareFolderArg extends ShareFolderArgBase
     actions List(AlphaFolderAction)?
     confidentiality ConfidentialityArgs = not_confidential
-        "Specifies the confidentiality settings on the folder"
+        "Specifies the confidentiality settings on the folder."
     download_policy DownloadPolicy?
     link_settings AlphaLinkSettings?
     pass_policy PassPolicy?
@@ -677,6 +708,7 @@ route alpha/list_folders(AlphaListFoldersArgs, AlphaListFoldersResult, Void)
     attrs
         owner = "sharing-platform"
         is_preview = true
+        is_legacy_alpha = true
 
 struct AlphaListFoldersResult
     "Result for :route:`list_folders` or :route:`list_mountable_folders`, depending on which
@@ -718,6 +750,7 @@ route alpha/list_folders/continue(ListFoldersContinueArg, AlphaListFoldersResult
     attrs
         owner = "sharing-platform"
         is_preview = true
+        is_legacy_alpha = true
 
 
 # --
@@ -731,6 +764,7 @@ route alpha/list_mountable_folders(AlphaListFoldersArgs, AlphaListFoldersResult,
     attrs
         owner = "sharing-platform"
         is_preview = true
+        is_legacy_alpha = true
 
 
 # --
@@ -746,3 +780,4 @@ route alpha/list_mountable_folders/continue(ListFoldersContinueArg, AlphaListFol
     attrs
         owner = "sharing-platform"
         is_preview = true
+        is_legacy_alpha = true

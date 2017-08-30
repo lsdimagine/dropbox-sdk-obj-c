@@ -1,126 +1,6 @@
 namespace paper
 
-union ImportFormat
-    "The import format of the incoming data."
-
-    html
-        "The provided data is interpreted as standard HTML."
-    markdown
-        "The provided data is interpreted as markdown.
-
-        Note: The first line of the provided document will be used as the doc title."
-    plain_text
-        "The provided data is interpreted as plain text.
-
-        Note: The first line of the provided document will be used as the doc title."
-
-route docs/create (PaperDocCreateArgs, PaperDocCreateUpdateResult, PaperDocCreateError)
-    "Creates a new Paper doc with the provided content."
-    attrs
-        style="upload"
-        owner="paper-eng"
-        is_preview = true
-        api_group="paper-api-alpha"
-
-struct PaperDocCreateArgs
-    parent_folder_id String?
-        "The Paper folder ID where the Paper document should be created. The API user has to have
-        write access to this folder or error is thrown."
-    import_format ImportFormat
-        "The format of provided data."
-
-    example default
-        "Create new Paper doc (unfiled)."
-        import_format = markdown
-
-    example createDocInFolder
-        "Create new Paper doc inside Paper folder."
-        import_format = html
-        parent_folder_id = "e.gGYT6HSafpMej9bUv306GarglI7GGeAM3yvfZvXHO9u4mV"
-
-struct PaperDocCreateUpdateResult
-    doc_id String
-        "Doc ID of the newly created doc."
-    revision Int64
-        "The Paper doc revision. Simply an ever increasing number."
-    title String
-        "The Paper doc title."
-
-    example default
-        doc_id = "uaSvRuxvnkFa12PTkBv5q"
-        revision = 456736745
-        title = "Week one retention"
-
-union PaperDocCreateError extends PaperApiBaseError
-    content_malformed
-        "The provided content was malformed and cannot be imported to Paper."
-    folder_not_found
-        "The specified Paper folder is cannot be found."
-    doc_length_exceeded
-        "The newly created Paper doc would be too large.
-        Please split the content into multiple docs."
-    image_size_exceeded
-        "The imported document contains an image that is too large. The current limit is 1MB.
-        Note: This only applies to HTML with data uri."
-
-route docs/update (PaperDocUpdateArgs, PaperDocCreateUpdateResult, PaperDocUpdateError)
-    "Updates an existing Paper doc with the provided content."
-    attrs
-        style="upload"
-        owner="paper-eng"
-        is_preview = true
-        api_group="paper-api-alpha"
-
-union PaperDocUpdatePolicy
-    append
-        "The content will be appended to the doc."
-    prepend
-        "The content will be prepended to the doc.
-
-        Note: the doc title will not be affected."
-    overwrite_all
-        "The document will be overwitten at the head with the provided content."
-
-struct PaperDocUpdateArgs extends RefPaperDoc
-    doc_update_policy PaperDocUpdatePolicy
-        "The policy used for the current update call."
-    revision Int64
-        "The latest doc revision. This value must match the head revision or
-        an error code will be returned. This is to prevent colliding writes."
-    import_format ImportFormat
-        "The format of provided data."
-
-    example default
-        "Overwrite the doc content with provided content."
-        doc_update_policy = overwrite_all
-        import_format = html
-        doc_id = "uaSvRuxvnkFa12PTkBv5q"
-        revision = 12345
-
-    example prepend_example
-        "Prepend the content into the doc (the doc title will remain unchanged)."
-        doc_update_policy = prepend
-        import_format = plain_text
-        doc_id = "uaSvRuxvnkFa12PTkBv5q"
-        revision = 56556
-
-union PaperDocUpdateError extends DocLookupError
-    content_malformed
-        "The provided content was malformed and cannot be imported to Paper."
-    revision_mismatch
-        "The provided revision does not match the document head."
-    doc_length_exceeded
-        "The newly created Paper doc would be too large, split the content into multiple docs."
-    image_size_exceeded
-        "The imported document contains an image that is too large. The current limit is 1MB.
-        Note: This only applies to HTML with data uri."
-    doc_archived
-        "This operation is not allowed on archived Paper docs."
-    # TODO(jenda): Preventing feature leak. Uncomment this around the time trash is released.
-    # doc_trashed
-    #     "This operation is not allowed on trashed Paper docs."
-
-# --
+import common
 
 route docs/get_metadata (RefPaperDoc, PaperDocGetMetadataResult, DocLookupError)
     "Returns Paper doc metadata."
@@ -132,24 +12,34 @@ route docs/get_metadata (RefPaperDoc, PaperDocGetMetadataResult, DocLookupError)
 union PaperDocStatus
     active
         "The Paper doc is active."
-    archived
-        "The Paper doc is archived."
+    deleted
+        "The Paper doc is deleted."
 
 struct PaperDocGetMetadataResult
     doc_id PaperDocId
         "The Paper doc ID."
+
+    @common.EmailRedactor
     owner String
         "The Paper doc owner's email address."
+
+    @common.FilenameRedactor
     title String
         "The Paper doc title."
+
     created_date common.DropboxTimestamp
         "The Paper doc creation date."
+
     status PaperDocStatus
         "The Paper doc status."
+
     revision Int64
         "The Paper doc revision. Simply an ever increasing number."
+
     last_updated_date common.DropboxTimestamp
         "The date when the Paper doc was last edited."
+
+    @common.EmailRedactor
     last_editor String
         "The email address of the last editor of the Paper doc."
 
@@ -243,12 +133,17 @@ route graphql (GraphqlArgs, GraphqlResult, GraphqlError)
         is_preview = true
 
 struct GraphqlArgs
+    @common.HashRedactor
     query_name String(pattern="^[a-zA-Z0-9_\\-]+$")
         "A human readable name for the query.  This is used so Paper can easily track the performance and qps to specific query types."
+
     team_name String(pattern="^[a-zA-Z0-9_\\-]+$")
         "The name of the engineering team at Dropbox that made the query.  This is used so Paper can know the owner of requests that are hitting the servers and who to contact if necessary."
+
     query GraphqlQuery
         "The graphql query to execute."
+
+    @common.DefaultRedactor
     variables String?
         "A json string of any variables to run the query with."
 
@@ -269,8 +164,10 @@ union GraphqlQuery
         query_string = default
 
 struct GraphqlQueryString
+    @common.DefaultRedactor
     query_string String
         "A graphql query string to execute."
+
     query_string_signature String
         "A signature for the query_string.  The signature is used to prevent external users from being able to write their own queries.  Learn more at https://paper.dropbox.com/doc/How-to-call-Papers-Graphql-api-iVf6ag5ScF9MSJP8hZLAI ."
 
@@ -279,6 +176,7 @@ struct GraphqlQueryString
         query_string_signature="xxxxxxx"
 
 struct GraphqlResult
+    @common.DefaultRedactor
     result String
         "The result as a json string.  The format of this is determined by your graphql query.  Paper will simply JSON stringify the result of the graphql query and return it here.  For a query like {docs{id}}, the format would be a json string of {docs: [{id: '...'}, ...]}."
 
@@ -286,12 +184,16 @@ struct GraphqlResult
         result = "{\"docs\":[{\"id\":\"tJ1n6hRCdv4iWByewKSck\"}]}"
 
 union GraphqlError extends PaperApiBaseError
+    @common.DefaultRedactor
     graphql_errors String
         "Any errors encountered by the graphql runtime while executing the query.  This is a json string."
+
     invalid_query_id
         "The query id does not exist in the Paper database."
+
     invalid_query_signature
         "The query signature does not match."
+
     invalid_variables_json
         "The json string of the variables was not valid."
 

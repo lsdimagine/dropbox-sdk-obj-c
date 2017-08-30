@@ -1,5 +1,6 @@
 namespace team
 
+
 union LimitLevel
     "The enumerator value of the team default limit level."
 
@@ -41,9 +42,15 @@ union CapsType
     hard
         "Hard caps."
 
+    example default
+        hard = null
+
 
 struct SetCapsTypeArg
     caps_type CapsType
+
+    example default
+        caps_type=default
 
 
 union SetCapsTypeError extends team_administration.AdministrationError
@@ -57,7 +64,7 @@ route member_space_limits/set_default_limit(SetMemberSpaceDefaultLimitArg, Void,
     "update space limits for the non excluded team members."
 
     attrs
-        auth="team"
+        auth = "team"
         owner = "tools-and-insights"
 
 
@@ -65,7 +72,7 @@ route member_space_limits/update_excluded_users(UpdateExcludedUsersArg, GetExclu
     "Updates space limits exclusion users list by adding or removing users."
 
     attrs
-        auth="team"
+        auth = "team"
         owner = "tools-and-insights"
 
 
@@ -73,5 +80,6 @@ route member_space_limits/set_caps_type(SetCapsTypeArg, Void, SetCapsTypeError)
     "Updates space caps type for the team."
 
     attrs
-        auth="team"
+        auth = "team"
         owner = "tools-and-insights"
+

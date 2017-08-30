@@ -1,5 +1,7 @@
 namespace sharing
 
+import common
+
 #
 # Alpha version of LinkPermissions with visibility information and controls
 #
@@ -13,7 +15,7 @@ union VisibilityPolicyDisallowedReason
     restricted_by_team
         "The team policy prevents links being shared outside the team."
     user_not_on_team
-        "The user needs to be on a team to set this policy"
+        "The user needs to be on a team to set this policy."
     user_account_type
         "The user is a basic user or is on a limited team."
     permission_denied
@@ -82,7 +84,7 @@ struct VisibilityPolicy
 
 struct AlphaLinkPermissions
     "Alpha version of :type:`LinkPermissions` with extra information about link policies and
-    permissions"
+    permissions."
     resolved_visibility AlphaResolvedVisibility?
         "The current visibility of the link after considering the shared links policies of the
         the team (in case the link's owner is part of a team) and the shared folder (in case the
@@ -96,25 +98,25 @@ struct AlphaLinkPermissions
         owner."
 
     can_revoke Boolean
-        "Whether the caller can revoke the shared link"
+        "Whether the caller can revoke the shared link."
     revoke_failure_reason SharedLinkAccessFailureReason?
         "The failure reason for revoking the link. This field will only be present if the
         :field:`can_revoke` is :val:`false`."
     visibility_policies List(VisibilityPolicy)
-        "A list of policies that the user might be able to set for the visibility"
+        "A list of policies that the user might be able to set for the visibility."
     can_set_expiry Boolean
         "Whether the user can set the expiry settings of the link. This refers to the ability to
         create a new expiry and modify an existing expiry."
     can_remove_expiry Boolean
         "Whether the user can remove the expiry of the link."
     allow_download Boolean
-        "Whether the link can be downloaded or not"
+        "Whether the link can be downloaded or not."
     can_allow_download Boolean
         "Whether the user can allow downloads via the link. This refers to the ability to remove a
-        no-download restriction on the link"
+        no-download restriction on the link."
     can_disallow_download Boolean
         "Whether the user can disallow downloads via the link. This refers to the ability to impose
-        a no-download restriction on the link"
+        a no-download restriction on the link."
     restricting_shared_folder_path String?
         "If the link's visibility is shared folder only because it is being restricted by a parent
          shared folder, then the full path of the restricting shared folder will be provided."
@@ -163,7 +165,7 @@ struct AlphaLinkPermissions
 
 struct AlphaSharedLinkMetadata
     "Alpha version of :type:`SharedLinkMetadata` that uses :type:`AlphaLinkPermissions` instead of
-    :type:`LinkPermissions`"
+    :type:`LinkPermissions`."
 
     union
         file AlphaFileLinkMetadata
@@ -171,26 +173,36 @@ struct AlphaSharedLinkMetadata
 
     url String
         "URL of the shared link."
+
     id Id?
         "A unique identifier for the linked file."
+
+    @common.FilenameRedactor
     name String
         "The linked file name (including extension).
         This never contains a slash."
+
     expires common.DropboxTimestamp?
         "Expiration time, if set. By default the link won't expire."
+
+    @common.PathRedactor
     path_lower String?
         "The lowercased full path in the user's Dropbox. This always starts with a slash.
         This field will only be present only if the linked file is in the authenticated user's
          dropbox."
+
     link_permissions AlphaLinkPermissions
         "The link's access permissions."
+
     team_member_info TeamMemberInfo?
         "The team membership information of the link's owner.  This field will only be present
          if the link's owner is a team member."
+
     content_owner_team_info TeamInfo?
         "The team information of the content's owner. This field will only be present if
         the content's owner is a team member and the content's owner team is different from the
         link's owner team."
+
     preview_type String?
         "The preview type is determined by the file extension of the shared link. It will be null
         if the file cannot be previewed by the file viewer."
@@ -202,7 +214,7 @@ struct AlphaSharedLinkMetadata
         folder = default
 
 struct AlphaFileLinkMetadata extends AlphaSharedLinkMetadata
-    "The metadata of a file shared link "
+    "The metadata of a file shared link."
 
     client_modified common.DropboxTimestamp
         "The modification time set by the desktop client
@@ -232,7 +244,7 @@ struct AlphaFileLinkMetadata extends AlphaSharedLinkMetadata
         size = 7212
 
 struct AlphaFolderLinkMetadata extends AlphaSharedLinkMetadata
-    "The metadata of a folder shared link "
+    "The metadata of a folder shared link."
 
     example default
         url = "https://www.dropbox.com/sh/s6fvw6ol7rmqo1x/AAAgWRSbjmYDvPpDB30Sykjfa?dl=0"
@@ -272,7 +284,7 @@ struct AlphaSharedLinkSettings extends SharedLinkSettings
 
 struct AlphaModifySharedLinkSettingsArgs
     url String
-        "URL of the shared link to change its settings"
+        "URL of the shared link to change its settings."
     settings AlphaSharedLinkSettings
         "Set of settings for the shared link."
     remove_expiration Boolean = false
@@ -284,10 +296,10 @@ struct AlphaModifySharedLinkSettingsArgs
 
 struct AlphaCreateSharedLinkWithSettingsArg
     path ReadPath
-        "The path to be shared by the shared link"
+        "The path to be shared by the shared link."
 
     settings AlphaSharedLinkSettings?
-        "The requested settings for the newly created shared link"
+        "The requested settings for the newly created shared link."
 
     example default
         path = "/Prime_Numbers.txt"
@@ -301,15 +313,17 @@ route alpha/list_shared_links(ListSharedLinksArg, AlphaListSharedLinksResult, Li
         api_group = "sharing"
         is_preview = true
         owner = "sharing"
+        is_legacy_alpha = true
 
 route alpha/create_shared_link_with_settings(AlphaCreateSharedLinkWithSettingsArg, AlphaSharedLinkMetadata, CreateSharedLinkWithSettingsError)
     "Create a shared link with custom settings.
     If no settings are given then the default visibility is :field:`RequestedVisibility.public`
     (The resolved visibility, though, may depend on other aspects such as team and shared folder
-    settings). "
+    settings)."
 
     attrs
         owner = "sharing"
+        is_legacy_alpha = true
 
 route alpha/modify_shared_link_settings(AlphaModifySharedLinkSettingsArgs, AlphaSharedLinkMetadata, ModifySharedLinkSettingsError)
     "Modify the shared link's settings.
@@ -322,3 +336,4 @@ route alpha/modify_shared_link_settings(AlphaModifySharedLinkSettingsArgs, Alpha
 
     attrs
         owner = "sharing"
+        is_legacy_alpha = true

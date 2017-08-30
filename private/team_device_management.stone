@@ -60,7 +60,7 @@ union DeviceManagementError
 route device_management/configure_settings(ConfigureSettingsDeviceManagementArg, ConfigureSettingsDeviceManagementResult, DeviceManagementError)
     "Configure device management admin's settings.
 
-    Permission : Team member management"
+    Permission : Team member management."
 
     attrs
         auth="team"
@@ -69,7 +69,7 @@ route device_management/configure_settings(ConfigureSettingsDeviceManagementArg,
 route device_management/get_excluded_users(Void, GetExcludedUsersResult, DeviceManagementError)
     "Get list of excluded users.
 
-    Permission : Team member management"
+    Permission : Team member management."
 
     attrs
         auth="team"
@@ -81,7 +81,7 @@ struct RemoveDeviceArg
     device_id String
         "Device id."
     delete_data Boolean?
-        "To delete data also?"
+        "Whether to delete data."
 
     example default
         user_id = 5
@@ -106,7 +106,7 @@ struct RemoveDeviceResult
 route device_management/remove_device(RemoveDeviceArg, RemoveDeviceResult, DeviceManagementError)
     "Remove user's device.
 
-    Permission : Team member management"
+    Permission : Team member management."
 
     attrs
         auth="team"
@@ -120,7 +120,7 @@ struct RemoveClientArg
     client_unique_identifier String
         "Client unique identifier."
     delete_data Boolean?
-        "To delete data also?"
+        "Whether to also delete data."
 
     example default
         user_id = 5
@@ -146,7 +146,7 @@ struct RemoveClientResult
 route device_management/remove_client(RemoveClientArg, RemoveClientResult, DeviceManagementError)
     "Remove user's device client.
 
-    Permission : Team member management"
+    Permission : Team member management."
 
     attrs
         auth="team"

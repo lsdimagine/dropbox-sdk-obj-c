@@ -83,7 +83,7 @@ struct ScheduledSubscriptionState extends SubscriptionState
         effective_date = "2016-01-01T00:00:00Z"
 
     example fastrak_aka_limited
-        "change_team_plan on Fastrak->Anything will give you a previously_scheduled_state like this"
+        "change_team_plan on Fastrak->Anything will give you a previously_scheduled_state like this."
         total_licenses = 0
         products = []
 
@@ -176,7 +176,7 @@ struct TeamStatusResponseOrion
         "The previously scheduled transition, or the full state the team would have been at the point of renewal had the change not been applied.  This will be the same as current_state before the change was applied if there were no pending transitions."
 
     example default
-        "Sample response"
+        "Sample response."
         team_id = 12345
         interval = default
         num_provisioned_users = 2
@@ -273,7 +273,7 @@ struct MigrateToChannelArgs
     team_id UInt64
         "The ID of the team being migrated."
     old_subscription_state SubscriptionState
-        "The current state of the team"
+        "The current state of the team."
     new_subscription_state SubscriptionState
         "The state of the team after the migration. Include any upsells, downsells, upgrades or downgrades here."
     price Price

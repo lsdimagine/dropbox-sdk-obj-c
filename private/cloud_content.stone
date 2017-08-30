@@ -3,10 +3,11 @@ namespace cloud_content
 
 import files
 
+
 struct CreateArg
     path files.WritePath
         "The path in the user's Dropbox at which to create the cloud content object. The file
-        extension component of the path must be one of '.paper', '.gdoc', '.gsheet', or '.gslide'"
+        extension component of the path must be one of '.paper', '.gdoc', '.gsheet', or '.gslide'."
 
     example default
         path = "/Projects/ACME Corp/Kickoff Meeting"

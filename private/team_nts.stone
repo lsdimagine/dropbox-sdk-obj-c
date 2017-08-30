@@ -12,7 +12,7 @@ alias BlockTrafficPolicyArg = BlockTrafficPolicy
 route nts/set_block_traffic_policy(BlockTrafficPolicyArg, Void, AdministrationError)
     "Block/unblock authenticated Dropbox traffic for members not on your team.
 
-    Permission : Team member management"
+    Permission : Team member management."
 
     attrs
         auth="team"

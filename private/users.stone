@@ -9,10 +9,10 @@ import users_common
 #
 
 union GetSharingPrefsError
-    "Errors that happen when getting sharing preferences"
+    "Errors that happen when getting sharing preferences."
 
 union SetSharingPrefsError
-    "Errors that happen when setting sharing preferences"
+    "Errors that happen when setting sharing preferences."
 
 struct SharingPrefs
     "Information about a user's sharing preferences.
@@ -30,10 +30,10 @@ struct SharingPrefs
         shared folders."
 
 route get_sharing_prefs(Void, SharingPrefs, GetSharingPrefsError)
-    "Get the sharing preferences for the current user"
+    "Get the sharing preferences for the current user."
 
 route set_sharing_prefs(SharingPrefs, Void, SetSharingPrefsError)
-    "Set sharing preferences for the curent user"
+    "Set sharing preferences for the curent user."
 
 # --
 
@@ -47,15 +47,19 @@ union RootInfo
     cdm_team CDMInfo
         "The user is on a CDM-enabled team."
         struct
+            @common.PathRedactor
             path_root String
                 "The ID of the team shared Dropbox."
+
+            @common.PathRedactor
             home_path String
                 "The path relative to the team shared Dropbox to the user's
                 team member folder."
+
             home_ns_id String
-                "The ID of the user's TMF"
+                "The ID of the user's TMF."
     not_on_cdm_team String
-        "The user is not on a CDM-enabled team, but we'll return their home_ns_id"
+        "The user is not on a CDM-enabled team, but we'll return their home_ns_id."
 
 #
 # Paywall endpoints
@@ -64,7 +68,7 @@ union RootInfo
 struct GrandfatherModalInfo
     "Informations about the grandfather modal."
     show Boolean
-        "Whether the modal should be displayed"
+        "Whether the modal should be displayed."
 
 struct SharingPaywallInfo
     "Information about whether certain features are blocked for a user based on
@@ -89,6 +93,7 @@ route get_sharing_paywall_info(Void, SharingPaywallInfo, Void)
 struct OwnedSharedFolder
     "Only the bare-bones information necessary for the sharing paywall experiment."
 
+    @common.FilenameRedactor
     name String
         "The name of the shared folder the user owns."
 
@@ -116,7 +121,7 @@ route list_owned_shared_folders(Void, ListOwnedFoldersResult, Void)
 
 struct GetPlanInfoArg
     account_id users_common.AccountId
-        "A user's account identifier"
+        "A user's account identifier."
 
     example default
         account_id = "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
@@ -124,37 +129,37 @@ struct GetPlanInfoArg
 struct PlanInfo
     "The amount of detail revealed about an account depends on the user being queried."
     account_id users_common.AccountId
-        "A user's account identifier"
+        "A user's account identifier."
     account_type users_common.AccountType
-        "What type of account this user has"
+        "What type of account this user has."
     plan_text String
-        "User facing string for plan name"
+        "User facing string for plan name."
     plan_detail_text String?
-        "User facing string for detailed plan text"
+        "User facing string for detailed plan text."
     is_trial Boolean?
-        "Is the user on a trial plan"
+        "Is the user on a trial plan."
 
     example default
-        "Basic account"
+        "Basic account."
         account_id = "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
         account_type = basic
         plan_text = "Dropbox Basic"
 
     example plus_subscriber
-        "A personal account that has a plus subscription"
+        "A personal account that has a plus subscription."
         account_id = "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
         account_type = pro
         plan_text = "Dropbox Plus"
 
     example ios_plus_subscriber
-        "A personal account that has a plus subscription on Apple ITunes"
+        "A personal account that has a plus subscription on Apple ITunes."
         account_id = "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
         account_type = pro
         plan_text = "Dropbox Plus"
         plan_detail_text = "Dropbox IOS Plus"
 
     example ios_plus_trial_subscriber
-        "A personal account that has a plus trial subscription on Apple ITunes"
+        "A personal account that has a plus trial subscription on Apple ITunes."
         account_id = "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
         account_type = pro
         plan_text = "Dropbox Plus"
@@ -162,7 +167,7 @@ struct PlanInfo
         is_trial = true
 
     example user_on_business_team
-        "A user that's a part of a team"
+        "A user that's a part of a team."
         account_id = "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
         account_type = business
         plan_text = "Dropbox Business"
@@ -176,3 +181,35 @@ route get_plan_info(GetPlanInfoArg, PlanInfo, GetPlanInfoError)
 
     attrs
         owner = "cash-team"
+
+#
+# Scale mitigation endpoint for desktop client
+#
+
+struct ScaleMitigationResult
+    needs_scale_mitigation Boolean
+        "Whether the user needs scale mitigation."
+    reason ScaleMitigationReason?
+        "Included if scale mitigation is necessary, this is the reason why it is needed."
+
+    example default
+        needs_scale_mitigation = false
+
+union ScaleMitigationReason
+    too_many_files TooManyFilesReason
+        "User needs scale mitigation because they have too many files."
+
+struct TooManyFilesReason
+    approximate_file_count Int64
+        "The approximate number of files the user has in their Dropbox."
+    file_limit Int64
+        "The file limit that the user has surpassed."
+
+union ScaleMitigationError
+    "Errors that happen when getting if the user needs scale mitigation."
+
+route needs_scale_mitigation(Void, ScaleMitigationResult, ScaleMitigationError)
+    "Get information if the user needs scale mitigation for the desktop client to work properly."
+
+    attrs
+        owner = "sync-experience"

@@ -9,6 +9,7 @@ union_closed UserProvisioningStatus
 
 ### Args
 struct UserGetArg
+    @common.DefaultRedactor
     uid UInt64
         "The unique identifier for Dropbox user."
 
@@ -50,7 +51,7 @@ struct PROSkuProvisionInfo
         "A unique identifier for this provisioning. When the same SKU was provisioned
         multiple times it can be used to distinguish between them."
     sku UInt64
-        "A sku id of the service"
+        "A sku id of the service."
     status UserProvisioningStatus
         "The current status of the service."
     provision_date common.DropboxTimestamp
@@ -60,14 +61,17 @@ struct PROSkuProvisionInfo
         When service is active - not returned."
 
 struct UserSkuInfo extends PROSkuProvisionInfo
+    @common.DefaultRedactor
     uid UInt64
         "The unique identifier of the dropbox user the sku was assigned to."
 
 struct UserProvisioningInfo
+    @common.DefaultRedactor
     uid UInt64
         "The unique identifier for Dropbox user."
+
     skus List(PROSkuProvisionInfo)
-        "The list of SKUs and their provisioning info for this user"
+        "The list of SKUs and their provisioning info for this user."
 
 struct ListProvisioningInfo
     users List(UserProvisioningInfo)
@@ -127,7 +131,7 @@ route pro/provision (UserProvisioningArg, UserProvisioningInfo, UserProvisioning
 
 route pro/deprovision (UserProvisioningArg, UserProvisioningInfo, UserDeprovisioningError)
     "Deprovisions the partner ProSKU provided in the UserProvisioningArg.
-     On success the returned :field:`PROSkuProvisionInfo.deprovision_date` will be set"
+     On success the returned :field:`PROSkuProvisionInfo.deprovision_date` will be set."
     attrs
         auth="app"
 
@@ -143,7 +147,6 @@ route pro/list (ResellerListArg, ListProvisioningInfo, ListProvisioningError)
 
 route pro/list_skus (ResellerListSkusArg, ListSkuInfo, ListSkuError)
     "An api to list skus provisioned by the partner and filtered by the provisioning or
-     deprovisioning date.
-     "
+     deprovisioning date."
     attrs
         auth="app"

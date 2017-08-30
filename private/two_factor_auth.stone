@@ -1,40 +1,46 @@
 namespace two_factor_auth
 
+import common
+
 struct GetLoginRequestStatusArg
     user_id UInt64
-        "The user ID of the user who sent the login request"
+        "The user ID of the user who sent the login request."
+
+    @common.DefaultRedactor
     token String
-        "A read-only token for the login request"
+        "A read-only token for the login request."
 
 union LoginRequestStatus
     unacknowledged
-        "The login request hasn't been acknowledged"
+        "The login request hasn't been acknowledged."
     approved
-        "The login request was approved"
+        "The login request was approved."
     denied
-        "The login request was denied"
+        "The login request was denied."
     invalid
-        "The login request expired or the request was invalid"
+        "The login request expired or the request was invalid."
 
 route get_login_request_status (GetLoginRequestStatusArg, LoginRequestStatus, Void)
-    "Returns the status of a two-factor login request"
+    "Returns the status of a two-factor login request."
     attrs
         owner = "prodsec"
         is_preview = true
         auth = "app"
 
 struct SetLoginRequestStatusArg
+    @common.DefaultRedactor
     token String
-        "A read/write token for the login request"
+        "A read/write token for the login request."
+
     is_approved Boolean
-        "Whether the login request should be approved or denied"
+        "Whether the login request should be approved or denied."
 
 union SetLoginRequestStatusError
     expired
-        "The login request expired or the request was invalid"
+        "The login request expired or the request was invalid."
 
 route set_login_request_status (SetLoginRequestStatusArg, Void, SetLoginRequestStatusError)
-    "Responds to a login request, setting the status as approved or denied"
+    "Responds to a login request, setting the status as approved or denied."
     attrs
         owner = "prodsec"
         is_preview = true

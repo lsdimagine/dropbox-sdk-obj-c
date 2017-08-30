@@ -1,11 +1,18 @@
 namespace team
 
+import common
+
 
 struct ExcludedUser
+    @common.DefaultRedactor
     display_name String
         "User display name."
+
+    @common.EmailRedactor
     email String
         "User email."
+
+    @common.DefaultRedactor
     photo_circle_url String?
         "User circle photo."
 

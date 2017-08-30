@@ -1,24 +1,32 @@
 namespace seen_state
-    "Endpoints to access seen state data"
+    "Endpoints to access seen state data."
 
+import common
 import team_common
 
+@common.PathRedactor
 alias PathOrSjidOrFileId = String(pattern="((\/|sjid:).*|nspath:[^:]*|id:.*)", min_length=1)
 
 struct SeenStateUserArg
     "The arguments to the get_seen_state_users endpoint. Just takes a list of user_ids."
 
+    @common.DefaultRedactor
     user_ids List(String)
         "List of encoded user_ids."
+
     file_info FileInfo
         "The file that is currently being viewed."
 
 struct BeaconInfo
     "Identifiers to uniquely identify a file and session for Beacon."
 
+    @common.DefaultRedactor
     auth_key String
+
     context String
+
     identifier String
+
     beacon_user_id String
         "Either an account ID or an encoded session ID."
 
@@ -33,8 +41,11 @@ struct FileInfo
 
     ns_id UInt64?
         "The ns_id of the file. Must be specified if the file_identifier corresponds to a ns_id or sjid."
+
     file_identifier PathOrSjidOrFileId?
         "Either the ns_path, sjid, or file_id of the file with a prefix to identify which."
+
+    @common.UrlRedactor
     url String?
         "If viewing the file on a shared link or shared content link, the url to the file."
 
@@ -46,10 +57,17 @@ struct FileInfoList
 struct SeenStateUser
     "Represents a user that has seen state and the information we need for rendering."
 
+    @common.DefaultRedactor
     user_id String
+
+    @common.DefaultRedactor
     display_name String
+
+    @common.DefaultRedactor
     email String?
+
     photo_circle_url String?
+
     sharing_access_type SharingAccessType?
 
 struct SeenEvent
@@ -64,7 +82,7 @@ struct SeenStateLastSeen
 
     when_last_seen UInt64?
     seen_state_user SeenStateUser
-    seen_events List(SeenEvent)?
+    seen_events List(SeenEvent)
 
 struct SeenStateInfo
     "Holds a list of seen states representing a list of views that unique users have on
@@ -73,7 +91,7 @@ struct SeenStateInfo
     seen_states List(SeenStateLastSeen)
 
 struct GetSeenStateInfoArg
-    "TODO(tinading): make limit non-optional, after making client side call with explicit number"
+    "TODO(tinading): make limit non-optional, after making client side call with explicit number."
     file_infos List(FileInfo)
     limit UInt32 = 103
 
@@ -96,8 +114,7 @@ struct SeenStateInfoResult
     If the user does not have permission to see seen state, the seen_state_error field will be
     populated.
 
-    TODO(tinading): make get_seen_state_info return one cursor for a list of SeenStateInfoResult
-    "
+    TODO(tinading): make get_seen_state_info return one cursor for a list of SeenStateInfoResult."
 
     file_info FileInfo
     seen_state_info SeenStateInfo
@@ -110,11 +127,15 @@ union SharingAccessType
     explicit and inherited). If the user has access through a group, the group ids that the user has
     access through are specified through a list of group ids. If the user has link_only access, this
     means that the user is only able to view the file via a link.
-    "
 
-    member_access List(team_common.GroupId)
-        "The user is explicitly on the ACL, either on the file or through inheritance from a parent
-        namespace. Also includes a list of group ids that the user has access through."
+    edit_member_access and view_member_access means that the user is explicitly on the ACL, either
+    on the file or through inheritance from a parentnamespace. Also includes a list of group ids
+    that the user has access through."
+
+    edit_member_access List(team_common.GroupId)
+        "The user has edit access on the file."
+    view_member_access List(team_common.GroupId)
+        "The user has view access to the file."
     link_only
         "The user has access through a link only."
 
@@ -142,9 +163,9 @@ struct CoachmarkInfo
 
 union CoachmarkInteraction
     accepted
-        "User accepted the coachmark"
+        "User accepted the coachmark."
     dismissed
-        "User dismissed the coachmark"
+        "User dismissed the coachmark."
 
 struct CoachmarkInteractionData
     type SeenStateCoachmarkType
@@ -169,7 +190,7 @@ union SeenStateError
 union GetSeenStateInfoError extends SeenStateError
     seen_state_disabled
         "The user has presence and members access to this file, but not to seen state.
-        Should only be returned in the seen_state_error subfield of a SeenStateInfoResult"
+        Should only be returned in the seen_state_error subfield of a SeenStateInfoResult."
 
 route get_pass_status(FileInfoList, List(PassStatusResult), SeenStateError)
     "Called to determine what permissions a user has for PASS."

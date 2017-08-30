@@ -20,20 +20,22 @@ union ProfileServicePermissionType
 union ServiceType
     "Supported services."
     google
-        "Google"
+        "Google."
     yahoo
-        "Yahoo"
+        "Yahoo."
     facebook
-        "Facebook"
+        "Facebook."
     outlook
-        "Outlook"
+        "Outlook."
+    slack
+        "Slack."
 
 
 # --
 
 
 struct GetAccessTokenArg
-    "Arguments for fetching access token"
+    "Arguments for fetching access token."
     service ServiceType
         "The specific service of the Access Token being requested."
     permissions List(ProfileServicePermissionType)
@@ -45,15 +47,20 @@ struct GetAccessTokenArg
 
 
 struct GetAccessTokenResult
-    "Result struct containing an Access Token"
+    "Result struct containing an Access Token."
+
+    @common.DefaultRedactor
     access_token String
         "The access token for the specified user and service."
+
     granted_permissions List(ProfileServicePermissionType)
         "Permissions that have been granted by the user for the specified service."
+
     missing_permissions List(ProfileServicePermissionType)
         "Availible permissions for the service that have not yet been granted."
-    expire_ts UInt64
-        "Timestamp when token expires, in seconds."
+
+    expire_ts UInt64?
+        "Timestamp when token expires, in seconds. The absence of this argument means that the token never expires."
 
     example default
         access_token = "AzJJbGlzdF90eXBdofe9c3RPbGlzdGFyZ3NfYnlfZ2lkMRhcbric7Rdog9cmV2aXNpb24H3Qf6o1fkHxQ"
@@ -108,15 +115,47 @@ struct GetSupportedPermissionsResult
 
 
 struct GetSupportedPermissionsError
-    "Returns the error"
+    "Returns the error."
     service_error SupportedPermissionsError
 
-    example defualt
+    example default
         service_error = unrecognized_service
 
 
 route get_supported_permissions(GetSupportedPermissionsArg, GetSupportedPermissionsResult, GetSupportedPermissionsError)
 
+# --
+
+
+union UnlinkServiceError
+    missing_token
+        "User has not linked the specified profile service account."
+    unrecognized_service
+        "Specified service is not recognized."
+
+struct UnlinkArg
+    service ServiceType
+        "Argument for unlinking a specific profile service."
+    example default
+        service = slack
+
+
+struct UnlinkResult
+    "Return whether this action succeeded or not."
+    success Boolean
+
+    example default
+        success = true
+
+
+struct UnlinkError
+    service_error UnlinkServiceError
+
+    example default
+        service_error = unrecognized_service
+
+
+route unlink(UnlinkArg, UnlinkResult, UnlinkError)
 
 # --
 

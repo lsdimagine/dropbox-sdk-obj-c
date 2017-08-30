@@ -6,11 +6,11 @@ namespace team
 
 struct VersionInfoResult
     latest_version String
-        "The latest version of the toolkit"
+        "The latest version of the toolkit."
     latest_version_url String
-        "The URL of the setup file for the latest version of the toolkit"
+        "The URL of the setup file for the latest version of the toolkit."
     minimum_version String
-        "The minimum required version of the toolkit"
+        "The minimum required version of the toolkit."
 
     example default
         latest_version = "1.0.83"

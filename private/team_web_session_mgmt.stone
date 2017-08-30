@@ -22,7 +22,7 @@ route web_session_management/configure_settings(WebSessionManagementArg, Void, W
 
     "Configure web session management admin's settings.
 
-    Permission : Team admin"
+    Permission : Team admin."
 
     attrs
         auth="team"

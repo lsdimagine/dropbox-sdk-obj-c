@@ -17,8 +17,7 @@ struct ReminderEmailArgs
 
         Currently it is just a string with digits of the real team_id. It is a string
         because we want to be future proof and be compatiable with the encoded team_id
-        format of API_V2
-        "
+        format of API_V2."
 
 union ReminderEmailError
     invalid_team
@@ -36,8 +35,7 @@ route send_reminder_email_to_self(ReminderEmailArgs, Void, ReminderEmailError)
         the UI could show `Check your email for a reminder to join xxx team`, and we use this endpoint
         the send the reminder email.
 
-    Note: this endpoint updates the last sent time of reminder email, but does not respect rate limiting.
-    "
+    Note: this endpoint updates the last sent time of reminder email, but does not respect rate limiting."
 
     attrs
         owner = "onboarding-intent"

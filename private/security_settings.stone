@@ -11,7 +11,7 @@ struct SendVerifyPendingEmailArg
         "The pending email the user intends to switch to."
 
     example newEmail
-        "Send an email to rohan+new@dropbox.com"
+        "Send an email to rohan+new@dropbox.com."
         unverified_new_email = "rohan+new@dropbox.com"
 
 union SendVerifyPendingEmailError
@@ -176,10 +176,14 @@ route uninstall_app (UninstallAppArg, Void, UninstallAppError)
         is_preview = true
 
 struct TwofactorInfo
+    user_can_disable Boolean
+        "Whether the user can disable two factor authentication."
     status String
         "Whether enabled and required by admin."
     primary String
         "The primary delivery method e.g. SMS or Authenticator app."
+    primary_phone String?
+        "The phone number, if phone SMS is the primary delivery method."
     backup String?
         "The backup phone number, or none if there's no backup."
     num_security_keys UInt64

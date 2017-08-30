@@ -179,6 +179,16 @@ struct GetCampaignsArg
 struct CampaignsResult
     campaigns List(CampaignResult)
     valid_for UInt64
+    request_id String?
+        "request_id is a string that uniquely identifies the request during
+        which this campaigns result was constructed. I.e. the request that
+        found and returned this campaigns result back to a client. Typically,
+        clients take the request_id and echo it back to us as
+        prompt_parent_request_id anytime they notify us about campaign
+        impressions and campaign interactions. Together, request_id and
+        prompt_parent_request_id let us associate client events (client
+        impression, confirm, dismiss) with server events (impression)."
+
 
     example default
         campaigns = [default]
@@ -187,7 +197,7 @@ struct CampaignsResult
 struct CampaignArg
     campaign_id CampaignId
     prompt_queried_at_ms PromptTimestamp?
-        "Optional for backward compatibility."
+    prompt_parent_request_id String?
 
     example default
         campaign_id = 499

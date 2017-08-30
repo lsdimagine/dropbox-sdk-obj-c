@@ -1,65 +1,115 @@
 namespace files
 
 import async
+import common
 import users_common
 
-#
-# Patches
-#
+@common.PathRedactor
+alias RestorePath = String(pattern="(/(.|[\\r\\n])*)|(ns:[0-9]+(/.*)?)")
 
 #
-# Supported extensions
+# Patches Metadata
 #
+patch struct FileSharingInfo
 
-union PreviewType
-    audio
-        "Audio preview."
-    file_tree
-        "Archive preview."
-    hls
-        "HTTP Live Streaming preview."
-    html
-        "HTML preview."
-    link_file
-        "Link file (e.g. file representing web URL) preview."
-    pdf
-        "PDF preview."
-    text
-        "Text preview."
-    thumbnail
-        "Thumbnail preview."
+    @common.InternalOnly
+    is_parent_shared_folder_read_only Boolean
+        "Whether the parent shared folder is ready only. Not set when no parent shared
+        folder exists."
+
+    @common.InternalOnly
+    last_modifier ModifierAccountInfo?
+        "The last Dropbox account to modify the file content. This field will be null if
+        the user's account has been deleted."
+        struct
+            account_id users_common.AccountId
+                "The user's unique Dropbox ID."
+            user_id String
+                "The user's deprecated, unencoded Dropbox ID."
+            display_name String
+                "The user's display name."
+            email String
+                "The user's e-mail address. Do not rely on this without checking the
+                :field:`email_verified` field. Even then, it's possible that the user
+                has since lost access to their e-mail."
+            email_verified Boolean
+                "Whether the user has verified their e-mail address."
+
+            example default
+                account_id = "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
+                user_id = "123456"
+                display_name = "Franz Ferdinand"
+                email = "franz@dropbox.com"
+                email_verified = true
 
     example default
-        pdf = null
+        is_parent_shared_folder_read_only = false
+        last_modifier = default
 
-struct PreviewableExtensionInfo
-    supported_preview_formats List(PreviewType)
-        "The preview formats that are supported."
-    full_content_preference List(PreviewType)
-        "An ordered subset of supported extensions, used to determine client-side
-        rendering behavior."
+patch struct FolderSharingInfo
 
-    example default
-        supported_preview_formats = [default]
-        full_content_preference = [default]
+    @common.InternalOnly
+    is_parent_shared_folder_read_only Boolean?
+        "Whether the parent shared folder is ready only. Set if the folder is contained by a shared folder."
 
-struct PreviewableExtensionsResult
-    file_extension_to_previewable_info Map(String, PreviewableExtensionInfo)
-        "Mapping from file extension to data that describes whether the extension
-        is supported for previewing."
+    @common.InternalOnly
+    is_team_folder Boolean?
+        "Whether the current folder is a team folder. Set if the current folder is a shared folder."
 
     example default
-        file_extension_to_previewable_info = {"ai": default}
+        is_parent_shared_folder_read_only = false
+        is_team_folder = false
 
-route get_previewable_extensions (Void, PreviewableExtensionsResult, Void)
-    "Get supported file extensions for previewing."
+    example shared_folder
+        is_parent_shared_folder_read_only = false
+        is_team_folder = false
 
-    attrs
-        owner = "api-platform"
-        allow_app_folder_app = true
+patch struct FileMetadata
+
+    @common.InternalOnly
+    size_display String
+        "A localized, human-readable string representing the size of the file, used for
+        display purposes."
+
+    @common.InternalOnly
+    icon String
+        "The name of the icon used to illustrate the file type in Dropbox's icon library."
+
+    @common.InternalOnly
+    mime_type String
+        "The MIME type associated with the file."
+
+    example default
+        size_display = "5 bytes"
+        icon = "folder"
+        mime_type = "text/plain"
+
+patch struct FolderMetadata
+
+    @common.InternalOnly
+    is_team_member_folder Boolean
+        "Whether the folder is a CDM team member folder (i.e. the root folder of the team
+        member's personal directory)."
+
+    @common.InternalOnly
+    is_shareable Boolean
+        "Whether the current folder is a shared folder or is shareable."
+
+    example default
+        is_team_member_folder = false
+        is_shareable = false
+
+patch struct DeletedMetadata
+
+    @common.InternalOnly
+    is_dir Boolean
+        "Whether the deleted entry was formerly a directory."
+
+    example default
+        is_dir = false
 
 #
-# Changesets
+# Patches Changeset
 #
 
 struct ChangesetData
@@ -75,6 +125,8 @@ struct ChangesetData
         changeset_id = 2
 
 patch struct FileOpsResult
+
+    @common.InternalOnly
     changeset_data List(ChangesetData)
         "A list of changeset data entries associated with a given file
         operation(s), used to undo the file operation(s). Sometimes, a valid
@@ -107,6 +159,59 @@ patch struct RelocationBatchResult
 #
 # Patches end
 #
+
+#
+# Supported extensions
+#
+
+union PreviewType
+    audio
+        "Audio preview."
+    file_tree
+        "Archive preview."
+    hls
+        "HTTP Live Streaming preview."
+    html
+        "HTML preview."
+    link_file
+        "Link file (e.g. file representing web URL) preview."
+    pdf
+        "PDF preview."
+    text
+        "Text preview."
+    thumbnail
+        "Thumbnail preview."
+    cloud_content
+        "Cloud content preview."
+
+    example default
+        pdf = null
+
+struct PreviewableExtensionInfo
+    supported_preview_formats List(PreviewType)
+        "The preview formats that are supported."
+    full_content_preference List(PreviewType)
+        "An ordered subset of supported extensions, used to determine client-side
+        rendering behavior."
+
+    example default
+        supported_preview_formats = [default]
+        full_content_preference = [default]
+
+struct PreviewableExtensionsResult
+    file_extension_to_previewable_info Map(String, PreviewableExtensionInfo)
+        "Mapping from file extension to data that describes whether the extension
+        is supported for previewing."
+
+    example default
+        file_extension_to_previewable_info = {"ai": default}
+
+route get_previewable_extensions (Void, PreviewableExtensionsResult, Void)
+    "Get supported file extensions for previewing."
+
+    attrs
+        owner = "api-platform"
+        allow_app_folder_app = true
 
 struct RollbackArg
     entries List(ChangesetData, min_items=1)
@@ -273,3 +378,99 @@ struct InternalTreeViewFoldersEntry
         has_subdirs = true
         is_shared = false
         icon = "folder"
+
+
+struct DialogInfoError
+    title String
+        "A user visible title for the problem."
+    text String
+        "A user visible description of the problem."
+    learn_more String
+        "A link to a help page to learn more about this problem."
+
+    example default
+        title = "Parent folder missing"
+        text = "Continuing this operation will recreate /foo/bar, and this file will be visible to
+                everyone with access to /foo"
+        learn_more = "https://www.dropbox.com/help"
+
+struct FSWDialogInfoError extends DialogInfoError
+    id String
+        "A unique ID for this type of FSW."
+    blocking Boolean
+        "True if this FSW is a blocking one and can't be confirmed."
+
+    example default
+        title = "Parent folder missing"
+        text = "Continuing this operation will recreate /foo/bar, and this file will be visible to
+                everyone with access to /foo"
+        learn_more = "https://www.dropbox.com/help"
+        id = "missing_parent"
+        blocking = false
+
+union FSWRequest
+    check
+        "Block actions on the standard set of file system warnings."
+    confirm List(String)
+        "A list of FSWs IDs that the user has previously confirmed and doesn't want to see.  These
+        could be IDs that the user just confirmed or IDs where the user has selected a 'Do not ask
+        me this again' checkbox."
+
+struct FileSystemWarnings
+    details List(FSWDialogInfoError)
+        "A List of FSWDialogInfoErrors describing dialogs the user should be shown."
+
+patch union WriteError
+
+    @common.InternalOnly
+    file_system_warnings FileSystemWarnings
+        "If this action failed because one or more FSWs were triggered, this FileSystemWarnings
+        object has details about each failure."
+
+patch struct RelocationArg
+
+    @common.InternalOnly
+    fsw_request FSWRequest?
+        "Specifies the FSW behavior the caller would like."
+
+patch struct RelocationBatchArg
+
+    @common.InternalOnly
+    fsw_request FSWRequest?
+        "Specifies the FSW behavior the caller would like."
+
+
+#
+# Restore path
+#
+
+struct RestorePathBatchArg
+    entries List(RestorePath)
+        "A list of paths to entries, where all paths have the same parent path."
+
+    example default
+        entries = ["/Homework/Prime_Numbers.txt", "/Homework/Square_Numbers.txt"]
+
+union RestorePathBatchError
+    path_lookup LookupError
+        "An error occurs when looking up the metadata for the entry."
+    path_write WriteError
+        "An error occurs when trying to restore the entry."
+    too_many_files
+        "The operation would involve more than 10,000 files and folders."
+    multiple_parent_paths
+        "The entries have different parent paths."
+
+struct RestorePathBatchResult
+    count UInt32
+        "Number of restored entries."
+    failure RestorePathBatchError
+        "The error for this entry."
+
+route restore_path_batch_sync(RestorePathBatchArg, RestorePathBatchResult, Void)
+    "Synchronously restore a set of deleted files or folders at a given path."
+
+    attrs
+        owner = "restorations-team"
+        allow_app_folder_app = true
+        select_admin_enabled = true

@@ -50,6 +50,7 @@ route space/disable (SpaceDisableArg, SpaceUserResult, DisableSpaceError)
 ### Requests
 
 struct SpaceGetArg
+    @common.DefaultRedactor
     uid UInt64
         "The user's unique identifier."
 
@@ -75,6 +76,7 @@ struct SpaceListArg
 alias CountryCode = String(min_length=2, max_length=2)
 
 struct SpaceProvisionArg
+    @common.DefaultRedactor
     uid UInt64
         "The user's unique identifier."
 
@@ -97,6 +99,7 @@ struct SpaceProvisionArg
         country_code = "GB"
 
 struct SpaceDisableArg
+    @common.DefaultRedactor
     uid UInt64
         "The user's unique identifier."
 
@@ -177,6 +180,7 @@ struct SpaceUserResult
     "A response containing information about a single user and active SKUs that
     Partner provisioned."
 
+    @common.DefaultRedactor
     uid UInt64
         "The user's unique identifier."
 

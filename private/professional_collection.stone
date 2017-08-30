@@ -8,7 +8,31 @@ namespace professional_collection
 
 struct SelectedFileInfo
     ns_id UInt64
-    ns_path String
+    fq_path String
+
+union ProfessionalCollectionError
+    unauthorized_namespace String
+        "Trying to access a namespace that you don't have access to."
+    invalid_path String
+        "Selected file represents an invalid path."
+    collections_disabled String
+        "User does not have access to Professional Collections."
+    paper_disabled String
+        "User cannot use Dropbox Paper."
+    graphql_unexpected_response String
+        "GraphQL query returned unexpected response."
+    paper_not_reachable String
+        "Failed to connect to Paper via RPC."
+    paper_doc_not_found String
+        "Professional Collection document not found."
+    paper_query_failed String
+        "Paper failed to execute the Professional Collections query."
+    paper_insufficient_permissions String
+        "User does not have the Paper privileges required to perform the operation on the collection."
+    paper_unknown_error String
+        "Unknown error raised by Paper."
+    unknown_error String
+        "Unknown error on metaserver raised."
 
 struct CreateProfessionalCollectionArg
     selected_files List(SelectedFileInfo)
@@ -18,21 +42,11 @@ struct CreateProfessionalCollectionResult
     collection_url String
 
     example result
-        "A successful collection creation result"
+        "A successful collection creation result."
         collection_id = "abcde123455"
         collection_url = "/collection/Untitled-abcde123455"
 
-union CreateProfessionalCollectionError
-    insufficient_permissions
-        "You do not have sufficient permissions to create Collections."
-    invalid_path
-        "The selected files are not present in the user's namespace"
-    paper_return_error
-        "Paper RPC failed with some status"
-    collections_not_accessible
-        "Paper is not accessible for this user"
-    unknown_error
-        "Some other error occurred"
+alias CreateProfessionalCollectionError = ProfessionalCollectionError
 
 struct AppendToProfessionalCollectionArg
     selected_files List(SelectedFileInfo)
@@ -42,10 +56,10 @@ struct AppendToProfessionalCollectionResult
     collection_url String
 
     example result
-        "A successful collection append result"
+        "A successful collection append result."
         collection_url = "/collection/Untitled-abcde123456"
 
-alias AppendToProfessionalCollectionError = CreateProfessionalCollectionError
+alias AppendToProfessionalCollectionError = ProfessionalCollectionError
 
 struct CollectionUser
     id String
@@ -94,11 +108,7 @@ struct ListCollectionsResult
     prof_collections List(CollectionMetadata)
     has_used_prof_collections Boolean
 
-union ListCollectionsError
-    collections_not_accessible
-        "Collections are not enabled/available for the user"
-    collections_not_used
-        "User has not used Collection before"
+alias ListCollectionsError = ProfessionalCollectionError
 
 route create(CreateProfessionalCollectionArg, CreateProfessionalCollectionResult, CreateProfessionalCollectionError)
     attrs

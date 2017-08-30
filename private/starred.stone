@@ -42,7 +42,7 @@ struct FileStarredStatus extends FileQuery
         "Whether the file is starred."
 
     display_type home.DisplayType
-        "The type of file/folder, for setting the icon and logging"
+        "The type of file/folder, for setting the icon and logging."
 
 struct FileObjWithPath
     "Both of the identifiers (file_obj_id and fq_path) for a file."
@@ -72,8 +72,7 @@ struct UpdateItemArgs
     id_type ItemIdType = encoded_file_obj_id
         "What kind of identifier has been supplied, defaults to encoded_file_obj_id if none is specified.
         Note: `paper_document_id` and `paper_document_id_path` are functionally equivalent, and both mean `paper_document_id_path`.
-        Note: `paper_folder_id` and `paper_folder_id_path` are functionally equivalent, and both mean `paper_folder_id_path`.
-        "
+        Note: `paper_folder_id` and `paper_folder_id_path` are functionally equivalent, and both mean `paper_folder_id_path`."
 
     is_starred Boolean
         "Whether the item is starred."

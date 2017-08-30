@@ -3,7 +3,7 @@ namespace notifications
 alias NotificationIdString = String(pattern="^[0-9]*$")
 
 struct MarkAsSeenArgs
-    "Request struct for mark_as_seen route"
+    "Request struct for mark_as_seen route."
 
     nids List(NotificationIdString)
 
@@ -11,10 +11,10 @@ struct MarkAsSeenArgs
         nids = ["123"]
 
 struct MarkAsSeenResponse
-    "Response struct for mark_as_seen route"
+    "Response struct for mark_as_seen route."
 
 union MarkAsSeenError
-    "Error struct for mark_as_seen route"
+    "Error struct for mark_as_seen route."
 
 route mark_as_seen (MarkAsSeenArgs, MarkAsSeenResponse, MarkAsSeenError)
     "Marks notifications with specified notification ids as seen."

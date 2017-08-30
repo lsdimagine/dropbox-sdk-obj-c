@@ -56,28 +56,41 @@ struct TeamWithState extends users.Team
 
     num_licensed_users UInt32
         "Total number of licenses the team has authorized."
+
     num_provisioned_users UInt32
         "Number of accounts that have been invited or are already active members of the team."
+
+    @common.Deprecate
     sku UInt32?
-        "Deprecated. Please use :field:`sku_id` instead."
+        "Use :field:`sku_id` instead."
+
     sku_id String?
         "The ID of the SKU the team was provisioned with."
+
     current_state SubscriptionState?
         "The current state of the team."
+
     renewal_state SubscriptionState?
         "The state that the team will be renewed with."
+
     end_date common.Date?
         "The end date for the current subscription period."
+
     active Boolean?
         "Whether the team is currently active."
+
     auto_renew Boolean?
         "Whether the team will automatically renew to the next period."
+
     reseller_ids ResellerChain?
         "A chain of resellers owners of this team."
+
     can_manage Boolean?
         "Whether the reseller can manage the team through admin console."
+
     country_code String(min_length=2,max_length=2, pattern="[A-Za-z]{2}")?
         "A ISO639-1 code that specifies the country the team is in."
+
     usage TeamUsage?
         "Information about how much of its subscription a team is currently using."
 
@@ -103,25 +116,36 @@ struct TeamListArg
     reseller_ids ResellerChain
 
 struct CreateTeamArg
+
     name String(min_length=2, max_length=20, pattern="^\\S+.*\\S+$")
         "The name of the team."
+
     num_licensed_users UInt32?
         "The number of licenses of the team."
+
+    @common.Deprecate
     sku UInt32?
-        "Deprecated. Please use :field:`sku_id` instead."
+        "Please use :field:`sku_id` instead."
+
     sku_id String?
         "SKU of team to use."
+
     skus SkuQuantityList?
         "The list of SKUs to provision the team with."
+
     invite_admin common.EmailAddress
         "Email address of the initial admin of this team."
+
     default_language_code String(min_length=2)?
         "A ISO639-1 code that specifies the default language of the team."
+
     country_code String(min_length=2,max_length=2, pattern="[A-Za-z]{2}")?
         "A ISO639-1 code that specifies the country the team is in."
+
     reseller_ids ResellerChain?
         "A list of reseller_ids provided by the caller.
         Optional for backward compatibility with SoftBank."
+
     promo_code String?
         "A promo code we can generate and supply to the resellers."
 
@@ -231,6 +255,7 @@ struct GetTeamWithResellerChainArg
         "A list of reseller_ids provided by the caller."
 
 struct TeamAuthToken
+    @common.DefaultRedactor
     token String
 
 struct ModifyLicensesArg extends GetTeamArg
@@ -388,8 +413,7 @@ route team/cancel (GetTeamArg, TeamWithState, CancelTeamError)
 
 route team/reinstate (ReinstateArg, TeamWithState, ReinstateTeamError)
     "Reinstates a team in the cancelled state.
-     Starts a new billing agreement that begins with the current date.
-    "
+     Starts a new billing agreement that begins with the current date."
     attrs
         auth="app"
 

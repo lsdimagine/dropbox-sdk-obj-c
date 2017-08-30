@@ -1,5 +1,7 @@
 namespace team
 
+import common
+
 #
 # Route get_info_internal
 #
@@ -8,11 +10,11 @@ struct TeamGetInfoResultInternal extends TeamGetInfoResult
 
     polling_revision_id String
         "Revision id for use with the polling notification system. See
-        polling_notifications/team_notifications"
+        polling_notifications/team_notifications."
     internal_policies TeamMemberPoliciesInternal
-        "Internal only policies"
+        "Internal only policies."
     team_admin_uids List(UInt64)
-        "List of team admin user ids"
+        "List of team admin user ids."
     team_type TeamType
 
 
@@ -29,11 +31,11 @@ struct TeamGetInfoResultInternal extends TeamGetInfoResult
 
 union TeamType
     limited
-        "Limited team"
+        "Limited team."
     business
-        "Dropbox Business team"
+        "Dropbox Business team."
     enterprise
-        "Dropbox Enterprise team"
+        "Dropbox Enterprise team."
 
 route get_info_internal(Void, TeamGetInfoResultInternal, Void)
     "Retrieves information about a team."
@@ -47,11 +49,13 @@ route get_info_internal(Void, TeamGetInfoResultInternal, Void)
 #
 
 struct SuggestMembers
-
+    @common.DefaultRedactor
     member_emails List(String)
-        "Suggested member emails"
+        "Suggested member emails."
+
+    @common.DefaultRedactor
     user_id UInt64
-        "The user id who is suggesting members"
+        "The user id who is suggesting members."
 
     example default
         member_emails = ["example@example.com"]
@@ -69,19 +73,25 @@ route members/suggest_to_dfb_admin(SuggestMembers, Void, Void)
 #
 
 struct SuggestedMembersForUserArgs
+    @common.DefaultRedactor
     user_id UInt64
-        "user id to get the list of suggested members for"
+        "user id to get the list of suggested members for."
 
     example default
         user_id=1241244
 
 struct SuggestedMemberInfo
+    @common.DefaultRedactor
     user_id UInt64
-        "id of the suggested member"
+        "id of the suggested member."
+
+    @common.EmailRedactor
     email String
-        "email of the suggested member"
+        "email of the suggested member."
+
+    @common.DefaultRedactor
     name String
-        "display name of the suggested member"
+        "display name of the suggested member."
 
     example default
         user_id=5123423
@@ -90,13 +100,13 @@ struct SuggestedMemberInfo
 
 struct SuggestedMembersForUserResult
     suggested_members List(SuggestedMemberInfo)
-        "List of suggested members for the given user"
+        "List of suggested members for the given user."
 
     example default
         suggested_members=[default]
 
 route members/get_suggested_members_for_user(SuggestedMembersForUserArgs, SuggestedMembersForUserResult, Void)
-    "Get a list of suggested members for a given user"
+    "Get a list of suggested members for a given user."
 
     attrs
         auth="team"
