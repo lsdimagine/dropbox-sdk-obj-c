@@ -14,10 +14,13 @@ union SuggestType
 struct SuggestResult
     "Describes one suggested folder/project."
 
-    path String
-        "The path of the recommendation."
+    folderId UInt64
+        "The id of the folder/project."
 
-    is_project Boolean
+    name String
+        "name of folder/project"
+
+    isProject Boolean
         "Is result project or folder."
 
     score Float64
@@ -31,6 +34,16 @@ struct DocEditor
 
     edits_ts List(UInt64)
         "List of edits timestamps (seconds since epoch)."
+
+struct IdNameDescriptor
+    "Provides a unique id and name of Project or Folder"
+
+    id UInt64
+        "The unique id of the project or folder."
+
+    name String
+        "The name of the project or folder"
+
 
 struct SuggestPaperFoldersRequest
     "Request struct for suggest_paper_folder route."
@@ -62,10 +75,10 @@ struct SuggestPaperFoldersRequest
     invites List(UInt64)
         "list of people that have been explicitly invited to doc."
 
-    recent_projects List(String)
+    recent_projects List(IdNameDescriptor)
         "Recent projects list for the viewer."
 
-    recent_folders List(String)
+    recent_folders List(IdNameDescriptor)
         "Recent folders list for the viewer."
 
     req_type SuggestType

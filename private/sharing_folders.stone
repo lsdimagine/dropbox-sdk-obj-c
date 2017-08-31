@@ -484,53 +484,36 @@ struct AlphaSharedFolderMembers
         invitees = [default]
         cursor = "ZtkX9_EHj3x7PMkVuFIhwKYXEpwpLwyxp9vMKomUhllil9q7eWiAu"
 
-# --
-
-route unshare_folder/batch(UnshareFoldersBatchArg, async.LaunchEmptyResult, UnshareFoldersBatchError)
-    "Allows an user to unshare a list of folders. Used only for the Sharing Paywall experiment
-
-    Apps must have full Dropbox access to use this endpoint."
-
-    attrs
-        owner = "sharing-platform"
-
-struct UnshareFoldersBatchArg
-    shared_folder_ids List(common.SharedFolderId)
-        "The IDs for the shared folders."
-    leave_a_copy Boolean = false
-        "If true, members of this shared folder will get a copy of the folders
-        after it's unshared. Otherwise, they will be removed from their Dropbox.
-        The current user, who is an owner, will always retain their copy."
-
-    example default
-        shared_folder_ids = ["84528192421", "59285924215", "49120283928"]
-        leave_a_copy = false
-
-union UnshareFoldersBatchError
-    some_folders_not_unshared
-        "Some folders are not correctly unshared."
 
 # --
-patch struct FolderPolicy
 
-    @common.AlphaOnly
-    download_policy DownloadPolicy
-
-    example default
-        member_policy = anyone
-        resolved_member_policy = team
-        acl_update_policy = owner
-        shared_link_policy = anyone
-        download_policy = allow
-
-
-struct AlphaFolderPolicy extends FolderPolicy
+struct AlphaFolderPolicy
     "A set of policies governing membership and privileges for a shared
     folder."
+
+    member_policy MemberPolicy?
+        "Who can be a member of this shared folder, as set on the folder itself.
+        The effective policy may differ from this value if the team-wide policy
+        is more restrictive. Present only if the folder is owned by a team."
+
+    resolved_member_policy MemberPolicy?
+        "Who can be a member of this shared folder, taking into account both the
+        folder and the team-wide policy. This value may differ from that of
+        member_policy if the team-wide policy is more restrictive than the folder
+        policy. Present only if the folder is owned by a team."
+
+    acl_update_policy AclUpdatePolicy
+        "Who can add and remove members from this shared folder."
+
+    download_policy DownloadPolicy
 
     @common.Deprecate
     pass_policy PassPolicy?
         "Use viewer_info_policy instead."
+
+    viewer_info_policy ViewerInfoPolicy?
+
+    shared_link_policy SharedLinkPolicy
 
     example default
         member_policy = anyone

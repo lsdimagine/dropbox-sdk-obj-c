@@ -188,26 +188,7 @@ union GetFileMemberCountsError
 
 # --
 
-patch union FileAction
-
-    @common.AlphaOnly
-    remove_download_policy
-        "Whether the user has permission to remove the download policy and allow downloads on the
-        file.
-
-        NOTE: This policy is probably subject to removal sometime soon. Talk to davy@ before using
-        it."
-
-    @common.AlphaOnly
-    set_download_policy
-        "Whether the user has permission to set the download policy and disallow downloads on the
-        file.
-
-        NOTE: This policy is probably subject to removal sometime soon. Talk to davy@ before using
-        it."
-
 union AlphaFileAction extends FileAction
-    "Sharing actions that may be taken on files."
 
     @common.Deprecate
     change_options
@@ -224,8 +205,19 @@ union AlphaFileAction extends FileAction
         "Use enable_viewer-info instead. Whether the user has permission to enable presence and seen
         state information on the file."
 
-    example default
-        edit_contents = null
+    remove_download_policy
+        "Whether the user has permission to remove the download policy and allow downloads on the
+        file.
+
+        NOTE: This policy is probably subject to removal sometime soon. Talk to davy@ before using
+        it."
+
+    set_download_policy
+        "Whether the user has permission to set the download policy and disallow downloads on the
+        file.
+
+        NOTE: This policy is probably subject to removal sometime soon. Talk to davy@ before using
+        it."
 
 struct AlphaFilePermission
     "Whether the user is allowed to take the sharing action on the file."

@@ -70,6 +70,8 @@ struct SeenStateUser
 
     sharing_access_type SharingAccessType?
 
+    in_owners_team Boolean
+
 struct SeenEvent
     ts UInt64
 
@@ -166,6 +168,8 @@ union CoachmarkInteraction
         "User accepted the coachmark."
     dismissed
         "User dismissed the coachmark."
+    learn_more
+        "User clicked into help center from coachmark."
 
 struct CoachmarkInteractionData
     type SeenStateCoachmarkType
@@ -178,6 +182,7 @@ struct PassStatusResult
     can_read_seen_state Boolean
     can_write_presence Boolean
     can_write_anonymous_presence Boolean
+    can_show_presence Boolean
 
 union SeenStateError
     no_file
