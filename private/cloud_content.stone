@@ -2,7 +2,11 @@ namespace cloud_content
     "Endpoints and datatypes for cloud content objects."
 
 import files
+import sharing
 
+
+union CreateError
+    path files.WriteError
 
 struct CreateArg
     path files.WritePath
@@ -12,13 +16,41 @@ struct CreateArg
     example default
         path = "/Projects/ACME Corp/Kickoff Meeting"
 
-
-union CreateError
-    path files.WriteError
-
-
 route alpha/create (CreateArg, files.FileMetadata, CreateError)
     "Create a new cloud content object."
+
+    attrs
+        is_preview = true
+        owner = "partner-platform"
+
+union GetMetadataError
+    path files.LookupError
+    access_error sharing.SharingFileAccessError
+
+union DocumentType
+    paper
+        "The CCO type corresponding to a Paper document."
+
+struct MetadataArg
+    doc_id String
+        "The document ID to look up."
+    doc_type DocumentType
+        "The CCO document type to look up."
+
+    example default
+        doc_id = "doc1234"
+        doc_type = paper
+
+struct CloudContentMetadata
+    file_metadata sharing.SharedFileMetadata
+        "The Dropbox shared file metadata for this CCO."
+
+    example default
+        file_metadata = default
+
+route alpha/get_metadata (MetadataArg, CloudContentMetadata, GetMetadataError)
+    "Given a document id from a third party, returns the requested metadata to the client.
+    This will include such things as ACLs, timestamps, where the file lives, etc."
 
     attrs
         is_preview = true

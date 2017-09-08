@@ -313,7 +313,7 @@ route alpha/list_shared_links(ListSharedLinksArg, AlphaListSharedLinksResult, Li
         api_group = "sharing"
         is_preview = true
         owner = "sharing"
-        is_legacy_alpha = true
+        is_web_alpha = true
 
 route alpha/create_shared_link_with_settings(AlphaCreateSharedLinkWithSettingsArg, AlphaSharedLinkMetadata, CreateSharedLinkWithSettingsError)
     "Create a shared link with custom settings.
@@ -323,7 +323,7 @@ route alpha/create_shared_link_with_settings(AlphaCreateSharedLinkWithSettingsAr
 
     attrs
         owner = "sharing"
-        is_legacy_alpha = true
+        is_web_alpha = true
 
 route alpha/modify_shared_link_settings(AlphaModifySharedLinkSettingsArgs, AlphaSharedLinkMetadata, ModifySharedLinkSettingsError)
     "Modify the shared link's settings.
@@ -336,4 +336,4 @@ route alpha/modify_shared_link_settings(AlphaModifySharedLinkSettingsArgs, Alpha
 
     attrs
         owner = "sharing"
-        is_legacy_alpha = true
+        is_web_alpha = true

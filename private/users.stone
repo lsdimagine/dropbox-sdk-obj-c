@@ -157,3 +157,90 @@ route needs_scale_mitigation(Void, ScaleMitigationResult, ScaleMitigationError)
 
     attrs
         owner = "sync-experience"
+
+#
+# Mobile client preferences
+#
+
+union MobileClientPlatform
+    ios
+    android
+    windows
+
+union GetMobileClientSettingsError
+    "Errors that occur when getting the mobile client settings."
+    no_such_user
+        "In case the user_id doesn't exist when someone call the API directly."
+    unknown_setting_type
+
+union SaveMobileClientSettingsError
+    "Errors that occur when setting the mobile client settings."
+    setting_name_or_value_too_long
+        "Setting names or values are too long."
+    no_such_user
+        "In case the user_id doesn't exist when someone call the API directly."
+    too_many_settings
+        "Returned when the API user requests too many settings at one time."
+    unknown_setting_type
+
+struct GetMobileClientDeviceSettingsInfoArg
+    user_id String
+        "Authenticated user's Dropbox user ID."
+    setting_type String
+        "Mobile client settings type contains: camera_uploads, offline_files, password_lock etc."
+    device_id String
+
+    example default
+        user_id = "8"
+        setting_type = "camera_uploads"
+        device_id = "D8717F776-9241-4929-8ABA-94CA3B8EEE63"
+
+struct GetMobileClientDeviceSettingsInfoResult
+    "The infomation correspondes to the items on Settings page."
+    user_id String
+        "Authenticated user's Dropbox user ID."
+    setting_type String
+        "Mobile client settings type contains: camera_uploads, offline_files, password_lock etc."
+    settings Map(String, String)
+        "Key is setting_name;  Value is setting_value."
+    mobile_client_platform MobileClientPlatform
+    device_id String
+    device_name String
+
+    example default
+        user_id = "8"
+        setting_type = "camera_uploads"
+        settings = {"Camera Uploads Enabled":"ON"}
+        mobile_client_platform = ios
+        device_id = "8717F776-9241-4929-8ABA-94CA3B8EEE63"
+        device_name = "yuzhong-mbp"
+
+struct SaveMobileClientDeviceSettingsInfoArg
+    "The infomation corresponds to the items on Settings page."
+    user_id String
+        "Authenticated user's Dropbox user ID."
+    setting_type String
+        "Mobile client settings type contains: camera_uploads, offline_files, password_lock etc."
+    settings Map(String, String)
+        "Key is setting_name;  Value is setting_value."
+    mobile_client_platform MobileClientPlatform
+    device_id String
+    device_name String
+
+    example default
+        user_id = "8"
+        setting_type = "camera_uploads"
+        settings = {"Camera Uploads Enabled":"ON"}
+        mobile_client_platform = ios
+        device_id = "8717F776-9241-4929-8ABA-94CA3B8EEE63"
+        device_name = "yuzhong-mbp"
+
+struct SaveMobileClientDeviceSettingsInfoResult
+    "This is for backwards-compatible changes."
+    example default
+
+route get_mobile_client_settings(GetMobileClientDeviceSettingsInfoArg, GetMobileClientDeviceSettingsInfoResult, GetMobileClientSettingsError)
+    "Get a specific type of settings of one device for the user."
+
+route save_mobile_client_settings(SaveMobileClientDeviceSettingsInfoArg, SaveMobileClientDeviceSettingsInfoResult, SaveMobileClientSettingsError)
+    "Save a collection of client settings to Edgestore."

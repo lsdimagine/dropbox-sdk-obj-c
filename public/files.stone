@@ -321,7 +321,7 @@ route get_metadata (GetMetadataArg, Metadata, GetMetadataError)
         owner = "api-platform"
         allow_app_folder_app = true
         takes_path_root = true
-        select_admin_enabled = true
+        select_admin_mode = "whole_team"
 
 #
 # General fileops
@@ -380,7 +380,7 @@ route list_folder/longpoll (ListFolderLongpollArg, ListFolderLongpollResult, Lis
         auth = "noauth"
         owner = "api-platform"
         allow_app_folder_app = true
-        select_admin_enabled = true
+        select_admin_mode = "whole_team"
 
 struct ListFolderArg
     path PathROrId
@@ -528,7 +528,6 @@ route download (DownloadArg, FileMetadata, DownloadError)
         style = "download"
         owner = "api-platform"
         allow_app_folder_app = true
-        select_admin_enabled = true
 
 #
 # Upload Routes
@@ -619,7 +618,6 @@ route upload_session/start (UploadSessionStartArg, UploadSessionStartResult, Voi
         owner = "api-platform"
         feature = "upload_api_rate_limit"
         allow_app_folder_app = true
-        select_admin_enabled = true
 
 struct UploadSessionAppendArg
     cursor UploadSessionCursor
@@ -645,7 +643,6 @@ route upload_session/append_v2 (UploadSessionAppendArg, Void, UploadSessionLooku
         owner = "api-platform"
         feature = "upload_api_rate_limit"
         allow_app_folder_app = true
-        select_admin_enabled = true
 
 
 struct UploadSessionCursor
@@ -1020,7 +1017,6 @@ route create_folder_v2 (CreateFolderArg, CreateFolderResult, CreateFolderError)
     attrs
         owner = "api-platform"
         allow_app_folder_app = true
-        select_admin_enabled = true
 
 route create_folder (CreateFolderArg, FolderMetadata, CreateFolderError) deprecated by create_folder_v2
     "Create a folder at a given path."
@@ -1028,7 +1024,6 @@ route create_folder (CreateFolderArg, FolderMetadata, CreateFolderError) depreca
     attrs
         owner = "api-platform"
         allow_app_folder_app = true
-        select_admin_enabled = true
 
 #
 # Delete
@@ -1124,7 +1119,6 @@ route delete_v2 (DeleteArg, DeleteResult, DeleteError)
     attrs
         owner = "api-platform"
         allow_app_folder_app = true
-        select_admin_enabled = true
 
 route delete (DeleteArg, Metadata, DeleteError) deprecated by delete_v2
     "Delete the file or folder at a given path.
@@ -1138,7 +1132,6 @@ route delete (DeleteArg, Metadata, DeleteError) deprecated by delete_v2
     attrs
         owner = "api-platform"
         allow_app_folder_app = true
-        select_admin_enabled = true
 
 route delete_batch (DeleteBatchArg, DeleteBatchLaunch, Void)
     "Delete multiple files/folders at once.
@@ -1293,7 +1286,6 @@ route copy_v2 (RelocationArg, RelocationResult, RelocationError)
     attrs
         owner = "api-platform"
         allow_app_folder_app = true
-        select_admin_enabled = true
 
 route copy (RelocationArg, Metadata, RelocationError) deprecated by copy_v2
     "Copy a file or folder to a different location in the user's Dropbox.
@@ -1303,7 +1295,6 @@ route copy (RelocationArg, Metadata, RelocationError) deprecated by copy_v2
     attrs
         owner = "api-platform"
         allow_app_folder_app = true
-        select_admin_enabled = true
 
 
 route copy_batch (RelocationBatchArg, RelocationBatchLaunch, Void)
@@ -1343,7 +1334,6 @@ route move_v2 (RelocationArg, RelocationResult, RelocationError)
     attrs
         owner = "api-platform"
         allow_app_folder_app = true
-        select_admin_enabled = true
 
 route move (RelocationArg, Metadata, RelocationError) deprecated by move_v2
     "Move a file or folder to a different location in the user's Dropbox.
@@ -1353,7 +1343,6 @@ route move (RelocationArg, Metadata, RelocationError) deprecated by move_v2
     attrs
         owner = "api-platform"
         allow_app_folder_app = true
-        select_admin_enabled = true
 
 route move_batch (RelocationBatchArg, RelocationBatchLaunch, Void)
     "Move multiple files or folders to different locations at once in the
@@ -1477,7 +1466,6 @@ route get_thumbnail(ThumbnailArg, FileMetadata, ThumbnailError)
         style = "download"
         owner = "api-platform"
         allow_app_folder_app = true
-        select_admin_enabled = true
 
 route get_thumbnail_batch(GetThumbnailBatchArg, GetThumbnailBatchResult, GetThumbnailBatchError)
     "Get thumbnails for a list of images. We allow up to 25 thumbnails in a single batch.
@@ -1538,7 +1526,6 @@ route get_preview(PreviewArg, FileMetadata, PreviewError)
         style = "download"
         owner = "api-platform"
         allow_app_folder_app = true
-        select_admin_enabled = true
 
 #
 # List revisions
@@ -1578,7 +1565,6 @@ route list_revisions(ListRevisionsArg, ListRevisionsResult, ListRevisionsError)
     attrs
         owner = "api-platform"
         allow_app_folder_app = true
-        select_admin_enabled = true
 
 #
 # Restore
@@ -1608,7 +1594,6 @@ route restore(RestoreArg, FileMetadata, RestoreError)
     attrs
         owner = "api-platform"
         allow_app_folder_app = true
-        select_admin_enabled = true
 
 #
 # Temporary link
@@ -1642,7 +1627,6 @@ route get_temporary_link(GetTemporaryLinkArg, GetTemporaryLinkResult, GetTempora
     attrs
         owner = "api-platform"
         allow_app_folder_app = true
-        select_admin_enabled = true
 
 #
 # Copy reference

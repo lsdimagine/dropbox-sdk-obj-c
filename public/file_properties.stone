@@ -1,5 +1,6 @@
 namespace files
 
+import properties
 
 #
 # Property Group routes
@@ -62,7 +63,7 @@ route properties/template/list(Void, properties.ListPropertyTemplateIds, propert
         allow_app_folder_app = true
 
 struct RemovePropertiesArg
-    path PathOrId
+    path properties.PathOrId
         "A unique identifier for the file."
     property_template_ids List(properties.TemplateId)
         "A list of identifiers for a property template created by route properties/template/add."
@@ -72,7 +73,7 @@ struct RemovePropertiesArg
         property_template_ids = ["ptid:1a5n2i6d3OYEAAAAAAAAAYa"]
 
 struct PropertyGroupWithPath
-    path PathOrId
+    path properties.PathOrId
         "A unique identifier for the file."
     property_groups List(properties.PropertyGroup)
         "Filled custom property templates associated with a file."
@@ -82,7 +83,7 @@ struct PropertyGroupWithPath
         property_groups = [default]
 
 struct UpdatePropertyGroupArg
-    path PathOrId
+    path properties.PathOrId
         "A unique identifier for the file."
     update_property_groups List(PropertyGroupUpdate)
         "Filled custom property templates associated with a file."
@@ -126,7 +127,7 @@ union InvalidPropertyGroupError extends PropertiesError
         "The property group specified does not conform to the property template."
 
 union PropertiesError extends properties.PropertyTemplateError
-    path LookupError
+    path properties.LookupError
 
 #
 # Patched /get_metadata that can return properties

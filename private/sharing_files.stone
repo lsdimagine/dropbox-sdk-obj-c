@@ -55,7 +55,7 @@ route alpha/share_file(AlphaShareFileArg, AlphaSharedFileMetadata, ShareFileErro
 
     attrs
         owner = "sharing"
-        is_legacy_alpha = true
+        is_web_alpha = true
 
 struct AlphaShareFileArg
     "Arguments for :route:`alpha/share_file`."
@@ -313,12 +313,12 @@ route alpha/get_file_metadata(AlphaGetFileMetadataArg, AlphaSharedFileMetadata, 
 
     attrs
         is_preview = true
-        is_legacy_alpha = true
+        is_web_alpha = true
 
 route alpha/get_file_metadata/batch(AlphaGetFileMetadataBatchArg, List(AlphaGetFileMetadataBatchResult), SharingUserError)
     attrs
         is_preview = true
-        is_legacy_alpha = true
+        is_web_alpha = true
 
 route update_file_policy(UpdateFilePolicyArg, SharedFileMetadata, UpdateFilePolicyError)
     "Update the policies of a file. This includes both PASS settings and link settings associated with the file."
@@ -332,7 +332,7 @@ route alpha/update_file_policy(AlphaUpdateFilePolicyArg, AlphaSharedFileMetadata
 
     attrs
         is_preview = true
-        is_legacy_alpha = true
+        is_web_alpha = true
 
 route internal_test_only/get_file_shared_content_link(GetFileSharedContentLinkArg, List(String), AddFileMemberError)
     "Get the file shared content link for the given file and member information. Note: This is used ONLY for mobile integration test.
@@ -353,7 +353,7 @@ route internal_test_only/get_file_shared_content_link(GetFileSharedContentLinkAr
 route alpha/list_file_members(AlphaListFileMembersArg, AlphaSharedFileMembers, ListFileMembersError)
     attrs
         is_preview = true
-        is_legacy_alpha = true
+        is_web_alpha = true
 
 route alpha/list_file_members/continue(AlphaListFileMembersContinueArg, AlphaSharedFileMembers, ListFileMembersContinueError)
     "Once a cursor has been retrieved from :route:`alpha/list_file_members` or
@@ -363,7 +363,7 @@ route alpha/list_file_members/continue(AlphaListFileMembersContinueArg, AlphaSha
     attrs
         owner = "sharing"
         is_preview = true
-        is_legacy_alpha = true
+        is_web_alpha = true
 
 struct AlphaListFileMembersArg extends ListFileMembersArg
     @common.UrlRedactor

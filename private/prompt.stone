@@ -21,6 +21,7 @@ route log_impression(CampaignArg, Void, CampaignErr)
 
 alias CampaignId = Int64
 alias PromptTimestamp = UInt64
+alias VersionId = Int64
 
 union TopNotificationStyle
     info
@@ -141,6 +142,7 @@ union CampaignContent
 
 struct CampaignResult
     matched_user_id Int64?
+    version_id VersionId?
     campaign_id CampaignId
     prompt_queried_at_ms PromptTimestamp
     campaign_name String
@@ -196,6 +198,7 @@ struct CampaignsResult
 
 struct CampaignArg
     campaign_id CampaignId
+    version_id VersionId?
     prompt_queried_at_ms PromptTimestamp?
     prompt_parent_request_id String?
 
@@ -207,16 +210,16 @@ union CampaignErr
         "A campaign couldn't be found."
 
     bad_platform String
-        "The found campaign doesn't belong to the mobile platform."
+        "The found campaign version doesn't belong to the mobile platform."
 
     bad_match_user_ids String
         "Campaigns are requested for a user which isn't owned by the authenticated user."
 
     example default
-        not_found = "There is no campaign with the id '499'."
+        not_found = "There is no campaign version with the id '499'."
 
     example bad_platform
-        bad_platform = "A campaign was found for id '499' but it doesn't belong to the mobile platform."
+        bad_platform = "A campaign version was found for id '499' but it doesn't belong to the mobile platform."
 
     example bad_match_user_ids
         bad_match_user_ids = "The user with id '499' is not owned by the requesting user."

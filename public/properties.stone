@@ -2,6 +2,19 @@ namespace properties
     "This namespace contains helper entities for property and property/template endpoints."
 
 alias TemplateId = String(min_length=1,pattern="(/|ptid:).*")
+alias PathOrId = String(pattern="/(.|[\\r\\n])*|id:.*|(ns:[0-9]+(/.*)?)")
+
+union LookupError
+    malformed_path String
+    not_found
+        "There is nothing at the given path."
+    not_file
+        "We were expecting a file, but the given path refers to something that isn't a file."
+    not_folder
+        "We were expecting a folder, but the given path refers to something that isn't a folder."
+    restricted_content
+        "The file cannot be transferred because the content is restricted.  For example,
+        sometimes there are legal restrictions due to copyright claims."
 
 struct PropertyGroupTemplate
     "Describes property templates that can be filled and associated with a file."

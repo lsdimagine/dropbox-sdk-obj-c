@@ -1,5 +1,7 @@
 namespace team
 
+import team_policies
+
 union_closed DevicesLimit
     limited UInt64
         "A specific number of devices."
@@ -8,14 +10,6 @@ union_closed DevicesLimit
 
     example default
         limited = 1
-
-union_closed RolloutMethod
-    unlink_all
-        "Unlink all."
-    unlink_most_inactive
-        "Unlink devices with the most inactivity."
-    add_member_to_exceptions
-        "Add member to Exceptions."
 
 struct SettingsDeviceManagement
     is_enabled Boolean?
@@ -26,7 +20,7 @@ struct SettingsDeviceManagement
         "Mobile devices limit."
     can_user_remove_device Boolean?
         "Can user remove a device."
-    rollout_method RolloutMethod?
+    rollout_method team_policies.RolloutMethod?
         "Rollout method."
     users_to_add List(String)?
         "List of users email to add to the excluded list."

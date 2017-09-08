@@ -1,5 +1,6 @@
 namespace team
 
+import team_policies
 
 struct TeamMemberPoliciesInternal
     "Policies governing teams that are not externally shared."
@@ -31,11 +32,11 @@ struct PaperPolicies
 
     paper_doc_link_policy PaperDocLinkPolicy
         "Who can view Paper doc links."
-    paper_enabled_policy PaperEnabledPolicy
+    paper_enabled_policy team_policies.PaperEnabledPolicy
         "Whether Paper is enabled for this team or not."
     paper_doc_share_policy PaperDocSharePolicy
         "Who can Paper docs be shared with."
-    paper_deployment_policy PaperDeploymentPolicy
+    paper_deployment_policy team_policies.PaperDeploymentPolicy
         "Whether the whole team can access Paper or just part of it."
 
     example default
@@ -50,14 +51,6 @@ union PaperDocLinkPolicy
     public
         "Link policy is open to the public."
 
-union PaperEnabledPolicy
-    disabled
-        "Paper is disabled."
-    enabled
-        "Paper is enabled."
-    unspecified
-        "Unspecified policy."
-
 union PaperDocSharePolicy
     only_team
         "Share policy is open to the team only."
@@ -65,10 +58,3 @@ union PaperDocSharePolicy
         "Share policy is open to the team and external users explicitly shared with."
     anyone_with_link
         "Share policy is open to anyone with a link to the doc."
-
-union PaperDeploymentPolicy
-    full
-        "All team members have access to Paper."
-    partial
-        "Only whitelisted team members can access Paper.
-        To see which user is whitelisted, check 'is_paper_whitelisted' on 'account/info'."

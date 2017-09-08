@@ -616,7 +616,7 @@ route alpha/get_folder_metadata(AlphaGetMetadataArgs, AlphaSharedFolderMetadata,
         api_group = "sharing"
         is_preview = true
         owner = "sharing-platform"
-        is_legacy_alpha = true
+        is_web_alpha = true
 
 struct AlphaUpdateFolderPolicyArg
     "If any of the policy's are unset, then they retain their current setting."
@@ -659,7 +659,7 @@ route alpha/update_folder_policy(AlphaUpdateFolderPolicyArg, AlphaSharedFolderMe
     attrs
         owner = "sharing-platform"
         is_preview = true
-        is_legacy_alpha = true
+        is_web_alpha = true
 
 union_closed AlphaShareFolderLaunch extends async.LaunchResultBase
     complete AlphaSharedFolderMetadata
@@ -667,7 +667,7 @@ union_closed AlphaShareFolderLaunch extends async.LaunchResultBase
 route alpha/share_folder(AlphaShareFolderArg, AlphaShareFolderLaunch, ShareFolderError)
     attrs
         is_preview = true
-        is_legacy_alpha = true
+        is_web_alpha = true
 
 struct AlphaShareFolderArg extends ShareFolderArgBase
     actions List(AlphaFolderAction)?
@@ -691,7 +691,7 @@ route alpha/list_folders(AlphaListFoldersArgs, AlphaListFoldersResult, Void)
     attrs
         owner = "sharing-platform"
         is_preview = true
-        is_legacy_alpha = true
+        is_web_alpha = true
 
 struct AlphaListFoldersResult
     "Result for :route:`list_folders` or :route:`list_mountable_folders`, depending on which
@@ -733,7 +733,7 @@ route alpha/list_folders/continue(ListFoldersContinueArg, AlphaListFoldersResult
     attrs
         owner = "sharing-platform"
         is_preview = true
-        is_legacy_alpha = true
+        is_web_alpha = true
 
 
 # --
@@ -747,7 +747,7 @@ route alpha/list_mountable_folders(AlphaListFoldersArgs, AlphaListFoldersResult,
     attrs
         owner = "sharing-platform"
         is_preview = true
-        is_legacy_alpha = true
+        is_web_alpha = true
 
 
 # --
@@ -763,4 +763,4 @@ route alpha/list_mountable_folders/continue(ListFoldersContinueArg, AlphaListFol
     attrs
         owner = "sharing-platform"
         is_preview = true
-        is_legacy_alpha = true
+        is_web_alpha = true

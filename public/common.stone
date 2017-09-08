@@ -1,8 +1,8 @@
 namespace common
 
 # Annotates fields to serialize a subset of total fields, depending on caller type
-annotation AlphaOnly = Omit("alpha")
 annotation InternalOnly = Omit("internal")
+annotation WebAlphaOnly = Omit("web_alpha")
 
 # Annotates fields to redact information before storing in logs
 annotation AccountIdRedactor = RedactHash()
@@ -60,7 +60,7 @@ union PathRoot
 
     member_home
         "Paths are relative to the authenticating team member's home
-        directory. (This results in :field:`PathRootError.invalid' if the
+        directory. (This results in :field:`PathRootError.invalid` if the
         user does not belong to a team.)."
 
     team PathRootId

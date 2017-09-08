@@ -519,6 +519,9 @@ route members/remove(MembersRemoveArg, async.LaunchEmptyResult, MembersRemoveErr
     (whichever comes first). Calling :route:`members/add` while a user is still recoverable
     on your team will return with :field:`MemberAddResult.user_already_on_team`.
 
+    Accounts can have their files transferred via the admin console for a limited time, based on the version history
+    length associated with the team (120 days for most teams).
+
     This endpoint may initiate an asynchronous job. To obtain the final result
     of the job, the client should periodically poll :route:`members/remove/job_status/get`."
 

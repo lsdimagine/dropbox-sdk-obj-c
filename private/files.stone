@@ -474,4 +474,3 @@ route restore_path_batch_sync(RestorePathBatchArg, RestorePathBatchResult, Resto
     attrs
         owner = "restorations-team"
         allow_app_folder_app = true
-        select_admin_enabled = true

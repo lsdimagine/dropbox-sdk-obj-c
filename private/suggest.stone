@@ -1,0 +1,68 @@
+namespace suggest
+
+import home
+
+struct PathComponent
+    "A path component."
+
+    name String
+        "The name of the path."
+
+    url String
+        "The URL to access the path."
+
+struct SuggestedFile
+    "A suggested file."
+
+    encoded_file_obj_id String
+        "The encoded file object id."
+
+    fq_path String
+        "The file's fq_path for the supplied user."
+
+    filename String
+        "The filename (the last component of the fq_path)."
+
+    reason String
+        "The reason this suggestion was chosen."
+
+    display_type home.DisplayType
+        "The type of icon to present when displaying the item."
+
+    is_starred Boolean
+        "Whether the file is starred by the user."
+
+    breadcrumb List(PathComponent)
+        "list of path component to access the file object."
+
+struct GetSuggestedArg
+    "Arguments for :route:`get_suggested`."
+
+    variant String
+        "The stormcrow variant that identifies the model version to use for fetching suggestions."
+
+    num_files UInt32
+        "The number of suggested files to fetch."
+
+    example default
+        variant = "model"
+        num_files = 5
+
+struct GetSuggestedResult
+    "Result for :route:`get_suggested`."
+
+    suggested_files List(SuggestedFile)
+        "The list of suggested files."
+
+    example default
+        suggested_files = []
+
+union GetSuggestedError
+    unused
+
+route get_suggested (GetSuggestedArg, GetSuggestedResult, GetSuggestedError)
+    "Fetch suggested files for the current user."
+
+    attrs
+        owner="home"
+        is_preview=true

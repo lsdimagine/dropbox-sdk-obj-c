@@ -33,7 +33,7 @@ route alpha/get_link_metadata(GetLinkMetadataArg, SharedContentLinkMetadata, Get
         api_group="sharing"
         is_preview = true
         owner = "sharing"
-        is_legacy_alpha = true
+        is_web_alpha = true
 
 route alpha/set_link_settings(SetLinkSettingsArg, SharedContentLinkMetadata, SetLinkSettingsError) deprecated
     "DEPRECATED: talk to davy@, use alpha/update_file_policy and alpha/update_folder_policy instead
@@ -44,7 +44,7 @@ route alpha/set_link_settings(SetLinkSettingsArg, SharedContentLinkMetadata, Set
         api_group="sharing"
         is_preview = true
         owner = "sharing"
-        is_legacy_alpha = true
+        is_web_alpha = true
 
 struct AlphaLinkSettings
     "Settings that apply to a link."

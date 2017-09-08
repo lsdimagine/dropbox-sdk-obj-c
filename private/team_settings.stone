@@ -3,6 +3,7 @@ namespace team
 import team_administration
 import async
 import common
+import team_policies
 
 alias AdministrationError = team_administration.AdministrationError
 
@@ -47,16 +48,8 @@ route set_multiple_accounts_policy(MultipleAccountsPolicyArg, Void, Administrati
 # Set password requirements policy
 #
 
-union PasswordStrengthPolicy
-    minimal_requirements
-        "User passwords will adhere to the minimal password strength policy."
-    moderate_password
-        "User passwords will adhere to the moderate password strength policy."
-    strong_password
-        "User passwords will adhere to the very strong password strength policy."
-
 struct PasswordPolicyArg
-    password_strength_policy PasswordStrengthPolicy
+    password_strength_policy team_policies.PasswordStrengthPolicy
         "Password strength policy to set."
 
 route set_password_requirements(PasswordPolicyArg, async.LaunchEmptyResult, AdministrationError)
@@ -250,14 +243,6 @@ route change_reseller_support(ChangeResellerSupportArg, Void, ChangeResellerSupp
 # route configure_sso
 #
 
-union SsoPolicy
-    disabled
-        "Users will be able to sign in with their Dropbox credentials."
-    optional
-        "Users will be able to sign in with either their Dropbox or single sign-on credentials."
-    required
-        "Users will be required to sign in with their single sign-on credentials."
-
 union SamlNameIdFormat
     email
         "Email."
@@ -268,17 +253,17 @@ union SamlNameIdFormat
 
 
 struct ConfigureSsoArg
-    sso_policy SsoPolicy
+    sso_policy team_policies.SsoPolicy
         "SSO policy to set."
 
     sign_in_url String?
-        "Sign in URL. Users will be redirected to this page to sign in. Required when :field:`ConfigureSsoArg.sso_policy` is not :field:`SsoPolicy.disabled`."
+        "Sign in URL. Users will be redirected to this page to sign in. Required when :field:`ConfigureSsoArg.sso_policy` is not team_policies.SsoPolicy.disabled."
 
     saml_cert String?
-        "SAML certificate. Required when :field:`ConfigureSsoArg.sso_policy` is not :field:`SsoPolicy.disabled`."
+        "SAML certificate. Required when :field:`ConfigureSsoArg.sso_policy` is not team_policies.SsoPolicy.disabled."
 
     nameid_format SamlNameIdFormat?
-        "SAML name ID format. Default value for this field is :field:`SamlNameIdFormat.email` (relevant only when :field:`ConfigureSsoArg.sso_policy` is not :field:`SsoPolicy.disabled`)."
+        "SAML name ID format. Default value for this field is :field:`SamlNameIdFormat.email` (relevant only when :field:`ConfigureSsoArg.sso_policy` is not team_policies.SsoPolicy.disabled)."
 
     sign_out_url String?
         "Sign out URL. Users will be redirected to this page after they logout of Dropbox. This field is optional."
