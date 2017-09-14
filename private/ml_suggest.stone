@@ -14,17 +14,23 @@ union SuggestType
 struct SuggestResult
     "Describes one suggested folder/project."
 
-    folderId UInt64
+    folder_id UInt64
         "The id of the folder/project."
 
     name String
         "name of folder/project"
 
-    isProject Boolean
+    is_project Boolean
         "Is result project or folder."
 
     score Float64
         "The score of the suggestion (higher is better)."
+
+    example default
+        folder_id = 58143
+        name = "My folder"
+        is_project = false
+        score = 0.9
 
 struct DocEditor
     "Describes one editor and the editing times."
@@ -35,6 +41,10 @@ struct DocEditor
     edits_ts List(UInt64)
         "List of edits timestamps (seconds since epoch)."
 
+    example default
+        id = 12098
+        edits_ts = [10500000, 10500001]
+
 struct IdNameDescriptor
     "Provides a unique id and name of Project or Folder"
 
@@ -43,6 +53,10 @@ struct IdNameDescriptor
 
     name String
         "The name of the project or folder"
+
+    example default
+        id = 58143
+        name = "My folder"
 
 
 struct SuggestPaperFoldersRequest
@@ -83,6 +97,19 @@ struct SuggestPaperFoldersRequest
 
     req_type SuggestType
         "Do fast suggest or run full logic."
+
+    example default
+        doc_id = "uaSvRuxvnkFa12PTkBv5q"
+        title = "My doc"
+        create_time = 15000000
+        creator = 12098
+        editors = [default]
+        viewers = [12098]
+        sharing_policy = default
+        invites = []
+        recent_projects = [default]
+        recent_folders = [default]
+        req_type = full
 
 struct SuggestPaperFoldersResponse
     "Response struct for suggest_paper_folder route."

@@ -1,194 +1,468 @@
-namespace files
+namespace file_properties
+    "This namespace contains helper entities for property and property/template endpoints."
 
-import properties
+alias TemplateId = String(min_length=1,pattern="(/|ptid:).*")
+alias PathOrId = String(pattern="/(.|[\\r\\n])*|id:.*|(ns:[0-9]+(/.*)?)")
+alias Id = String(min_length=1)
 
 #
-# Property Group routes
+# Core data types
 #
 
-route properties/add(PropertyGroupWithPath, Void, AddPropertiesError)
-    "Add custom properties to a file using a filled property template.
-    See properties/template/add to create new property templates."
+struct PropertyField
+    "Raw key/value data to be associated with a Dropbox file. Properties are added to Dropbox
+    files as a :type:`PropertyGroup`."
 
-    attrs
-        api_group="properties"
-        is_preview=true
-        allow_app_folder_app = true
-
-route properties/overwrite(PropertyGroupWithPath, Void, InvalidPropertyGroupError)
-    "Overwrite custom properties from a specified template
-    associated with a file."
-
-    attrs
-        api_group="properties"
-        is_preview=true
-        allow_app_folder_app = true
-
-route properties/update(UpdatePropertyGroupArg, Void, UpdatePropertiesError)
-    "Add, update or remove custom properties from a specified template
-    associated with a file. Fields that already exist and not described in
-    the request will not be modified."
-
-    attrs
-        api_group="properties"
-        is_preview=true
-        allow_app_folder_app = true
-
-route properties/remove(RemovePropertiesArg, Void, RemovePropertiesError)
-    "Remove all custom properties from a specified template associated with a file.
-    To remove specific property key value pairs, see :route:`properties/update`.
-    To update a property template, see properties/template/update.
-    Property templates can't be removed once created."
-
-    attrs
-        api_group="properties"
-        is_preview=true
-        allow_app_folder_app = true
-
-route properties/template/get(properties.GetPropertyTemplateArg, properties.GetPropertyTemplateResult, properties.PropertyTemplateError)
-    "Get the schema for a specified template."
-
-    attrs
-        api_group="properties"
-        is_preview=true
-        allow_app_folder_app = true
-
-route properties/template/list(Void, properties.ListPropertyTemplateIds, properties.PropertyTemplateError)
-    "Get the property template identifiers for a user. To get the schema of
-    each template use :route:`properties/template/get`."
-
-    attrs
-        api_group="properties"
-        is_preview=true
-        allow_app_folder_app = true
-
-struct RemovePropertiesArg
-    path properties.PathOrId
-        "A unique identifier for the file."
-    property_template_ids List(properties.TemplateId)
-        "A list of identifiers for a property template created by route properties/template/add."
+    name String
+        "Key of the property associated with a file and template.
+        Keys can be up to 256 bytes."
+    value String
+        "Value of the property associated with a file and template.
+        Values can be up to 1024 bytes."
 
     example default
-        path = "/my_awesome/word.docx"
-        property_template_ids = ["ptid:1a5n2i6d3OYEAAAAAAAAAYa"]
+        name = "Security Policy"
+        value = "Confidential"
 
-struct PropertyGroupWithPath
-    path properties.PathOrId
-        "A unique identifier for the file."
-    property_groups List(properties.PropertyGroup)
-        "Filled custom property templates associated with a file."
+struct PropertyGroup
+    "A logical grouping of properties whose structure is defined by a template.
+    Properties are always added to a Dropbox file as a :type:`PropertyGroup`.
+    The possible key names and value types in this group are defined by the
+    corresponding :type:`PropertyGroupTemplate`."
+
+    template_id TemplateId
+        "A unique identifier for the associated template."
+    fields List(PropertyField)
+        "The actual properties associated with the template. There can be up to 32
+        property types per template."
+
+    example default
+        template_id = "ptid:1a5n2i6d3OYEAAAAAAAAAYa"
+        fields = [default]
+
+struct PropertyFieldTemplate
+    "Defines how a single property may be structured. Used exclusively by :type:`PropertyGroupTemplate`."
+
+    name String
+        "Key of the property being described. File property keys can be up to 256 bytes."
+    description String
+        "Description of the property. File property descriptions can be up to 1024 bytes."
+    type PropertyType
+        "Data type of the value of this property. This type
+        will be enforced upon property creation and modifications."
+        union
+            "Data type of the given property added."
+
+            string
+                "The associated property will be of type string. Unicode is supported."
+
+            example default
+                string = null
+
+    example default
+        name = "Security Policy"
+        description = "This is the security policy of the file or folder described.
+        Policies can be Confidential, Public or Internal."
+        type = default
+
+struct PropertyGroupTemplate
+    "Defines how a group of properties may be structured."
+
+    name String
+        "Display name for the template. Template names can
+        be up to 256 bytes."
+    description String
+        "Description for the template. Template descriptions
+        can be up to 1024 bytes."
+    fields List(PropertyFieldTemplate)
+        "Definitions of the properties associated with this template.
+        There can be up to 64 properties in a single template."
+
+    example default
+        name = "Security"
+        description = "These properties describe how confidential this file or folder is."
+        fields = [default]
+
+#
+# Property routes
+#
+
+struct AddPropertiesArg
+    path PathOrId
+        "A unique identifier for the file or folder."
+    property_groups List(PropertyGroup)
+        "The group of properties, associated with a template, which are to be added to a Dropbox file."
 
     example default
         path = "/my_awesome/word.docx"
         property_groups = [default]
 
-struct UpdatePropertyGroupArg
-    path properties.PathOrId
-        "A unique identifier for the file."
-    update_property_groups List(PropertyGroupUpdate)
-        "Filled custom property templates associated with a file."
+union LookupError
+    malformed_path String
+    not_found
+        "There is nothing at the given path."
+    not_file
+        "We were expecting a file, but the given path refers to something that isn't a file."
+    not_folder
+        "We were expecting a folder, but the given path refers to something that isn't a folder."
+    restricted_content
+        "The file cannot be transferred because the content is restricted.  For example,
+        sometimes there are legal restrictions due to copyright claims."
+
+union LookUpPropertiesError
+    property_group_not_found
+        "No property with the associated key and template information was found."
+
+union TemplateError
+    template_not_found TemplateId
+        "Template does not exist for the given identifier."
+    restricted_content
+        "You do not have permission to modify this template."
+
+union PropertiesError extends TemplateError
+    path LookupError
+    unsupported_folder
+        "This folder cannot be tagged. Shared folders and team folders are not supported for team-owned tags."
+
+union InvalidPropertyGroupError extends PropertiesError
+    property_field_too_large
+        "One or more of the supplied property values is too large."
+    does_not_fit_template
+        "One or more of the supplied properties does not conform to the template specifications."
+
+union AddPropertiesError extends InvalidPropertyGroupError
+    property_group_already_exists
+        "A property group associated with this template and file already exists."
+
+route properties/add(AddPropertiesArg, Void, AddPropertiesError)
+    "Add properties to a Dropbox file. Properties must be associated with a template.
+    See :route:`templates/add_for_user` or :route:`templates/add_for_team` to create new templates."
+
+    attrs
+        api_group="properties"
+        is_preview=true
+        allow_app_folder_app = true
+        owner = "api-platform"
+
+struct OverwritePropertyGroupArg
+    path PathOrId
+        "A unique identifier for the file or folder."
+    property_groups List(PropertyGroup)
+        "Properties and the IDs of the templates to which they should be added."
 
     example default
         path = "/my_awesome/word.docx"
-        update_property_groups = [default]
+        property_groups = [default]
+
+route properties/overwrite(OverwritePropertyGroupArg, Void, InvalidPropertyGroupError)
+    "Overwrite properties associated with the supplied file and templates."
+
+    attrs
+        api_group="properties"
+        is_preview=true
+        allow_app_folder_app = true
+        owner = "api-platform"
 
 struct PropertyGroupUpdate
-    template_id properties.TemplateId
+    template_id TemplateId
         "A unique identifier for a property template."
-    add_or_update_fields List(properties.PropertyField)?
-        "List of property fields to update if the field already exists. If the field doesn't exist,
-        add the field to the property group."
+    add_or_update_fields List(PropertyField)?
+        "Property groups to update. If the property group already exists, it is updated.
+        If the property group doesn't exist, the property group is added."
     remove_fields List(String)?
-        "List of property field names to remove from property group if the field exists."
+        "Properties to remove (by name), provided they exist."
 
     example default
         template_id = "ptid:1a5n2i6d3OYEAAAAAAAAAYa"
         add_or_update_fields = [default]
         remove_fields = []
 
-union AddPropertiesError extends InvalidPropertyGroupError
-    property_group_already_exists
-        "This property group already exists for this file."
+struct UpdatePropertiesArg
+    path PathOrId
+        "A unique identifier for the file or folder."
+    update_property_groups List(PropertyGroupUpdate)
+        "The group of properties, associated with a template, which are to be added to a Dropbox file."
+
+    example default
+        path = "/my_awesome/word.docx"
+        update_property_groups = [default]
 
 union UpdatePropertiesError extends InvalidPropertyGroupError
     property_group_lookup LookUpPropertiesError
 
+route properties/update(UpdatePropertiesArg, Void, UpdatePropertiesError)
+    "Add, update or remove properties associated with the supplied file and templates.
+    Properties which already exist and are not described in the request will not be modified."
+
+    attrs
+        api_group="properties"
+        is_preview=true
+        allow_app_folder_app = true
+        owner = "api-platform"
+
+struct RemovePropertiesArg
+    path PathOrId
+        "A unique identifier for the file or folder."
+    property_template_ids List(TemplateId)
+        "A list of identifiers for a template created by :route:`templates/add_for_user` or
+        :route:`templates/add_for_team`."
+
+    example default
+        path = "/my_awesome/word.docx"
+        property_template_ids = ["ptid:1a5n2i6d3OYEAAAAAAAAAYa"]
+
 union RemovePropertiesError extends PropertiesError
     property_group_lookup LookUpPropertiesError
 
-union_closed LookUpPropertiesError
-    property_group_not_found
-        "This property group does not exist for this file."
-
-union InvalidPropertyGroupError extends PropertiesError
-    property_field_too_large
-        "A field value in this property group is too large."
-    does_not_fit_template
-        "The property group specified does not conform to the property template."
-
-union PropertiesError extends properties.PropertyTemplateError
-    path properties.LookupError
-
-#
-# Patched /get_metadata that can return properties
-#
-
-route alpha/get_metadata (AlphaGetMetadataArg, Metadata, AlphaGetMetadataError)
-    "Returns the metadata for a file or folder. This is an alpha endpoint
-    compatible with the properties API.
-
-    Note: Metadata for the root folder is unsupported."
+route properties/remove(RemovePropertiesArg, Void, RemovePropertiesError)
+    "Remove the specified property group from the file. To remove specific property key
+    value pairs, see route :route:`properties/update`. To update a template, see route
+    `templates/update_for_<owner_type>`."
 
     attrs
         api_group="properties"
         is_preview=true
         allow_app_folder_app = true
+        owner = "api-platform"
 
-struct AlphaGetMetadataArg extends GetMetadataArg
-    include_property_templates List(properties.TemplateId)?
-        "If set to a valid list of template IDs,
-        :field:`FileMetadata.property_groups` is set for files with custom
-        properties."
+#
+# Property Group Template Routes
+#
+
+struct AddTemplateArg extends PropertyGroupTemplate
+    "Arguments for adding templates."
 
     example default
-        path = "/Homework/math"
+        name = "Security"
+        description = "These properties describe how confidential this file or folder is."
+        fields = [default]
 
-    example id
-        path = "id:a4ayc_80_OEAAAAAAAAAYa"
+struct AddTemplateResult
+    template_id TemplateId
+        "An identifier for template added by  See :route:`templates/add_for_user` or
+        :route:`templates/add_for_team`."
 
-    example rev
-        path = "rev:a1c10ce0dd78"
+    example default
+        template_id = "ptid:1a5n2i6d3OYEAAAAAAAAAYa"
 
-union_closed AlphaGetMetadataError extends GetMetadataError
-    properties_error LookUpPropertiesError
+union ModifyTemplateError extends TemplateError
+    conflicting_property_names
+        "A property key already exists in the template."
+    too_many_properties
+        "There are too many properties in the changed template.
+        The maximum number of properties per template is 32."
+    too_many_templates
+        "There are too many templates for the team."
+    template_attribute_too_large
+        "The template name, description or one or more of the property keys is too large."
 
-#
-# Patched /upload that accepts properties
-#
-
-route alpha/upload (CommitInfoWithProperties, FileMetadata, UploadErrorWithProperties)
-    "Create a new file with the contents provided in the request. Note that this
-    endpoint is part of the properties API alpha and is slightly different from
-    :route:`upload`.
-
-    Do not use this to upload a file larger than 150 MB. Instead, create an
-    upload session with :route:`upload_session/start`."
+route templates/add_for_user(AddTemplateArg, AddTemplateResult, ModifyTemplateError)
+    "Add a template associated with a user. See route :route:`properties/add` to add properties to a file."
 
     attrs
-        host="content"
-        style="upload"
         api_group="properties"
         is_preview=true
-        allow_app_folder_app = true
+        owner = "api-platform"
 
-struct CommitInfoWithProperties extends CommitInfo
-    property_groups List(properties.PropertyGroup)?
-        "List of custom properties to add to file."
+route templates/add_for_team(AddTemplateArg, AddTemplateResult, ModifyTemplateError)
+    "Add a template associated with a team. See route :route:`properties/add` to add properties to a file or folder."
+
+    attrs
+        auth="team"
+        api_group="properties"
+        is_preview=true
+        owner = "api-platform"
+
+struct GetTemplateArg
+    template_id TemplateId
+        "An identifier for template added by route  See :route:`templates/add_for_user` or
+        :route:`templates/add_for_team`."
 
     example default
-        path = "/Homework/math/Matrices.txt"
-        autorename = true
+        template_id = "ptid:1a5n2i6d3OYEAAAAAAAAAYa"
+
+struct GetTemplateResult extends PropertyGroupTemplate
+
+    example default
+        name = "Security"
+        description = "These properties describe how confidential this file or folder is."
+        fields = [default]
+
+route templates/get_for_user(GetTemplateArg, GetTemplateResult, TemplateError)
+    "Get the schema for a specified template."
+
+    attrs
+        api_group="properties"
+        is_preview=true
+        owner = "api-platform"
+
+route templates/get_for_team(GetTemplateArg, GetTemplateResult, TemplateError)
+    "Get the schema for a specified template."
+
+    attrs
+        auth="team"
+        api_group="properties"
+        is_preview=true
+        owner = "api-platform"
+
+struct UpdateTemplateArg
+    template_id TemplateId
+        "An identifier for template added by  See :route:`templates/add_for_user` or
+        :route:`templates/add_for_team`."
+    name String?
+        "A display name for the template. template names can
+        be up to 256 bytes."
+    description String?
+        "Description for the new template. Template descriptions
+        can be up to 1024 bytes."
+    add_fields List(PropertyFieldTemplate)?
+        "Property templates to be added to the group template.
+        There can be up to 64 properties in a single template."
+
+    example default
+        template_id = "ptid:1a5n2i6d3OYEAAAAAAAAAYa"
+        name = "New Security Template Name"
+        description = "These properties will describe how confidential this file or folder is."
+        add_fields = [default]
+
+struct UpdateTemplateResult
+    template_id TemplateId
+        "An identifier for template added by route  See :route:`templates/add_for_user` or
+        :route:`templates/add_for_team`."
+
+    example default
+        template_id = "ptid:1a5n2i6d3OYEAAAAAAAAAYa"
+
+route templates/update_for_user(UpdateTemplateArg, UpdateTemplateResult, ModifyTemplateError)
+    "Update a template associated with a user. This route can update the template name,
+    the template description and add optional properties to templates."
+
+    attrs
+        api_group="properties"
+        is_preview=true
+        owner = "api-platform"
+
+route templates/update_for_team(UpdateTemplateArg, UpdateTemplateResult, ModifyTemplateError)
+    "Update a template associated with a team. This route can update the template name,
+    the template description and add optional properties to templates."
+
+    attrs
+        auth="team"
+        api_group="properties"
+        is_preview=true
+        owner = "api-platform"
+
+struct ListTemplateResult
+    template_ids List(TemplateId)
+        "List of identifiers for templates added by  See :route:`templates/add_for_user` or
+        :route:`templates/add_for_team`."
+
+    example default
+        template_ids = ["ptid:1a5n2i6d3OYEAAAAAAAAAYa"]
+
+route templates/list_for_user(Void, ListTemplateResult, TemplateError)
+    "Get the template identifiers for a team. To get the schema of
+    each template use :route:`templates/get_for_user`."
+
+    attrs
+        api_group="properties"
+        is_preview=true
+        owner = "api-platform"
+
+route templates/list_for_team(Void, ListTemplateResult, TemplateError)
+    "Get the template identifiers for a team. To get the schema of
+    each template use :route:`templates/get_for_team`."
+
+    attrs
+        auth="team"
+        api_group="properties"
+        is_preview=true
+        owner = "api-platform"
+
+union TemplateOwnerType
+    user
+        "Template will be associated with a user."
+    team
+        "Template will be associated with a team."
+
+    example default
+        user = null
+
+union LogicalOperator
+    "Logical operator to join search queries together."
+
+    or_operator
+        "Append a query with an \"or\" operator."
+
+    example default
+        or_operator = null
+
+union PropertiesSearchMode
+    field_name String
+        "Search for a value associated with this field name."
+
+    example default
+        field_name = "Security"
+
+struct PropertiesSearchQuery
+    query String
+        "The property field value for which to search across templates."
+    mode PropertiesSearchMode
+        "The mode with which to perform the search."
+    logical_operator LogicalOperator = or_operator
+        "The logical operator with which to append the query."
+
+    example default
+        query = "Confidential"
+        mode = default
+        logical_operator = default
+
+union TemplateFilter
+    filter_none
+        "No templates will be filtered from the result (all templates will be returned)."
+    filter_some List(TemplateId, min_items=1)
+        "Only templates with an ID in the supplied list will be returned (a subset of
+        templates will be returned)."
+
+    example default
+        filter_none = null
+
+struct PropertiesSearchArg
+    queries List(PropertiesSearchQuery, min_items=1)
+        "Queries to search."
+    template_filter TemplateFilter = filter_none
+        "Filter results to contain only properties associated with these template IDs."
+
+    example default
+        queries = [default]
+        template_filter = default
+
+struct PropertiesSearchMatch
+    id Id
+        "The ID for the matched file or folder."
+    path String
+        "The path for the matched file or folder."
+    property_groups List(PropertyGroup)
+        "List of custom properties associated with the file."
+
+    example default
+        id = "id:a4ayc_80_OEAAAAAAAAAXz"
+        path =  "/my_awesome/word.docx"
         property_groups = [default]
 
-union UploadErrorWithProperties extends UploadError
-    properties_error InvalidPropertyGroupError
+struct PropertiesSearchResult
+    matches List(PropertiesSearchMatch)
+        "A list (possibly empty) of matches for the query."
+
+    example default
+        matches = [default]
+
+union PropertiesSearchError
+    property_group_lookup LookUpPropertiesError
+
+route properties/search(PropertiesSearchArg, PropertiesSearchResult, PropertiesSearchError)
+    "Search across property templates for particular values."
+
+    attrs
+        api_group="properties"
+        is_preview=true

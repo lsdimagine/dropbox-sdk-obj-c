@@ -210,6 +210,7 @@ route get_previewable_extensions (Void, PreviewableExtensionsResult, Void)
     "Get supported file extensions for previewing."
 
     attrs
+        auth = "app"
         owner = "api-platform"
         allow_app_folder_app = true
 
@@ -371,6 +372,8 @@ struct InternalTreeViewFoldersEntry
         "True when the folder is a shared folder."
     icon String
         "For web client, provides the icon file name for this folder."
+    fileid String
+        "The FileID of this folder."
 
     example default
         path = "/homework/math"
@@ -378,6 +381,7 @@ struct InternalTreeViewFoldersEntry
         has_subdirs = true
         is_shared = false
         icon = "folder"
+        fileid = "gpCFGeZSQgAAAAAAAAAi7g"
 
 
 struct DialogInfoError
@@ -463,6 +467,8 @@ union RestorePathBatchError
         this request."
     multiple_parent_paths
         "The entries have different parent paths."
+    entries_not_restored
+        "Some entries could not be restored."
 
 struct RestorePathBatchResult
     count UInt32

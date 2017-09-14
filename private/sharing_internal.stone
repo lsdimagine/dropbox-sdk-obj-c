@@ -255,3 +255,23 @@ union ContentId
 
     file_id FileId
     shared_folder_id common.SharedFolderId
+
+struct FetchUserContentLinkArg
+    url String
+        "URL of the shared link to fetch user content link for."
+
+    example default
+        url = "https://www.dropbox.com/scl/fi/abcdefg"
+
+struct FetchUserContentLinkResult
+    blockserver_link String
+        "URL of the blockserver user content link."
+
+    example default
+        blockserver_link = "https://www.dropboxusercontent.com/content_link/EqcHti4YGGmMw1cV/file?dl=1"
+
+route fetch_user_content_link(FetchUserContentLinkArg, FetchUserContentLinkResult, SharedLinkError)
+    "Fetch blockserver user content link for Direct Download."
+
+    attrs
+        owner = "sharing"

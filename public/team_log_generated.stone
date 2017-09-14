@@ -705,18 +705,6 @@ struct JoinTeamDetails
         linked_devices = [default2]
         linked_shared_folders = [default2]
 
-struct PaperTaggedValue 
-    "Paper tagged value."
-
-    ptag String
-        "Tag."
-
-    example default
-        ptag = "abc"
-
-    example default2
-        ptag = "xyz"
-
 struct Certificate 
     "Certificate details."
 
@@ -1769,21 +1757,6 @@ struct PaperContentArchiveDetails
     example default
         event_uuid = "abc"
 
-struct PaperContentChangeSubscriptionDetails
-    "Followed or unfollowed a Paper doc or folder."
-
-    event_uuid String
-        "Event unique identifier."
-    new_subscription_level PaperTaggedValue
-        "New subscription level."
-    previous_subscription_level PaperTaggedValue?
-        "Previous subscription level. Might be missing due to historical data gap."
-
-    example default
-        event_uuid = "abc"
-        new_subscription_level = default
-        previous_subscription_level = default
-
 struct PaperContentCreateDetails
     "Created a Paper doc or folder."
 
@@ -1876,6 +1849,21 @@ struct PaperDocChangeSharingPolicyDetails
         event_uuid = "abc"
         public_sharing_policy = "abc"
         team_sharing_policy = "abc"
+
+struct PaperDocChangeSubscriptionDetails
+    "Followed or unfollowed a Paper doc."
+
+    event_uuid String
+        "Event unique identifier."
+    new_subscription_level String
+        "New doc subscription level."
+    previous_subscription_level String?
+        "Previous doc subscription level. Might be missing due to historical data gap."
+
+    example default
+        event_uuid = "abc"
+        new_subscription_level = "every"
+        previous_subscription_level = "no_email"
 
 struct PaperDocDeletedDetails
     "Paper doc archived."
@@ -2017,6 +2005,21 @@ struct PaperDocViewDetails
 
     example default
         event_uuid = "abc"
+
+struct PaperFolderChangeSubscriptionDetails
+    "Followed or unfollowed a Paper folder."
+
+    event_uuid String
+        "Event unique identifier."
+    new_subscription_level String
+        "New folder subscription level."
+    previous_subscription_level String?
+        "Previous folder subscription level. Might be missing due to historical data gap."
+
+    example default
+        event_uuid = "abc"
+        new_subscription_level = "activity_only"
+        previous_subscription_level = "weekly_emails"
 
 struct PaperFolderDeletedDetails
     "Paper folder archived."
@@ -3643,8 +3646,6 @@ union EventDetails
         "Added Paper doc or folder to a folder."
     paper_content_archive_details PaperContentArchiveDetails
         "Archived Paper doc or folder."
-    paper_content_change_subscription_details PaperContentChangeSubscriptionDetails
-        "Followed or unfollowed a Paper doc or folder."
     paper_content_create_details PaperContentCreateDetails
         "Created a Paper doc or folder."
     paper_content_permanently_delete_details PaperContentPermanentlyDeleteDetails
@@ -3663,6 +3664,8 @@ union EventDetails
         "Changed the access type of a Paper doc member."
     paper_doc_change_sharing_policy_details PaperDocChangeSharingPolicyDetails
         "Changed the sharing policy for Paper doc."
+    paper_doc_change_subscription_details PaperDocChangeSubscriptionDetails
+        "Followed or unfollowed a Paper doc."
     paper_doc_deleted_details PaperDocDeletedDetails
         "Paper doc archived."
     paper_doc_delete_comment_details PaperDocDeleteCommentDetails
@@ -3691,6 +3694,8 @@ union EventDetails
         "Unresolved a Paper doc comment."
     paper_doc_view_details PaperDocViewDetails
         "Viewed Paper doc."
+    paper_folder_change_subscription_details PaperFolderChangeSubscriptionDetails
+        "Followed or unfollowed a Paper folder."
     paper_folder_deleted_details PaperFolderDeletedDetails
         "Paper folder archived."
     paper_folder_followed_details PaperFolderFollowedDetails
@@ -4183,8 +4188,6 @@ union EventType
         "Added Paper doc or folder to a folder."
     paper_content_archive
         "Archived Paper doc or folder."
-    paper_content_change_subscription
-        "Followed or unfollowed a Paper doc or folder."
     paper_content_create
         "Created a Paper doc or folder."
     paper_content_permanently_delete
@@ -4203,6 +4206,8 @@ union EventType
         "Changed the access type of a Paper doc member."
     paper_doc_change_sharing_policy
         "Changed the sharing policy for Paper doc."
+    paper_doc_change_subscription
+        "Followed or unfollowed a Paper doc."
     paper_doc_deleted
         "Paper doc archived. This event is deprecated and will not be logged going forward as the associated product functionality no longer exists."
     paper_doc_delete_comment
@@ -4214,7 +4219,7 @@ union EventType
     paper_doc_edit_comment
         "Edited a Paper doc comment."
     paper_doc_followed
-        "Followed a Paper doc. This event is replaced by paper_content_change_subscription and will not be logged going forward."
+        "Followed a Paper doc. This event is replaced by paper_doc_change_subscription and will not be logged going forward."
     paper_doc_mention
         "Mentioned a member in a Paper doc."
     paper_doc_request_access
@@ -4231,10 +4236,12 @@ union EventType
         "Unresolved a Paper doc comment."
     paper_doc_view
         "Viewed Paper doc."
+    paper_folder_change_subscription
+        "Followed or unfollowed a Paper folder."
     paper_folder_deleted
         "Paper folder archived. This event is deprecated and will not be logged going forward as the associated product functionality no longer exists."
     paper_folder_followed
-        "Followed a Paper folder. This event is replaced by paper_content_change_subscription and will not be logged going forward."
+        "Followed a Paper folder. This event is replaced by paper_folder_change_subscription and will not be logged going forward."
     paper_folder_team_invite
         "Paper folder shared with team member. This event is deprecated and will not be logged going forward as the associated product functionality no longer exists."
     password_change
