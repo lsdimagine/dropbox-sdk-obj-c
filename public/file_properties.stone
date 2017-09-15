@@ -1,5 +1,27 @@
 namespace file_properties
-    "This namespace contains helper entities for property and property/template endpoints."
+    "This namespace contains helpers for property and template metadata endpoints.
+
+
+    These endpoints enable you to tag arbitrary key/value data to Dropbox files.
+
+
+    The most basic unit in this namespace is the :type:`PropertyField`. These fields encapsulate the
+    actual key/value data.
+
+
+    Fields are added to a Dropbox file using a :type:`PropertyGroup`. Property groups contain a
+    reference to a Dropbox file and a :type:`PropertyGroupTemplate`. Property groups are uniquely
+    identified by the combination of their associated Dropbox file and template.
+
+
+    The :type:`PropertyGroupTemplate` is a way of restricting the possible key names and value types
+    of the data within a property group. The possible key names and value types are explicitly
+    enumerated using :type:`PropertyFieldTemplate` objects.
+
+
+    You can think of a property group template as a class definition for a particular key/value
+    metadata object, and the property groups themselves as the instantiations of these objects.
+    "
 
 alias TemplateId = String(min_length=1,pattern="(/|ptid:).*")
 alias PathOrId = String(pattern="/(.|[\\r\\n])*|id:.*|(ns:[0-9]+(/.*)?)")
@@ -10,14 +32,14 @@ alias Id = String(min_length=1)
 #
 
 struct PropertyField
-    "Raw key/value data to be associated with a Dropbox file. Properties are added to Dropbox
+    "Raw key/value data to be associated with a Dropbox file. Property fields are added to Dropbox
     files as a :type:`PropertyGroup`."
 
     name String
-        "Key of the property associated with a file and template.
+        "Key of the property field associated with a file and template.
         Keys can be up to 256 bytes."
     value String
-        "Value of the property associated with a file and template.
+        "Value of the property field associated with a file and template.
         Values can be up to 1024 bytes."
 
     example default
@@ -25,7 +47,7 @@ struct PropertyField
         value = "Confidential"
 
 struct PropertyGroup
-    "A logical grouping of properties whose structure is defined by a template.
+    "A subset of the property fields described by the corresponding :type:`PropertyGroupTemplate`.
     Properties are always added to a Dropbox file as a :type:`PropertyGroup`.
     The possible key names and value types in this group are defined by the
     corresponding :type:`PropertyGroupTemplate`."
@@ -41,20 +63,20 @@ struct PropertyGroup
         fields = [default]
 
 struct PropertyFieldTemplate
-    "Defines how a single property may be structured. Used exclusively by :type:`PropertyGroupTemplate`."
+    "Defines how a single property field may be structured. Used exclusively by :type:`PropertyGroupTemplate`."
 
     name String
-        "Key of the property being described. File property keys can be up to 256 bytes."
+        "Key of the property field being described. Property field keys can be up to 256 bytes."
     description String
-        "Description of the property. File property descriptions can be up to 1024 bytes."
+        "Description of the property field. Property field descriptions can be up to 1024 bytes."
     type PropertyType
-        "Data type of the value of this property. This type
+        "Data type of the value of this property field. This type
         will be enforced upon property creation and modifications."
         union
-            "Data type of the given property added."
+            "Data type of the given property field added."
 
             string
-                "The associated property will be of type string. Unicode is supported."
+                "The associated property field will be of type string. Unicode is supported."
 
             example default
                 string = null
@@ -66,7 +88,7 @@ struct PropertyFieldTemplate
         type = default
 
 struct PropertyGroupTemplate
-    "Defines how a group of properties may be structured."
+    "Defines how a property group may be structured."
 
     name String
         "Display name for the template. Template names can
@@ -75,8 +97,8 @@ struct PropertyGroupTemplate
         "Description for the template. Template descriptions
         can be up to 1024 bytes."
     fields List(PropertyFieldTemplate)
-        "Definitions of the properties associated with this template.
-        There can be up to 64 properties in a single template."
+        "Definitions of the property fields associated with this template.
+        There can be up to 32 properties in a single template."
 
     example default
         name = "Security"
@@ -91,7 +113,7 @@ struct AddPropertiesArg
     path PathOrId
         "A unique identifier for the file or folder."
     property_groups List(PropertyGroup)
-        "The group of properties, associated with a template, which are to be added to a Dropbox file."
+        "The property groups which are to be added to a Dropbox file."
 
     example default
         path = "/my_awesome/word.docx"
@@ -111,7 +133,7 @@ union LookupError
 
 union LookUpPropertiesError
     property_group_not_found
-        "No property with the associated key and template information was found."
+        "No property group was found."
 
 union TemplateError
     template_not_found TemplateId
@@ -126,17 +148,17 @@ union PropertiesError extends TemplateError
 
 union InvalidPropertyGroupError extends PropertiesError
     property_field_too_large
-        "One or more of the supplied property values is too large."
+        "One or more of the supplied property field values is too large."
     does_not_fit_template
-        "One or more of the supplied properties does not conform to the template specifications."
+        "One or more of the supplied property fields does not conform to the template specifications."
 
 union AddPropertiesError extends InvalidPropertyGroupError
     property_group_already_exists
         "A property group associated with this template and file already exists."
 
 route properties/add(AddPropertiesArg, Void, AddPropertiesError)
-    "Add properties to a Dropbox file. Properties must be associated with a template.
-    See :route:`templates/add_for_user` or :route:`templates/add_for_team` to create new templates."
+    "Add property groups to a Dropbox file. See :route:`templates/add_for_user` or
+    :route:`templates/add_for_team` to create new templates."
 
     attrs
         api_group="properties"
@@ -147,15 +169,19 @@ route properties/add(AddPropertiesArg, Void, AddPropertiesError)
 struct OverwritePropertyGroupArg
     path PathOrId
         "A unique identifier for the file or folder."
-    property_groups List(PropertyGroup)
-        "Properties and the IDs of the templates to which they should be added."
+    property_groups List(PropertyGroup, min_items=1)
+        "The property groups \"snapshot\" updates to force apply."
 
     example default
         path = "/my_awesome/word.docx"
         property_groups = [default]
 
 route properties/overwrite(OverwritePropertyGroupArg, Void, InvalidPropertyGroupError)
-    "Overwrite properties associated with the supplied file and templates."
+    "Overwrite property groups associated with a file. This endpoint should be used
+    instead of :route:`properties/update` when property groups are being updated via a
+    \"snapshot\" instead of via a \"delta\". In other words, this endpoint will delete all
+    omitted fields from a property group, whereas :route:`properties/update` will only
+    delete fields that are explicitly marked for deletion."
 
     attrs
         api_group="properties"
@@ -167,10 +193,10 @@ struct PropertyGroupUpdate
     template_id TemplateId
         "A unique identifier for a property template."
     add_or_update_fields List(PropertyField)?
-        "Property groups to update. If the property group already exists, it is updated.
-        If the property group doesn't exist, the property group is added."
+        "Property fields to update. If the property field already exists, it is updated.
+        If the property field doesn't exist, the property group is added."
     remove_fields List(String)?
-        "Properties to remove (by name), provided they exist."
+        "Property fields to remove (by name), provided they exist."
 
     example default
         template_id = "ptid:1a5n2i6d3OYEAAAAAAAAAYa"
@@ -181,7 +207,7 @@ struct UpdatePropertiesArg
     path PathOrId
         "A unique identifier for the file or folder."
     update_property_groups List(PropertyGroupUpdate)
-        "The group of properties, associated with a template, which are to be added to a Dropbox file."
+        "The property groups \"delta\" updates to apply."
 
     example default
         path = "/my_awesome/word.docx"
@@ -192,7 +218,10 @@ union UpdatePropertiesError extends InvalidPropertyGroupError
 
 route properties/update(UpdatePropertiesArg, Void, UpdatePropertiesError)
     "Add, update or remove properties associated with the supplied file and templates.
-    Properties which already exist and are not described in the request will not be modified."
+    This endpoint should be used instead of :route:`properties/overwrite` when property groups
+    are being updated via a \"delta\" instead of via a \"snapshot\" . In other words, this endpoint
+    will not delete any omitted fields from a property group, whereas :route:`properties/overwrite`
+    will delete any fields that are omitted from a property group."
 
     attrs
         api_group="properties"
@@ -215,9 +244,10 @@ union RemovePropertiesError extends PropertiesError
     property_group_lookup LookUpPropertiesError
 
 route properties/remove(RemovePropertiesArg, Void, RemovePropertiesError)
-    "Remove the specified property group from the file. To remove specific property key
-    value pairs, see route :route:`properties/update`. To update a template, see route
-    `templates/update_for_<owner_type>`."
+    "Remove the specified property group from the file. To remove specific property field key
+    value pairs, see route :route:`properties/update`. To update a template, see
+    :route:`templates/update_for_user` or :route:`templates/update_for_team`. Templates can't
+    be removed once created."
 
     attrs
         api_group="properties"
@@ -230,8 +260,6 @@ route properties/remove(RemovePropertiesArg, Void, RemovePropertiesError)
 #
 
 struct AddTemplateArg extends PropertyGroupTemplate
-    "Arguments for adding templates."
-
     example default
         name = "Security"
         description = "These properties describe how confidential this file or folder is."
@@ -247,14 +275,14 @@ struct AddTemplateResult
 
 union ModifyTemplateError extends TemplateError
     conflicting_property_names
-        "A property key already exists in the template."
+        "A property field key with that name already exists in the template."
     too_many_properties
         "There are too many properties in the changed template.
         The maximum number of properties per template is 32."
     too_many_templates
         "There are too many templates for the team."
     template_attribute_too_large
-        "The template name, description or one or more of the property keys is too large."
+        "The template name, description or one or more of the property field keys is too large."
 
 route templates/add_for_user(AddTemplateArg, AddTemplateResult, ModifyTemplateError)
     "Add a template associated with a user. See route :route:`properties/add` to add properties to a file."
@@ -316,8 +344,8 @@ struct UpdateTemplateArg
         "Description for the new template. Template descriptions
         can be up to 1024 bytes."
     add_fields List(PropertyFieldTemplate)?
-        "Property templates to be added to the group template.
-        There can be up to 64 properties in a single template."
+        "Property field templates to be added to the group template.
+        There can be up to 32 properties in a single template."
 
     example default
         template_id = "ptid:1a5n2i6d3OYEAAAAAAAAAYa"
@@ -443,7 +471,7 @@ struct PropertiesSearchMatch
     path String
         "The path for the matched file or folder."
     property_groups List(PropertyGroup)
-        "List of custom properties associated with the file."
+        "List of custom property groups associated with the file."
 
     example default
         id = "id:a4ayc_80_OEAAAAAAAAAXz"
@@ -461,7 +489,7 @@ union PropertiesSearchError
     property_group_lookup LookUpPropertiesError
 
 route properties/search(PropertiesSearchArg, PropertiesSearchResult, PropertiesSearchError)
-    "Search across property templates for particular values."
+    "Search across property templates for particular property field values."
 
     attrs
         api_group="properties"
