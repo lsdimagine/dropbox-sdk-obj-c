@@ -1,10 +1,18 @@
 namespace security_settings
 
-route send_verify_email (Void, Void, Void)
+route send_verify_email (SendVerifyEmailArg, Void, Void)
     "Send a verification email to the currently authenticated user."
     attrs
         owner = "prodsec"
         is_preview = true
+
+struct SendVerifyEmailArg
+    verification_reason String
+        "The reason of verification email we want to send."
+
+    example verificationReason
+        "Resend email for paper use verification."
+        verification_reason = "paper_user"
 
 struct SendVerifyPendingEmailArg
     unverified_new_email String
